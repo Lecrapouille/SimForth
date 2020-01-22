@@ -1,0 +1,69 @@
+#
+# Inspired from https://github.com/github/gitignore
+#
+
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# OS
+._*
+*~
+*.DS_Store
+.Trashes
+.Trash-*
+
+# Logs
+*.log
+
+# Tarball
+*.tgz
+*.tar.gz
+*.zip
+*.deb
+
+# SimForth specifics
+build
+cov-int
+tests/build
+external/backward-cpp
+doc/html
+doc/coverage
+foo
+_*
+
+# Emacs
+*_flymake.cpp
+
+# Debian packages
+doc-pak
+description-pak

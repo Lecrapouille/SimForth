@@ -1,0 +1,10 @@
+January 2020: version 0.1
+        * Import initial code of SimForth from the SimTaDyn project.
+	* SimForth was tested in basic spreadsheets in replacement of Visual Basic.
+	* Can manage: interpret code from strings and files. has a basic system words,
+	  can call C functions (integer params), inclusion of files,
+	  code tracer, colorful dictionary display.
+	* Are not managed: words such as DOES> ." CONSTANT, structures.
+	* Dictionary rooms is bytes. Little and big endian are managed. Dictionary can
+	  be saved and loaded.
+

@@ -308,6 +308,29 @@ TEST(Utils, ChecktoNumber)
 }
 
 //------------------------------------------------------------------------------
+TEST(Utils, CheckFromAscii)
+{
+    forth::Cell number;
+    bool ret;
+
+    ret = forth::toNumber("'''", 10, number);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(number, forth::Cell(39));
+
+    ret = forth::toNumber("'r'", 10, number);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(number, forth::Cell(114));
+
+    ret = forth::toNumber("'R'", 10, number);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(number, forth::Cell(82));
+
+    // Control char not managed
+    ret = forth::toNumber("'\\n'", 10, number);
+    ASSERT_EQ(ret, false);
+}
+
+//------------------------------------------------------------------------------
 TEST(Utils, ChecktoNumberRealWord)
 {
     forth::Forth forth;

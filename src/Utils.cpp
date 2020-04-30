@@ -108,15 +108,14 @@ bool toInteger(std::string const& word, int base, Cell& number)
   // numeric value (e.g., ASCII code) an optional ' may be present
   // after the character
   else if ('\'' == word[i])
-    {
-      size_t s = word.size();
-      if ((2u == s) || ((3u == s) && ('\'' == word[i + 2])))
-        {
+  {
+      if ((3u == word.size()) && ('\'' == word[i + 2]))
+      {
           number = static_cast<Cell>(negative ? -word[i + 1] : word[i + 1]);
           return true;
-        }
+      }
       return false;
-    }
+  }
 
   // Try to convert the string into number
   try

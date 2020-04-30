@@ -132,7 +132,8 @@ Result Interpreter::interpret()
     {
         while (STREAM.split() || (m_interactive && (m_state == State::Compile)))
         {
-            std::string const& word = toUpper(STREAM.word());
+            std::string word = STREAM.word();
+            std::string upper_word = toUpper(STREAM.word());
 
             if (options.traces)
             {
@@ -154,7 +155,7 @@ Result Interpreter::interpret()
                     }
                     DPUSH(number);
                 }
-                else if (dictionary.findWord(word, xt, immediate))
+                else if (dictionary.findWord(upper_word, xt, immediate))
                 {
                     executeToken(xt);
                 }
@@ -177,7 +178,7 @@ Result Interpreter::interpret()
                     }
                     dictionary.compile(number);
                 }
-                else if (dictionary.findWord(word, xt, immediate))
+                else if (dictionary.findWord(upper_word, xt, immediate))
                 {
                     if (immediate)
                     {

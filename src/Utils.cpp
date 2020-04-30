@@ -165,6 +165,28 @@ bool toNumber(std::string const& word, int base, Cell& number)
 }
 
 //----------------------------------------------------------------------------
+std::string escapeString(std::string const msg)
+{
+    std::string s = "";
+    for (char c : msg)
+    {
+        unsigned char uc = static_cast<unsigned char>(c);
+        if (isprint(uc))
+        {
+            s += c;
+        }
+        else
+        {
+            std::stringstream stream;
+            stream << std::hex << static_cast<unsigned int>(uc);
+            std::string code = stream.str();
+            s += std::string("\\x")+(code.size()<2?"0":"")+code;
+        }
+    }
+    return s;
+}
+
+//----------------------------------------------------------------------------
 static struct termios orig_termios;
 static bool rawmode = false;
 

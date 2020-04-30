@@ -307,6 +307,13 @@ bool toInteger(std::string const& word, int base, Cell& number);
 bool toFloat(std::string const& word, Cell& number);
 
 // ***************************************************************************
+//! \brief Escape unprintable character stored in a string
+//! \param[in] msg the string with possible invisble char.
+//! \return the string with exposed invisble char.
+// ***************************************************************************
+std::string escapeString(std::string const msg);
+
+// ***************************************************************************
 //! \brief Try converting a string into a integer value.
 //! \fixme To be reworked
 //! \param word (in) the number to convert.

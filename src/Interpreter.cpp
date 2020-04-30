@@ -160,7 +160,7 @@ Result Interpreter::interpret()
                 }
                 else
                 {
-                    std::string msg("Unknown word '" + word + "'");
+                    std::string msg("Unknown word '" + escapeString(word) + "'");
                     THROW(msg);
                 }
             }
@@ -194,7 +194,7 @@ Result Interpreter::interpret()
                 }
                 else
                 {
-                    std::string msg("Unknown word '" + word + "'");
+                    std::string msg("Unknown word '" + escapeString(word) + "'");
                     THROW(msg);
                 }
             }

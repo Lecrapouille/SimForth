@@ -130,7 +130,7 @@ Result Interpreter::interpret()
 
     try
     {
-        while (STREAM.split())
+        while (STREAM.split() || (m_interactive && (m_state == State::Compile)))
         {
             std::string const& word = toUpper(STREAM.word());
 

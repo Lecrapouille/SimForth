@@ -29,7 +29,7 @@
 namespace forth
 {
 
-static const std::string SPACES = " \t\n";
+static const std::string SPACES = " \t\n\v\f\r";
 
 //****************************************************************************
 //! \brief Modern version of the classical Forth Terminal Input Buffer.

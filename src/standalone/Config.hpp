@@ -21,8 +21,10 @@
 #ifndef CONFIG_HPP_
 #  define CONFIG_HPP_
 
-#  include "Singleton.tpp"
-#  include "Path.hpp"
+#  include "utils/Singleton.tpp"
+#  include "utils/Path.hpp"
+#  include "utils/File.hpp"
+#  include "utils/Logger.hpp"
 #  include "version.h"
 
 // **************************************************************
@@ -30,14 +32,14 @@
 // **************************************************************
 class Config:
   public Path,
-  public Singleton<Config>
+  public LongLifeSingleton<Config>
 {
 private:
 
   //------------------------------------------------------------------
   //! \brief Mandatory by design.
   //------------------------------------------------------------------
-  friend class Singleton<Config>;
+  friend class LongLifeSingleton<Config>;
 
   //------------------------------------------------------------------
   //! \brief Private because of Singleton.
@@ -74,9 +76,8 @@ namespace config
   //! (when called  by the shell command: sudo make install).
   const std::string data_path(PROJECT_DATA_PATH);
   //! \brief Location for storing temporary files
-  const std::string tmp_path(false == separated_logs ?
-                                    PROJECT_TEMP_DIR :
-                                    File::generateTempFileName(PROJECT_TEMP_DIR, "/"));
+  const std::string tmp_path(false == separated_logs ? PROJECT_TEMP_DIR :
+                             File::generateTempFileName(PROJECT_TEMP_DIR, "/"));
   //! \brief Give a name to the default project log file.
   const std::string log_name(project_name + ".log");
   //! \brief Define the full path for the project.

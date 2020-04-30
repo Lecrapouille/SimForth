@@ -8,3 +8,15 @@ January 2020: version 0.1
 	* Dictionary rooms is bytes. Little and big endian are managed. Dictionary can
 	  be saved and loaded.
 
+April 2020: version 0.2
+        * Reworked version of SimTaDyn Forth: the code has been totally remade.
+	* Unit tests have been added to the project as well as continous integration.
+	* Faster execution time over version 0.1.
+	* Interactive prompt added with word auto-completion.
+	* More user firendly tracer.
+	* Data stack cells are union between integer and float can hold pointers to C functions.
+	* Can execute simple Forth scripts such a displaying Legacy-OpenGL primitives.
+	* Dictionary rooms are 16-bits words.
+	* More system words have been added such as ."
+	* Are not managed: words such as DOES> CONSTANT, structures.
+	* Regressions: little/big endian compatibility. Cannot store bytes directly in the dictionary.

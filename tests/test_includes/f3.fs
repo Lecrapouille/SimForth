@@ -1,4 +1,0 @@
-BASE10?
-
-BIN
-BASE2?

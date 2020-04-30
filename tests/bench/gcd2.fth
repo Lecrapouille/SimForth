@@ -1,0 +1,17 @@
+: D0= ( d d -- f ) + 0= ;
+
+: GCD2 ( A B -- GCD )
+   2DUP        D0= IF  2DROP 1 EXIT   THEN
+   DUP          0= IF   DROP   EXIT   THEN
+   SWAP DUP     0= IF   DROP   EXIT   THEN
+   BEGIN  2DUP -
+   WHILE  2DUP < IF OVER -
+	 ELSE SWAP OVER - SWAP
+	 THEN
+   REPEAT NIP ;
+
+: GCD2-BENCH 1000 0 DO
+      1000 0 DO J I GCD2 DROP LOOP
+   LOOP ;
+
+GCD2-BENCH

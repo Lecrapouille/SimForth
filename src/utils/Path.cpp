@@ -28,7 +28,7 @@ Path::Path()
 
 Path::Path(std::string const& path)
 {
-  split(path);
+    split(path);
 }
 
 Path::~Path()
@@ -38,112 +38,122 @@ Path::~Path()
 //! \brief add a directory in the path
 void Path::add(std::string const& path)
 {
-  if (!path.empty())
+    if (!path.empty())
     {
-      LOGI("Path::add '%s'", path.c_str());
-      split(path);
+        LOGI("Path::add '%s'", path.c_str());
+        split(path);
     }
-  else
+    else
     {
-      LOGI("Ignoring Path::add '%s'", path.c_str());
+        LOGI("Ignoring Path::add '%s'", path.c_str());
     }
 }
 
 //! \brief add a directory in the path
 void Path::reset(std::string const& path)
 {
-  LOGI("%s", "Path::clear()");
-  m_search_paths.clear();
-  split(path);
+    LOGI("%s", "Path::clear()");
+    m_search_paths.clear();
+    split(path);
 }
 
 void Path::clear()
 {
-  m_search_paths.clear();
-  m_string_path.clear();
+    m_search_paths.clear();
+    m_string_path.clear();
 }
 
 void Path::remove(std::string const& path)
 {
-  LOGI("Path::remove '%s'", path.c_str());
-  m_search_paths.remove(path);
-  update();
+    LOGI("Path::remove '%s'", path.c_str());
+    m_search_paths.remove(path);
+    update();
 }
 
 std::pair<std::string, bool> Path::find(std::string const& filename) const
 {
-  if (File::exist(filename))
-    return std::make_pair(filename, true);
+    if (File::exist(filename))
+        return std::make_pair(filename, true);
 
-  if (!m_stack_path.empty())
+    if (!m_stack_path.empty())
     {
-      std::string temporary_file;
-      temporary_file = top();
-      temporary_file += filename;
-      if (File::exist(temporary_file))
-        return std::make_pair(temporary_file, true);
+        std::string temporary_file;
+        temporary_file = top();
+        temporary_file += filename;
+        if (File::exist(temporary_file))
+            return std::make_pair(temporary_file, true);
     }
 
-  for (auto const& it: m_search_paths)
+    for (auto const& it: m_search_paths)
     {
-      std::string file(it + filename);
-      if (File::exist(file))
-        return std::make_pair(file, true);
+        std::string file(it + filename);
+        if (File::exist(file))
+            return std::make_pair(file, true);
     }
 
-  // Not found
-  return std::make_pair(std::string(), false);
+    // Not found
+    return std::make_pair(std::string(), false);
 }
 
 std::string Path::expand(std::string const& filename) const
 {
-  for (auto const& it: m_search_paths)
+    if (File::exist(filename))
     {
-      std::string file(it + filename);
-      if (File::exist(file))
-        return file;
+        LOGD("Path::expand found: ./%s", filename.c_str());
+        return filename;
     }
 
-  return filename;
+    for (auto const& it: m_search_paths)
+    {
+        std::string file(it + filename);
+        if (File::exist(file))
+        {
+            LOGD("Path::expand found: %s", file.c_str());
+            return file;
+        }
+    }
+
+    LOGD("Path::expand not found");
+    return filename;
 }
 
 std::string const &Path::toString() const
 {
-  return m_string_path;
+    return m_string_path;
 }
 
 void Path::update()
 {
-  m_string_path.clear();
-  m_string_path += ".";
-  m_string_path += m_delimiter;
-  if (!m_stack_path.empty())
+    m_string_path.clear();
+    m_string_path += ".";
+    m_string_path += m_delimiter;
+    if (!m_stack_path.empty())
     {
-      m_string_path += top();
-      m_string_path += m_delimiter;
+        m_string_path += top();
+        m_string_path += m_delimiter;
     }
-  for (auto const& it: m_search_paths)
+    for (auto const& it: m_search_paths)
     {
-      m_string_path += it;
-      m_string_path.pop_back(); // Remove the '/' char
-      m_string_path += m_delimiter;
+        m_string_path += it;
+        m_string_path.pop_back(); // Remove the '/' char
+        m_string_path += m_delimiter;
     }
 }
 
 void Path::split(std::string const& path)
 {
-  std::stringstream ss(path);
-  std::string directory;
+    std::stringstream ss(path);
+    std::string directory;
 
-  while (std::getline(ss, directory, m_delimiter))
+    while (std::getline(ss, directory, m_delimiter))
     {
-      if (directory.empty())
-        continue ;
+        if (directory.empty())
+            continue ;
 
-      if ((*directory.rbegin() == '\\') || (*directory.rbegin() == '/'))
-        m_search_paths.push_back(directory);
-      else
-        m_search_paths.push_back(directory + "/");
+        if ((*directory.rbegin() == '\\') || (*directory.rbegin() == '/'))
+            m_search_paths.push_back(directory);
+        else
+            m_search_paths.push_back(directory + "/");
     }
-  update();
+    update();
 }

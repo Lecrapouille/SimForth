@@ -1,0 +1,596 @@
+//==============================================================================
+// SimInterpreter: A Interpreter for SimTaDyn.
+// Copyright 2018-2020 Quentin Quadrat <lecrapouille@gmail.com>
+//
+// This file is part of SimInterpreter.
+//
+// SimInterpreter is free software: you can redistribute it and/or modify it
+// under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful, but
+// WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with SimInterpreter.  If not, see <http://www.gnu.org/licenses/>.
+//==============================================================================
+
+#include "Interpreter.hpp"
+#include "Primitives.hpp"
+#include "Exceptions.hpp"
+#include "Streams.hpp"
+#include "Utils.hpp"
+
+namespace forth
+{
+
+#define CHECK_UNDERFLOW(S, xt)                              \
+    if (S.hasUnderflowed()) {                               \
+        THROW(S.name() + "-Stack underflow caused by word " \
+              + dictionary.token2name(xt));                 \
+    }
+
+#define CHECK_OVERFLOW(S, xt)                               \
+    if (S.hasOverflowed()) {                                \
+        THROW(S.name() + "-Stack overflow caused by word "  \
+              + dictionary.token2name(xt));                 \
+    }
+
+//----------------------------------------------------------------------------
+Interpreter::Interpreter(Dictionary& dico, StreamStack& streams,
+                         Options const& options_)
+    : dictionary(dico),
+      SS(streams),
+      m_clibs(m_path),
+      options(options_)
+{}
+
+//----------------------------------------------------------------------------
+Interpreter::~Interpreter()
+{
+    //FIXME SS.reset();
+    while (SS.depth() > 0)
+        popStream();
+}
+
+//----------------------------------------------------------------------------
+void Interpreter::abort()
+{
+    m_state = State::Interprete;
+    dictionary.restore();
+    DS.reset();
+    AS.reset();
+    RS.reset();
+    m_level = 0;
+
+    if (m_interactive)
+    {
+        // Discard all streams except the first stream that we have to reset
+        while (SS.pick(0)->name() != "Interactive")
+            popStream();
+        if (SS.depth() == 1)
+            SS.pick(0)->reset();
+    }
+    else
+    {
+        //FIXME SS.reset();
+        while (SS.depth() > 0)
+            popStream();
+    }
+    restoreOutStates();
+}
+
+//----------------------------------------------------------------------------
+void Interpreter::setOptions(Options const& options_)
+{
+    options = options_;
+}
+
+//----------------------------------------------------------------------------
+bool Interpreter::ok(Result const& result)
+{
+    if (result.res)
+    {
+        if (!options.quiet)
+        {
+            std::cout << FORTH_SUCESS_COLOR << result.msg
+                      << DEFAULT_COLOR << std::endl;
+        }
+    }
+    else
+    {
+        std::pair<size_t, size_t> p = STREAM.cursor();
+        std::cerr << FORTH_ERROR_COLOR << "[ERROR] from "
+                  << STREAM.name() << ':'
+                  << p.first << ':'
+                  << p.second << ":\n        "
+                  << result.msg
+                  << DEFAULT_COLOR << std::endl;
+        abort();
+    }
+
+    if (!options.quiet && options.show_stack)
+    {
+        DS.display(std::cout, m_base);
+        AS.display(std::cout, m_base);
+    }
+
+    return result.res;
+}
+
+//----------------------------------------------------------------------------
+Result Interpreter::interpret()
+{
+    Cell number;
+    Token xt;
+    bool immediate;
+
+    try
+    {
+        while (STREAM.split())
+        {
+            std::string const& word = toUpper(STREAM.word());
+
+            if (options.traces)
+            {
+                std::cout << "\nNext stream word is " << word << std::endl;
+            }
+            //TODO if (!State::Comment && word.size() > 32) THROW error;
+            //TODO if (stream.hasErrored()) return { false, stream.error() };
+
+            if (m_state == State::Interprete)
+            {
+                if (toNumber(word, m_base, number))
+                {
+                    if (options.traces)
+                    {
+                        std::cout << "\n================================\n"
+                                  << DS.name() << "-Stack push "
+                                  << ((number.tag == Cell::Tag::INT) ? "integer " : "float ")
+                                  << number << "\n";
+                    }
+                    DPUSH(number);
+                }
+                else if (dictionary.findWord(word, xt, immediate))
+                {
+                    executeToken(xt);
+                }
+                else
+                {
+                    std::string msg("Unknown word '" + word + "'");
+                    THROW(msg);
+                }
+            }
+            else
+            {
+                assert(m_state == State::Compile);
+                if (toNumber(word, m_base, number))
+                {
+                    if (options.traces)
+                    {
+                        std::cout << "Compile "
+                                  << ((number.tag == Cell::Tag::INT) ? "integer " : "float ")
+                                  << number << "\n";
+                    }
+                    dictionary.compile(number);
+                }
+                else if (dictionary.findWord(word, xt, immediate))
+                {
+                    if (immediate)
+                    {
+                        if (options.traces)
+                            std::cout << "Execute immediate word " << word << "\n";
+                        executeToken(xt);
+                    }
+                    else
+                    {
+                        if (options.traces)
+                            std::cout << "Compile word " << word << "\n";
+                        dictionary.append(xt);
+                    }
+                }
+                else
+                {
+                    std::string msg("Unknown word '" + word + "'");
+                    THROW(msg);
+                }
+            }
+        }
+
+        // End of the stream. Check for errors
+        if (STREAM.error().size() == 0u)
+        {
+            if (m_state != State::Interprete)
+                return { false, "Unfinished state while reached EOF" };
+            return { true, "    ok" };
+        }
+        return { false, STREAM.error() };
+    }
+    catch (Exception const& e)
+    {
+        if (e.message() == "bye") // TODO dirty
+            return {};
+        LOGC("Caught Forth Exception '%s'", e.what());
+        return { false, e.message() };
+    }
+    catch (std::exception const& e)
+    {
+        LOGC("Caught general Exception '%s'", e.what());
+        return { false, e.what() };
+    }
+}
+
+//------------------------------------------------------------------------------
+bool Interpreter::interpretFile(char const* filepath)
+{
+    std::string fullpath = m_path.expand(filepath);
+    SS.push(std::make_unique<FileStream>(fullpath.c_str(), m_base));
+    bool ret = ok(interpret());
+    popStream();
+    return ret;
+}
+
+//------------------------------------------------------------------------------
+bool Interpreter::interpretString(char const* script)
+{
+    SS.push(std::make_unique<StringStream>(script, m_base));
+    bool ret = ok(interpret());
+    popStream();
+    return ret;
+}
+
+//------------------------------------------------------------------------------
+bool Interpreter::interactive()
+{
+    bool ret = true;
+
+    m_interactive = true;
+    SS.push(std::make_unique<InteractiveStream>(dictionary, m_base));
+    while (m_interactive)
+    {
+        ret = ret & ok(interpret());
+    }
+    return ret;
+}
+
+//----------------------------------------------------------------------------
+void Interpreter::executeToken(Token xt)
+{
+    if (!options.traces)
+    {
+        quietExecuteToken(xt);
+    }
+    else
+    {
+        verboseExecuteToken(xt);
+    }
+}
+
+//----------------------------------------------------------------------------
+void Interpreter::quietExecuteToken(Token xt)
+{
+    IP = 65535u;
+
+    do
+    {
+        while (!isPrimitive(xt))
+        {
+            RS.push(IP);
+            CHECK_OVERFLOW(RS, xt);
+            IP = xt;
+            xt = dictionary[++IP];
+            if (IP >= dictionary.here())
+            {
+                THROW("Tried to execute a token outside the last definition");
+            }
+        }
+
+        executePrimitive(xt);
+
+        if (IP != 65535U)
+        {
+            xt = dictionary[++IP];
+            if (IP >= dictionary.here())
+            {
+                THROW("Tried to execute a token outside the last definition");
+            }
+        }
+    }
+    while (RS.depth() > 0);
+
+    CHECK_OVERFLOW(DS, xt);
+}
+
+//----------------------------------------------------------------------------
+void Interpreter::indent()
+{
+    if (m_level > 0)
+        std::cout << std::string(size_t(m_level), '\t');
+}
+
+//----------------------------------------------------------------------------
+#define KEY_UNPRESSED  '\0'
+#define KEY_SKIP       's'
+#define KEY_CONTINUE   'c'
+#define KEY_ABORT      'a'
+
+static char question()
+{
+    Cell k;
+
+    std::cout << "\n";
+    do {
+        std::cout << LITERAL_COLOR
+                << "c: Continue? s: Skip? a: Abort?"
+                << DEFAULT_COLOR << std::endl;
+        k = key(false);
+        std::cout << "\n";
+    } while ((k.i != KEY_CONTINUE) && (k.i != KEY_SKIP) && (k.i != KEY_ABORT));
+    std::cout << "\n";
+
+    return char(k.i);
+}
+
+//----------------------------------------------------------------------------
+void Interpreter::verboseExecuteToken(Token xt)
+{
+    char key_pressed = KEY_UNPRESSED;
+    Token skip = Primitives::NOP;
+    IP = 65535u;
+
+    std::cout << "\n================================\n"
+              << "Execute word " << dictionary.token2name(xt) << "   "
+              << "(xt: " << std::hex << xt << std::dec << ")\n"
+              << "Initial Stacks:\n"
+              << "  "; DS.display(std::cout, m_base);
+    std::cout << "  "; AS.display(std::cout, m_base);
+    std::cout << "  "; RS.display(std::cout, 16);
+    std::cout << "\n";
+
+    do
+    {
+        //std::cout << "Key? " << (key_pressed ==  KEY_SKIP) << std::endl;
+        while (!isPrimitive(xt))
+        {
+            std::string name = dictionary.token2name(xt);
+            if (key_pressed != KEY_SKIP)
+            {
+                indent();
+                std::cout << "Word " << SECONDARY_WORD_COLOR
+                          << name << DEFAULT_COLOR
+                          << " is not a primitive:\n";
+                dictionary.display(&dictionary[xt], m_base, Token(dictionary[xt] + 1u));
+            }
+
+            if (m_interactive)
+            {
+                // Stop skipping the word
+                if ((key_pressed == KEY_SKIP) && (IP == skip))
+                    key_pressed = KEY_UNPRESSED;
+
+                std::cout << "\n";
+                if (key_pressed == KEY_UNPRESSED)
+                {
+                    std::cout << LITERAL_COLOR
+                              << "\nStep inside " << name
+                              << " or skip it for the next word: "
+                              << dictionary.token2name(dictionary[Token(IP + 1u)])
+                              << " (IP=" << std::hex << IP + 1u
+                              << std::dec << ") ?";
+
+                    key_pressed = question();
+                    if (key_pressed == KEY_SKIP)
+                    {
+                        skip = Token(IP + 1u);
+                    }
+                    else if (key_pressed == KEY_CONTINUE)
+                    {
+                        key_pressed = KEY_UNPRESSED;
+                    }
+                    else if (key_pressed == KEY_ABORT)
+                    {
+                        std::cout << "Aborting debug ...\n";
+                        abort();
+                        return ;
+                    }
+                }
+                else
+                {
+                    indent();
+                    std::cout << std::dec  // FIXME std::dec
+                              << "Skip secondary " << SECONDARY_WORD_COLOR
+                              << name << DEFAULT_COLOR << std::endl;
+                }
+            }
+
+            RS.push(IP);
+            if (key_pressed != KEY_SKIP)
+            {
+                indent(); std::cout << "Push IP=" << std::hex << IP
+                                    << std::dec << " in " << RS.name()
+                                    << "-Stack\n";
+                indent(); RS.display(std::cout, 16); std::cout << "\n";
+            }
+            CHECK_OVERFLOW(RS, xt);
+
+            IP = xt;
+            xt = dictionary[++IP];
+            if (IP >= dictionary.here())
+            {
+                THROW("Tried to execute a token outside the last definition");
+            }
+            ++m_level;
+            //if (key_pressed != KEY_SKIP)
+            {
+                indent(); std::cout << "At IP " << std::hex << IP
+                                    << std::dec
+                                    << " current token is: "
+                                    << dictionary.token2name(xt) << "\n";
+            }
+        }
+
+        if (m_interactive)
+        {
+            if ((key_pressed == KEY_SKIP) && (IP == skip))
+            {
+                std::cout << "End of skipping. IP="
+                          << std::hex << IP << std::dec << "\n";
+                dictionary.display(&dictionary[IP], m_base, IP);
+                key_pressed = KEY_UNPRESSED;
+            }
+        }
+
+        // if (key_pressed != KEY_SKIP)
+        {
+            indent();
+            std::cout << std::dec // FIXME std::dec
+                      << "Word " << PRIMITIVE_WORD_COLOR
+                      << dictionary.token2name(xt) << DEFAULT_COLOR
+                      << " is a primitive";
+        }
+
+        if (m_interactive)
+        {
+            if (key_pressed != KEY_SKIP)
+            {
+                std::cout << LITERAL_COLOR
+                          << "\n\nPress any key to execute it\n"
+                          << DEFAULT_COLOR;
+                key(false);
+            }
+        }
+        else
+        {
+            std::cout << " execute it\n";
+        }
+
+        executePrimitive(xt);
+        if (key_pressed != KEY_SKIP)
+        {
+            std::cout << "\n"; indent(); std::cout << "Stacks:\n";
+            indent(); std::cout << "  "; DS.display(std::cout, m_base);
+            indent(); std::cout << "  "; AS.display(std::cout, m_base);
+            indent(); std::cout << "  "; RS.display(std::cout, 16);
+        }
+
+        if (IP != 65535U)
+        {
+            if (key_pressed != KEY_SKIP)
+            {
+                Token nextIP = Token(IP + 1);
+                if ((xt == Primitives::PLITERAL) ||
+                    (xt == Primitives::BRANCH) ||
+                    (xt == Primitives::ZERO_BRANCH))
+                {
+                    nextIP = Token(nextIP + 1); // Token
+                    // TODO afficher les 2 branches
+                }
+                else if ((xt == Primitives::PILITERAL) ||
+                         (xt == Primitives::PFLITERAL))
+                {
+                    nextIP = Token(nextIP + size::cell / size::token);
+                }
+                else if (xt == Primitives::PSLITERAL)
+                {
+                    nextIP = Token(nextIP + dictionary[Token(IP + 1u)]);
+                }
+
+                std::cout << "\nDefinition continues with IP="
+                          << std::hex << nextIP << std::dec << " "
+                          << dictionary.token2name(dictionary[nextIP]) << ":\n";
+                dictionary.display(&dictionary[nextIP], m_base, nextIP);
+                std::cout << "\n";
+            }
+        }
+
+        Token s = xt;
+        if (IP != 65535U)
+        {
+            xt = dictionary[++IP];
+            if (IP >= dictionary.here())
+            {
+                THROW("Tried to execute a token outside the last definition");
+            }
+        }
+
+        if (s == Primitives::EXIT)
+            --m_level;
+
+        std::cout << "\n";
+    }
+    while (RS.depth() > 0);
+
+    std::cout << "Final Stacks:\n";
+    std::cout << "  "; DS.display(std::cout, m_base);
+    std::cout << "  "; AS.display(std::cout, m_base);
+    std::cout << "  "; RS.display(std::cout, 16);
+
+    CHECK_OVERFLOW(DS, xt);
+}
+
+//----------------------------------------------------------------------------
+bool Interpreter::isPrimitive(Token const xt)
+{
+    return xt < Primitives::MAX_PRIMITIVES_;
+}
+
+//----------------------------------------------------------------------------
+void Interpreter::pushStream(std::string const& filepath)
+{
+    // TODO assert max depth
+    LOGI("Push stream %d: %s", SS.depth() + 1, filepath.c_str());
+    SS.push(std::make_unique<FileStream>(filepath.c_str(), m_base));
+}
+
+//----------------------------------------------------------------------------
+void Interpreter::popStream()
+{
+    if (SS.depth() == 0)
+    {
+        LOGW("Tried to pop stream while empty");
+        return ;
+    }
+    LOGI("Pop stream %d: %s", SS.depth(), SS.pick(0)->name().c_str());
+
+    // note: std::move also forces closing file descriptor when leaving this
+    // function.
+    StreamPtr stream = std::move(SS.pick(0));
+    m_base = stream->base();
+    SS.drop();
+}
+
+//----------------------------------------------------------------------------
+void Interpreter::include(std::string const& filepath)
+{
+    LOGI("include '%s'", filepath.c_str());
+
+    pushStream(filepath);
+    Result result = interpret();
+    if (result.res) // Success
+    {
+        if (options.traces) // Display more debug info
+        {
+            result.msg.append(" parsed ").append(filepath);
+            ok(result);
+        }
+        popStream();
+    }
+    else // Failure
+    {
+        // Concat error message with previous included streams
+        std::pair<size_t, size_t> p = STREAM.cursor();
+        std::string msg("including " + STREAM.name() + ':'
+                        + std::to_string(p.first) + ':'
+                        + std::to_string(p.second) + ":\n        "
+                        + result.msg);
+        popStream();
+
+        // Call exception that will be caught by the interpret()
+        THROW(msg);
+    }
+}
+
+} // namespace forth

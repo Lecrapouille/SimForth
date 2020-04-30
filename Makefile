@@ -25,7 +25,7 @@ PROJECT = SimForth
 TARGET = $(PROJECT)
 DESCRIPTION = A basic Forth for SimTaDyn
 BUILD_TYPE = debug
-CXXFLAGS = -W -Wall -Wextra
+#USE_GPROF=1
 
 ###################################################
 # Location of the project directory and Makefiles
@@ -38,7 +38,7 @@ include $(M)/Makefile.header
 # Inform Makefile where to find header files
 #
 INCLUDES += \
-  -I$(P)/src -I$(P)/src/utils
+  -I$(P)/include -I$(P)/src -I$(P)/src/utils
 
 ###################################################
 # Inform Makefile where to find *.cpp and *.o files
@@ -52,8 +52,8 @@ VPATH += \
 OBJS_UTILS = \
   Exception.o File.o ILogger.o Logger.o Path.o
 OBJS_FORTH = \
-  ForthExceptions.o ForthStream.o ForthDictionary.o \
-  ForthPrimitives.o ForthClibrary.o Forth.o
+  Utils.o Exceptions.o LibC.o Streams.o Dictionary.o Display.o \
+  Interpreter.o Primitives.o Forth.o
 OBJS = $(OBJS_UTILS) $(OBJS_FORTH) main.o
 
 ###################################################
@@ -61,14 +61,16 @@ OBJS = $(OBJS_UTILS) $(OBJS_FORTH) main.o
 #
 DEFINES += \
   -DPROJECT_TEMP_DIR=\"/tmp/$(TARGET)/\" \
-  -DPROJECT_DATA_PATH=\"$(PWD)/data:$(PROJECT_DATA_PATH)\"
+  -DPROJECT_DATA_PATH=\"$(PWD)/core:$(PROJECT_DATA_ROOT)/core\" \
+  -DDYLIB_EXT=\".$(SO)\"
 
 ###################################################
 # Set Libraries. For knowing which libraries
 # is needed please read the external/README.md file.
+# lreadline: for interactive prompt
+# ldl: for loading symbols in shared libraries
 #
-PKG_LIBS += \
-  gtkmm-3.0
+LINKER_FLAGS += -lreadline -ldl
 
 ###################################################
 # Compile the project
@@ -90,14 +92,8 @@ check: unit-tests
 # Install project. You need to be root.
 .PHONY: install
 install: $(TARGET)
-	@$(call RULE_INSTALL_DOC)
-	@cd examples && for d in `find . -type d`; do install -d --mode 755 "$$d" "$(PROJECT_DATA_ROOT)/examples/$$d"; done
-	@cd examples && for f in `find . -type f`; do install -D --mode 644 "$$f" "$(PROJECT_DATA_ROOT)/examples/$$f"; done
-	@$(call RULE_INSTALL_LIBRARIES)
-	@$(call RULE_INSTALL_HEADER_FILES)
-	@cd src && for d in `find . -type d`; do install -d --mode 755 "$$d" "$(INCLDIR)/$(PROJECT)/$$d"; done
-	@cd src && for f in `find . -type f -name "*.hpp"`; do install -D --mode 644 "$$f" "$(INCLDIR)/$(PROJECT)/$$f"; done
-	@$(call RULE_INSTALL_PKG_CONFIG)
+	@$(call INSTALL_DOCUMENTATION)
+	@$(call INSTALL_PROJECT_FOLDER,core)
 
 ###################################################
 # Uninstall the project. You need to be root. FIXME: to be updated
@@ -113,7 +109,6 @@ install: $(TARGET)
 veryclean: clean
 	@rm -fr cov-int $(PROJECT).tgz *.log foo 2> /dev/null
 	@(cd tests && $(MAKE) -s clean)
-	@(cd examples/ && $(MAKE) -s clean)
 	@$(call print-simple,"Cleaning","$(PWD)/doc/html")
 	@rm -fr $(THIRDPART)/*/ doc/html 2> /dev/null
 

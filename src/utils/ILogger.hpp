@@ -29,10 +29,13 @@
 #  include <string>
 #  include <iostream>
 
-namespace logger
+namespace tool { namespace log {
+
+enum Severity
 {
-  enum LoggerSeverity { None, Info, Debug, Warning, Failed, Error, Signal, Exception, Catch, Fatal, MaxLoggerSeverity = Fatal };
-}
+    None, Info, Debug, Warning, Failed, Error, Signal, Exception,
+    Catch, Fatal, MaxLoggerSeverity = Fatal
+};
 
 // **************************************************************
 //
@@ -43,7 +46,7 @@ public:
 
   virtual ~ILogger() {};
   void log(const char* format, ...);
-  void log(std::ostream *stream, enum logger::LoggerSeverity severity, const char* format, ...);
+  void log(std::ostream *stream, enum Severity severity, const char* format, ...);
   template <class T> ILogger& operator<<(const T& tolog);
   const char *strtime();
 
@@ -63,7 +66,7 @@ protected:
   std::mutex m_mutex;
   constexpr static const uint32_t c_buffer_size = 1024;
   char m_buffer[c_buffer_size];
-  enum logger::LoggerSeverity m_severity = logger::None;
+  enum Severity m_severity = None;
   char m_buffer_time[32];
   std::ostream *m_stream = nullptr;
 };
@@ -89,5 +92,7 @@ private:
   virtual void header() = 0;
   virtual void footer() = 0;
 };
+
+} } // namespace tool::log
 
 #endif /* ILOGGER_HPP_ */

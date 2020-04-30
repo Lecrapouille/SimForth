@@ -1,0 +1,100 @@
+language: cpp
+
+# AMD: little-endian
+# s390x: big-endian
+matrix:
+  archi:
+  - amd64
+  - s390x
+  include:
+  - os: linux
+    dist: bionic
+    compiler: gcc
+    env:
+      - COMPILER=g++-4.8
+      - GCOV=gcov-4.8
+    addons:
+      apt:
+        sources: ['ubuntu-toolchain-r-test']
+        packages: [g++-4.8]
+  - os: linux
+    dist: bionic
+    compiler: gcc
+    env:
+      - COMPILER=g++-5
+      - GCOV=gcov-5
+    addons:
+      apt:
+        sources: ['ubuntu-toolchain-r-test']
+        packages: [g++-5]
+  - os: linux
+    dist: bionic
+    compiler: gcc
+    env:
+      - COMPILER=g++-6
+      - GCOV=gcov-6
+    addons:
+      apt:
+        sources: ['ubuntu-toolchain-r-test']
+        packages: [g++-6]
+  - os: linux
+    dist: bionic
+    compiler: gcc
+    env:
+      - COMPILER=g++-7
+      - GCOV=gcov-7
+    addons:
+      apt:
+        sources: ['ubuntu-toolchain-r-test']
+        packages: [g++-7]
+#  - os: linux
+#    dist: bionic
+#    compiler: gcc
+#    env:
+#      - COMPILER=g++-8
+#      - GCOV=gcov-8
+#    addons:
+#      apt:
+#        sources: ['ubuntu-toolchain-r-test']
+#        packages: [g++-8]
+#  - os: linux
+#    dist: bionic
+#    compiler: gcc
+#    env:
+#      - COMPILER=g++-9
+#      - GCOV=gcov-9
+#    addons:
+#      apt:
+#        sources: ['ubuntu-toolchain-r-test']
+#        packages: [g++-9]
+
+
+before_install:
+ - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib64:/usr/local/lib64:/usr/local/lib/
+ - sudo apt-get -qq update
+ - sudo apt-get install -y libgtest-dev valgrind cmake libdw-dev libreadline-dev pkg-config bc
+ - sudo apt-get install -y gcovr lcov ruby-dev
+ - sudo gem install coveralls-lcov
+ - (cd /usr/bin && sudo ln -sf $GCOV gcov)
+ - sudo wget https://github.com/google/googletest/archive/release-1.10.0.tar.gz
+ - sudo tar xf release-1.10.0.tar.gz
+ - cd googletest-release-1.10.0
+ - sudo CXX=$COMPILER cmake -DBUILD_SHARED_LIBS=ON .
+ - sudo make install
+ - cd "${TRAVIS_BUILD_DIR}"
+
+# before_script:
+
+script:
+ - V=1 make CXX=$COMPILER -j8
+ - sudo make install
+ - V=1 make check CXX=$COMPILER -j8
+
+after_success:
+ - make coverall
+ - bash <(curl -s https://codecov.io/bash)
+
+branches:
+  only:
+    - master
+

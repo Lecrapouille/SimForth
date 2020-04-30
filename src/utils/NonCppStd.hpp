@@ -35,6 +35,8 @@ inline size_t ARRAY_SIZE(T (&)[S])
 //!
 //! Inspired by http://www.boost.org/doc/libs/1_66_0/boost/core/noncopyable.hpp
 // *****************************************************************************
+namespace util
+{
 class NonCopyable
 {
 protected:
@@ -45,6 +47,7 @@ protected:
   NonCopyable(const NonCopyable&) = delete;
   const NonCopyable& operator=(const NonCopyable&) = delete;
 };
+} // namespace util
 
 // *****************************************************************************
 //! \brief Forward declaration of classes with shared and unique
@@ -112,8 +115,7 @@ namespace std
 // Hack for allowing std::make_unique to create instances of class having a
 // protected constructor (private constructor does not work).
 // *****************************************************************************
-
-namespace glwrap
+namespace util
 {
   //! \brief Proxy class deriving of the desired class T having a protected
   //! constructor.
@@ -147,7 +149,7 @@ namespace glwrap
   {
     return std::make_shared<Derived<T>>(std::move(args)...);
   }
-} // namespace glwrap
+} // namespace util
 
 // *****************************************************************************
 //! \brief One of the most used optimization used in Linux kernel. When

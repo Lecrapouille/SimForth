@@ -1,0 +1,5 @@
+# The ultimate Forth Benchmark
+
+https://theultimatebenchmark.org/
+
+NOTE: Please compile SimForth in release mode (edit Makefile) else debug option add extra stuffs slowing down the binary.

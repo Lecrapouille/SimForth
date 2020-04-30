@@ -22,20 +22,22 @@
 #include "utils/File.hpp"
 #include <cstring>
 
+namespace tool { namespace log {
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
-static const char *c_str_severity[logger::MaxLoggerSeverity + 1] =
+static const char *c_str_severity[Severity::MaxLoggerSeverity + 1] =
   {
-    [logger::None]      = "",
-    [logger::Info]      = "[INFO]",
-    [logger::Debug]     = "[DEBUG]",
-    [logger::Warning]   = "[WARNING]",
-    [logger::Failed]    = "[FAILURE]",
-    [logger::Error]     = "[ERROR]",
-    [logger::Signal]    = "[SIGNAL]",
-    [logger::Exception] = "[THROW]",
-    [logger::Catch]     = "[CATCH]",
-    [logger::Fatal]     = "[FATAL]"
+    [Severity::None]      = "",
+    [Severity::Info]      = "[INFO]",
+    [Severity::Debug]     = "[DEBUG]",
+    [Severity::Warning]   = "[WARNING]",
+    [Severity::Failed]    = "[FAILURE]",
+    [Severity::Error]     = "[ERROR]",
+    [Severity::Signal]    = "[SIGNAL]",
+    [Severity::Exception] = "[THROW]",
+    [Severity::Catch]     = "[CATCH]",
+    [Severity::Fatal]     = "[FATAL]"
   };
 #pragma GCC diagnostic pop
 
@@ -92,7 +94,7 @@ bool Logger::open(std::string const& logfile)
   else
     {
       std::cout << "Log created: '" << file
-                << "'" << std::endl;
+                << "'" << std::endl << std::endl;
       header();
     }
   return true;
@@ -137,7 +139,7 @@ void Logger::header()
       "  git branch: %s\n"
       "  git SHA1: %s\n"
       "======================================================\n\n",
-      config::project_name,
+      config::project_name.c_str(),
       config::Debug == config::mode ? "Debug" : "Release",
       config::major_version,
       config::minor_version,
@@ -152,11 +154,11 @@ void Logger::footer()
   log("\n======================================================\n"
       "  %s log closed at %s\n"
       "======================================================\n\n",
-      config::project_name,
+      config::project_name.c_str(),
       m_buffer_time);
 }
 
-ILogger& Logger::operator<<(const logger::LoggerSeverity& severity)
+ILogger& Logger::operator<<(const Severity& severity)
 {
   write(c_str_severity[severity]);
   return *this;
@@ -167,3 +169,5 @@ ILogger& Logger::operator<<(const char *msg)
   write(msg);
   return *this;
 }
+
+} } // namespace tool::log

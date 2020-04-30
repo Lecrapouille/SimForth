@@ -1,8 +1,0 @@
-BASE10?
-
-HEX
-BASE16?
-
-INCLUDE f3.fs
-
-BASE16?

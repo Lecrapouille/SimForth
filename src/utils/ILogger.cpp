@@ -21,6 +21,8 @@
 #include "utils/ILogger.hpp"
 #include <cstring>
 
+namespace tool { namespace log {
+
 const char *ILogger::strtime()
 {
   currentTime();
@@ -41,7 +43,7 @@ void ILogger::currentTime()
   strftime(m_buffer_time, sizeof (m_buffer_time), "[%H:%M:%S]", localtime(&current_time));
 }
 
-void ILogger::log(std::ostream *stream, enum logger::LoggerSeverity severity, const char* format, ...)
+void ILogger::log(std::ostream *stream, enum Severity severity, const char* format, ...)
 {
   std::lock_guard<std::mutex> lock(m_mutex);
 
@@ -78,3 +80,5 @@ void ILogger::log(const char* format, ...)
   va_end(params);
   write(m_buffer);
 }
+
+} } // namespace tool::log

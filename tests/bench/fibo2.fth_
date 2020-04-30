@@ -1,0 +1,11 @@
+\ Fibonacci
+: FIB2 ( N1 -- N2 )
+   0 1 ROT 0 DO
+      OVER + SWAP LOOP
+   DROP ;
+
+: FIB2-BENCH 10 0 DO
+      20 0 DO I FIB2 . LOOP
+   LOOP ;
+
+FIB2-BENCH

@@ -8,12 +8,11 @@
 
 
 #include "utils/Exception.hpp"
-#include "utils/Logger.hpp"
+#  include "utils/Logger.hpp"
 
 Exception::Exception(int code)
   : m_pNested(0), m_code(code)
 {
-  // FIXME: passer en param par default __LINE__ et __FILE__ pour logger d'ou vient l'exception
   LOGX("Exception %u", code);
 }
 
@@ -52,13 +51,13 @@ Exception::Exception(const Exception& exc)
 }
 
 
-Exception::~Exception() throw()
+Exception::~Exception() noexcept
 {
   delete m_pNested;
 }
 
 
-Exception& Exception::operator = (const Exception& exc)
+Exception& Exception::operator=(const Exception& exc)
 {
   if (&exc != this)
     {
@@ -72,19 +71,19 @@ Exception& Exception::operator = (const Exception& exc)
 }
 
 
-const char* Exception::name() const throw()
+const char* Exception::name() const noexcept
 {
   return "Exception";
 }
 
 
-const char* Exception::className() const throw()
+const char* Exception::className() const noexcept
 {
   return typeid(*this).name();
 }
 
 
-const char* Exception::what() const throw()
+const char* Exception::what() const noexcept
 {
   return name();
 }

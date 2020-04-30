@@ -54,10 +54,15 @@
 # SimForth specifics
 build
 cov-int
-tests/build
+src/*.tar.bz2
 external/backward-cpp
+tests/external/backward-cpp
+tests/bench/*.csv
+tests/build
 doc/html
 doc/coverage
+doc/gprof
+gmon.out
 foo
 _*
 

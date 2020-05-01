@@ -44,7 +44,7 @@ static char *character_name_generator(const char *text, int state)
     if (!state)
         iter = dictionary->last();
 
-    complete = dictionary->autocomplete(partial, iter);
+    complete = dictionary->autocomplete(toUpper(partial), iter);
     if (complete == nullptr)
         return nullptr;
 

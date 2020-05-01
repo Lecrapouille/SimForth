@@ -52,17 +52,13 @@ struct Cell
         : i(0), tag(Cell::INT)
     {}
 
-    Cell(int const i_)
-        : i(i_), tag(Cell::INT)
-    {}
-
     Cell(Int const i_)
         : i(i_), tag(Cell::INT)
     {}
 
-    //Cell(unsigned int const u_)
-     //   : u(u_), tag(Cell::INT)
-    //{}
+    Cell(int const i_)
+        : i(i_), tag(Cell::INT)
+    {}
 
     Cell(size_t const u_)
         : i(Int(u_)), tag(Cell::INT)
@@ -107,6 +103,13 @@ struct Cell
         case Cell::FLOAT: return Int(other) == i;
         default: break;
         }
+    }
+
+    Cell& operator=(Int const other)
+    {
+        this->i = other;
+        this->tag = Cell::INT;
+        return *this;
     }
 
     Cell& operator=(int const other)

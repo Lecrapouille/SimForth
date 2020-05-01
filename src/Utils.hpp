@@ -76,6 +76,7 @@ void restoreOutStates();
 
 //! \brief Currently open stream.
 //! \note We suppose the stack is not empty
+#  define HAS_STREAM() (SS.pick(0) != nullptr)
 #  define STREAM (*SS.pick(0))
 
 //! \brief Convert a string to upper case

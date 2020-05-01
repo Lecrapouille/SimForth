@@ -56,10 +56,17 @@ bool toFloat(std::string const& word, Cell& number)
     return ret;
 }
 
+// TODO: redo it completely
+//----------------------------------------------------------------------------
 bool toInteger(std::string const& word, int base, Cell& number)
 {
   size_t i = 0;
   bool negative = false;
+
+  // Fast checking if the string is not a float preventing integer out_of_range
+  // exception while passing huge float value such as 92233720368547758080.0
+  if (word.find('.') != std::string::npos)
+      return false;
 
   // sign
   if ('-' == word[i])
@@ -111,7 +118,7 @@ bool toInteger(std::string const& word, int base, Cell& number)
   {
       if ((3u == word.size()) && ('\'' == word[i + 2]))
       {
-          number = static_cast<Cell>(negative ? -word[i + 1] : word[i + 1]);
+          number = (negative ? -word[i + 1] : word[i + 1]);
           return true;
       }
       return false;
@@ -121,46 +128,14 @@ bool toInteger(std::string const& word, int base, Cell& number)
   try
     {
       std::size_t sz;
-      long val = std::stol(word.substr(i, word.length() - i), &sz, base);
-      number = Cell(int32_t(negative ? -val : val));
+      Int val = std::stoll(word.substr(i, word.length() - i), &sz, base);
+      number = (negative ? -val : val);
       return (sz + i) == word.length();
     }
   catch (const std::invalid_argument& /*ia*/)
     {
       return false;
     }
-  catch (const std::out_of_range& /*oor*/)
-    {
-      // Two strategies:
-#if 0//(FORTH_BEHAVIOR_NUMBER_OUT_OF_RANGE == FORTH_TRUNCATE_OUT_OF_RANGE_NUMBERS)
-      {
-        // 1st strategy: runcate the number with a warning message to
-        // avoid abort the program.
-        number = (negative ? LONG_MIN : LONG_MAX);
-
-        std::pair<size_t, size_t> p = STREAM.position();
-        std::cerr << FORTH_WARNING_COLOR << "[WARNING] " << STREAM.name() << ":"
-                  << p.first << ":" << p.second
-                  << " Out of range number '" + word + "' will be truncated"
-                  << DEFAULT_COLOR << std::endl;
-        return true;
-      }
-#else // FORTH_BEHAVIOR_NUMBER_OUT_OF_RANGE == FORTH_OUT_OF_RANGE_NUMBERS_ARE_WORDS
-      {
-        // 2nd strategy: do not consider the word as a number which
-        // probably result an "unknown word" error message.
-        return false;
-      }
-#endif // FORTH_BEHAVIOR_NUMBER_OUT_OF_RANGE
-    }
-}
-
-//----------------------------------------------------------------------------
-bool toNumber(std::string const& word, int base, Cell& number)
-{
-    if (toInteger(word, base, number))
-        return true;
-    return toFloat(word, number);
 }
 
 //----------------------------------------------------------------------------
@@ -258,7 +233,7 @@ Cell key(bool const echo)
     if (read(STDIN_FILENO, &c, 1) == 1)
     {
        keyboard_cooked();
-       return static_cast<Cell>(c);
+       return Cell(size_t(c));
     }
 
     return 0;

@@ -122,6 +122,31 @@ bool Interpreter::ok(Result const& result)
 }
 
 //----------------------------------------------------------------------------
+bool Interpreter::toNumber(std::string const& word, Cell& number)
+{
+    try
+    {
+        if (toInteger(word, m_base, number))
+            return true;
+        return toFloat(word, number);
+    }
+    catch (const std::out_of_range&)
+    {
+        std::cerr << FORTH_WARNING_COLOR << "[WARNING] ";
+        if (HAS_STREAM())
+        {
+            std::cerr << STREAM.name() << ":" << STREAM.cursor().first
+                      << ":" << STREAM.cursor().second << std::endl
+                      << "          ";
+        }
+        std::cerr << "Limited range of integer type '"
+                  << word << "' will be convert to float value"
+                  << DEFAULT_COLOR << std::endl;
+        return toFloat(word, number);
+    }
+}
+
+//----------------------------------------------------------------------------
 Result Interpreter::interpret()
 {
     Cell number;
@@ -144,7 +169,7 @@ Result Interpreter::interpret()
 
             if (m_state == State::Interprete)
             {
-                if (toNumber(word, m_base, number))
+                if (toNumber(word, number))
                 {
                     if (options.traces)
                     {
@@ -168,7 +193,7 @@ Result Interpreter::interpret()
             else
             {
                 assert(m_state == State::Compile);
-                if (toNumber(word, m_base, number))
+                if (toNumber(word, number))
                 {
                     if (options.traces)
                     {

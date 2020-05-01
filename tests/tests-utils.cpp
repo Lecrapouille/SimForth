@@ -221,88 +221,88 @@ TEST(Utils, NFA2PFA)
 }
 
 //------------------------------------------------------------------------------
-TEST(Utils, ChecktoNumber)
+TEST(Utils, ChecktoInteger)
 {
     forth::Cell number;
     bool ret;
 
-    ret = forth::toNumber("123", 10, number);
+    ret = forth::toInteger("123", 10, number);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(number, forth::Cell(123));
 
-    ret = forth::toNumber("-123", 10, number);
+    ret = forth::toInteger("-123", 10, number);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(number, forth::Cell(-123));
 
-    ret = forth::toNumber("7b", 16, number);
+    ret = forth::toInteger("7b", 16, number);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(number, forth::Cell(123));
 
-    ret = forth::toNumber("7B", 16, number);
+    ret = forth::toInteger("7B", 16, number);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(number, forth::Cell(123));
 
-    ret = forth::toNumber("$7b", 16, number);
+    ret = forth::toInteger("$7b", 16, number);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(number, forth::Cell(123));
 
-    ret = forth::toNumber("$7B", 16, number);
+    ret = forth::toInteger("$7B", 16, number);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(number, forth::Cell(123));
 
-    ret = forth::toNumber("0x7b", 16, number);
+    ret = forth::toInteger("0x7b", 16, number);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(number, forth::Cell(123));
 
-    ret = forth::toNumber("0X7b", 16, number);
+    ret = forth::toInteger("0X7b", 16, number);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(number, forth::Cell(123));
 
-    ret = forth::toNumber("0X7B", 16, number);
+    ret = forth::toInteger("0X7B", 16, number);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(number, forth::Cell(123));
 
-    ret = forth::toNumber("7B", 16, number);
+    ret = forth::toInteger("7B", 16, number);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(number, forth::Cell(123));
 
-    ret = forth::toNumber("$7B", 16, number);
+    ret = forth::toInteger("$7B", 16, number);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(number, forth::Cell(123));
 
-    ret = forth::toNumber("0x7B", 16, number);
+    ret = forth::toInteger("0x7B", 16, number);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(number, forth::Cell(123));
 
-    ret = forth::toNumber("-123", 10, number);
+    ret = forth::toInteger("-123", 10, number);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(number, forth::Cell(-123));
 
-    ret = forth::toNumber("-7B", 16, number);
+    ret = forth::toInteger("-7B", 16, number);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(number, forth::Cell(-123));
 
-    ret = forth::toNumber("-0x7B", 16, number);
+    ret = forth::toInteger("-0x7B", 16, number);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(number, forth::Cell(-123));
 
-    ret = forth::toNumber("-0X7B", 16, number);
+    ret = forth::toInteger("-0X7B", 16, number);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(number, forth::Cell(-123));
 
-    ret = forth::toNumber("-$7b", 16, number);
+    ret = forth::toInteger("-$7b", 16, number);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(number, forth::Cell(-123));
 
-    ret = forth::toNumber("-$7B", 16, number);
+    ret = forth::toInteger("-$7B", 16, number);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(number, forth::Cell(-123));
 
-    ret = forth::toNumber("$-7B", 16, number);
+    ret = forth::toInteger("$-7B", 16, number);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(number, forth::Cell(-123));
 
-    ret = forth::toNumber("$-7b", 16, number);
+    ret = forth::toInteger("$-7b", 16, number);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(number, forth::Cell(-123));
 }
@@ -313,21 +313,59 @@ TEST(Utils, CheckFromAscii)
     forth::Cell number;
     bool ret;
 
-    ret = forth::toNumber("'''", 10, number);
+    ret = forth::toInteger("'''", 10, number);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(number, forth::Cell(39));
 
-    ret = forth::toNumber("'r'", 10, number);
+    ret = forth::toInteger("'r'", 10, number);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(number, forth::Cell(114));
 
-    ret = forth::toNumber("'R'", 10, number);
+    ret = forth::toInteger("'R'", 10, number);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(number, forth::Cell(82));
 
     // Control char not managed
-    ret = forth::toNumber("'\\n'", 10, number);
+    ret = forth::toInteger("'\\n'", 10, number);
     ASSERT_EQ(ret, false);
+}
+
+//------------------------------------------------------------------------------
+TEST(Utils, CheckBigNumber)
+{
+    forth::Forth forth;
+    forth::Cell number;
+    bool ret;
+
+    // No integer out of range error
+    ret = forth::toInteger("9223372036854775807", 10, number);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(number.tag, forth::Cell::Tag::INT);
+    ASSERT_EQ(number.i, 9223372036854775807);
+
+    // Integer out of range error
+    try {
+        ret = forth::toInteger("92233720368547758078", 10, number);
+        ASSERT_TRUE(false && "Exception out_of_range expected");
+    }
+    catch (const std::out_of_range&)
+    {
+        ASSERT_TRUE(true);
+    }
+
+    // Integer out of range error: convert to float
+    ASSERT_EQ(forth.interpreter.m_base, 10);
+    ret = forth.interpreter.toNumber("92233720368547758078", number);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(number.tag, forth::Cell::Tag::FLOAT);
+    ASSERT_EQ(number.f, 92233720368547758080.000);
+
+    // Float conversion: no integer out of range error
+    ASSERT_EQ(forth.interpreter.m_base, 10);
+    ret = forth.interpreter.toNumber("92233720368547758078.0", number);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(number.tag, forth::Cell::Tag::FLOAT);
+    ASSERT_EQ(number.f, 92233720368547758080.000);
 }
 
 //------------------------------------------------------------------------------

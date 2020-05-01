@@ -436,7 +436,6 @@ TEST(CheckInterpreter, RedefineInteger)
     ASSERT_EQ(forth.dataStack().pick(0), 42);
 }
 
-#if 0 // TODO
 // Huge number are converted to float
 TEST(CheckInterpreter, IntegerOverflow)
 {
@@ -444,14 +443,46 @@ TEST(CheckInterpreter, IntegerOverflow)
     QUIET(forth.interpreter);
     ASSERT_EQ(forth.boot(), true);
 
+    // No integer out of range error
     std::stringstream buffer;
     std::streambuf* old = std::cerr.rdbuf(buffer.rdbuf());
-    ASSERT_EQ(forth.interpretString("2432902008176640000"), true);
+    ASSERT_EQ(forth.interpretString("9223372036854775807"), true);
+    std::cerr.rdbuf(old);
+    ASSERT_STREQ(buffer.str().c_str(), "");
+    ASSERT_EQ(forth.dataStack().depth(), 1);
+    ASSERT_EQ(forth.dataStack().pick(0).tag, forth::Cell::Tag::INT);
+    ASSERT_EQ(forth.dataStack().pop().i, 9223372036854775807);
+
+    //  Float conversion: no integer out of range error
+    buffer.str(std::string());
+    old = std::cerr.rdbuf(buffer.rdbuf());
+    ASSERT_EQ(forth.interpretString("92233720368547758078.0"), true);
+    std::cerr.rdbuf(old);
+    ASSERT_STREQ(buffer.str().c_str(), "");
+    ASSERT_EQ(forth.dataStack().depth(), 1);
+    ASSERT_EQ(forth.dataStack().pick(0).tag, Cell::Tag::FLOAT);
+    ASSERT_EQ(forth.dataStack().pop().f, 92233720368547758080.000);
+
+    // Integer out of range error: convert to float
+    buffer.str(std::string());
+    old = std::cerr.rdbuf(buffer.rdbuf());
+    ASSERT_EQ(forth.interpretString("92233720368547758078"), true);
     std::cerr.rdbuf(old);
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("[WARNING]"));
-    EXPECT_THAT(buffer.str().c_str(), HasSubstr("limited range of integer type"));
+    EXPECT_THAT(buffer.str().c_str(), HasSubstr("Limited range of integer type"));
     ASSERT_EQ(forth.dataStack().depth(), 1);
-    ASSERT_EQ(forth.dataStack().pick(0).f, 2432902008176640000.0f);
     ASSERT_EQ(forth.dataStack().pick(0).tag, Cell::Tag::FLOAT);
+    ASSERT_EQ(forth.dataStack().pop().f, 92233720368547758080.000);
+
+    // Integer out of range error: convert to float
+    buffer.str(std::string());
+    old = std::cerr.rdbuf(buffer.rdbuf());
+    ASSERT_EQ(forth.interpretString(": FOO 92233720368547758078 ;"), true);
+    std::cerr.rdbuf(old);
+    EXPECT_THAT(buffer.str().c_str(), HasSubstr("[WARNING]"));
+    EXPECT_THAT(buffer.str().c_str(), HasSubstr("Limited range of integer type"));
+    ASSERT_EQ(forth.interpretString("FOO"), true);
+    ASSERT_EQ(forth.dataStack().depth(), 1);
+    ASSERT_EQ(forth.dataStack().pick(0).tag, Cell::Tag::FLOAT);
+    ASSERT_EQ(forth.dataStack().pop().f, 92233720368547758080.000);
 }
-#endif

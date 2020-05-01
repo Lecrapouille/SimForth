@@ -240,6 +240,15 @@ private:
     bool isPrimitive(Token const xt);
 
     //--------------------------------------------------------------------------
+    //! \brief Convert a string to a cell (integer or float)
+    //! \param[in] word the string to convert.
+    //! \param[ou] number the converted number. Undefined value if this method
+    //! returns false.
+    //! \return true if the string was a number else return false.
+    //--------------------------------------------------------------------------
+    bool toNumber(std::string const& word, Cell& number);
+
+    //--------------------------------------------------------------------------
     //! \brief Manage the inclusion of a new stream (push the new stream, execute
     //! it ... push a stream, execute it ... then when EOF is reached pop it and
     //! continue to execute the previous stream.

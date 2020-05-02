@@ -59,7 +59,7 @@ OBJS = $(OBJS_UTILS) $(OBJS_FORTH)
 # Project defines
 #
 DEFINES += \
-  -DPROJECT_TEMP_DIR=\"/tmp/$(TARGET)/\" \
+  -DPROJECT_TEMP_DIR=\"/tmp/$(PROJECT)/\" \
   -DPROJECT_DATA_PATH=\"$(PWD)/core:$(PROJECT_DATA_ROOT)/core\" \
   -DDYLIB_EXT=\".$(SO)\"
 

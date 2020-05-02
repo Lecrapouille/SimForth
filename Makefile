@@ -60,7 +60,7 @@ OBJS = $(OBJS_UTILS) $(OBJS_FORTH) main.o
 # Project defines
 #
 DEFINES += \
-  -DPROJECT_TEMP_DIR=\"/tmp/$(TARGET)/\" \
+  -DPROJECT_TEMP_DIR=\"/tmp/$(PROJECT)/\" \
   -DPROJECT_DATA_PATH=\"$(PWD)/core:$(PROJECT_DATA_ROOT)/core\" \
   -DDYLIB_EXT=\".$(SO)\"
 
@@ -92,6 +92,7 @@ check: unit-tests
 # Install project. You need to be root.
 .PHONY: install
 install: $(TARGET)
+	@$(call INSTALL_BINARY)
 	@$(call INSTALL_DOCUMENTATION)
 	@$(call INSTALL_PROJECT_FOLDER,core)
 

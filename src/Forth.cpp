@@ -30,20 +30,19 @@ namespace forth
 //! \brief Store a non-immediate primitive
 //------------------------------------------------------------------------------
 #define primitive(tok, name)                    \
-    CREATE_ENTRY(tok, name, false)
+    CREATE_ENTRY(tok, name, false, true)
 
 //------------------------------------------------------------------------------
 //! \brief Store an immediate primitive
 //------------------------------------------------------------------------------
 #define immediate(tok, name)                    \
-    CREATE_ENTRY(tok, name, true)
+    CREATE_ENTRY(tok, name, true, true)
 
 //------------------------------------------------------------------------------
 //! \brief Store an private non-immediate primitive
 //------------------------------------------------------------------------------
 #define hidden(tok, name)                       \
-    CREATE_ENTRY(tok, name, false);             \
-    dictionary.smudge(name)
+    CREATE_ENTRY(tok, name, false, false)
 
 //------------------------------------------------------------------------------
 Forth::Forth()

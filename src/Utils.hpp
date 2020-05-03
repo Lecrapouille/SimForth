@@ -128,8 +128,8 @@ static inline std::string& toUpper(std::string& s)
 //! \brief Mask the length information. Let show flags.
 #  define MASK_FORTH_FLAGS      uint8_t(0x7F)
 //! \brief Append a new entry
-#define CREATE_ENTRY(tok, name, imm)                                         \
-    dictionary.createEntry(forth::Primitives::tok, name, imm)
+#define CREATE_ENTRY(tok, name, immediate, visible)                           \
+    dictionary.createEntry(forth::Primitives::tok, name, immediate, visible)
 
 #  pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored "-Wconversion"

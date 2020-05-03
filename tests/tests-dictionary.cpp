@@ -40,12 +40,12 @@ using namespace forth;
 //------------------------------------------------------------------------------
 //! \brief Store a non-immediate primitive
 //------------------------------------------------------------------------------
-#define primitive(tok, name) CREATE_ENTRY(tok, name, false)
+#define primitive(tok, name) CREATE_ENTRY(tok, name, false, true)
 
 //------------------------------------------------------------------------------
 //! \brief Store an immediate primitive
 //------------------------------------------------------------------------------
-#define immediate(tok, name) CREATE_ENTRY(tok, name, true)
+#define immediate(tok, name) CREATE_ENTRY(tok, name, true, true)
 
 TEST(Dico, Config)
 {
@@ -207,7 +207,7 @@ TEST(Dico, CreateEntry)
 
     //
     dictionary.reset();
-    dictionary.createEntry(42, "FOO", false);
+    dictionary.createEntry(42, "FOO", false, true);
     uint8_t const expected1[] = {
         0x83, // flags
         0x46, 0x4f, 0x4f, 0x00, // name
@@ -219,7 +219,7 @@ TEST(Dico, CreateEntry)
 
     //
     dictionary.reset();
-    dictionary.createEntry(42, "FOOBAR", true);
+    dictionary.createEntry(42, "FOOBAR", true, true);
     bytes = reinterpret_cast<uint8_t const*>(dictionary());
     uint8_t const expected2[] = {
         0xc6, // flags
@@ -231,7 +231,7 @@ TEST(Dico, CreateEntry)
 
     //
     dictionary.reset();
-    dictionary.createEntry(42, "", true);
+    dictionary.createEntry(42, "", true, true);
     bytes = reinterpret_cast<uint8_t const*>(dictionary());
     uint8_t const expected3[] = {
         0xc0, // flags
@@ -243,7 +243,7 @@ TEST(Dico, CreateEntry)
 
     dictionary.reset();
     const char* ooo = "AOOOOOOOOOOOOOOOOOOOOOOOOOOOOOB";
-    dictionary.createEntry(42, ooo, false);
+    dictionary.createEntry(42, ooo, false, true);
     bytes = reinterpret_cast<uint8_t const*>(dictionary());
     uint8_t const expected4[] = {
         0x9f, // flags

@@ -345,7 +345,7 @@ void CLib::saveToDictionary(Dictionary& dictionary)
         dictionary.append(Primitives::PLITERAL);
         dictionary.append(it.token);
         dictionary.append(Primitives::CLIB_EXEC);
-        dictionary.append(Primitives::EXIT);
+        dictionary.finalizeEntry();
     }
 }
 

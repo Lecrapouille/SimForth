@@ -289,12 +289,13 @@ Token Dictionary::createEntry(std::string const& name)
     m_backup.last = m_last;
     m_backup.here = m_here;
     m_backup.set = true;
-    createEntry(xt, name.c_str(), false);
+    createEntry(xt, name.c_str(), false, false);
     return xt;
 }
 
 //----------------------------------------------------------------------------
-void Dictionary::createEntry(Token const xt, char const* name, bool const immediate)
+void Dictionary::createEntry(Token const xt, char const* name, bool const immediate,
+                             bool const visible)
 {
     // length is checked outside (in stream ie)
     uint8_t const length = strlen(name);
@@ -313,8 +314,11 @@ void Dictionary::createEntry(Token const xt, char const* name, bool const immedi
     m_last = m_here;
 
     // Store flags (smudge, immediate, number of char in Forth word)
-     *ptr++ = static_cast<uint8_t>(
-        PRECEDENCE_BIT | (immediate ? IMMEDIATE_BIT : 0) | length);
+    m_backup.smudge = ptr;
+    *ptr++ = static_cast<uint8_t>(PRECEDENCE_BIT |
+                                  (visible ? 0 : SMUDGE_BIT) |
+                                  (immediate ? IMMEDIATE_BIT : 0) |
+                                  length);
 
     // Store the Forth word (including the 0-byte char).
     uint8_t i = length + 1u;
@@ -330,6 +334,14 @@ void Dictionary::createEntry(Token const xt, char const* name, bool const immedi
     // Store the execution token (allow to distinguish between primitive and
     // user word
     append(xt);
+}
+
+//----------------------------------------------------------------------------
+void Dictionary::finalizeEntry()
+{
+    append(Primitives::EXIT);
+    *m_backup.smudge &= ~SMUDGE_BIT;
+    m_backup.set = false;
 }
 
 //----------------------------------------------------------------------------

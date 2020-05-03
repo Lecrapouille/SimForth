@@ -394,12 +394,18 @@ TEST(CheckForth, Recursivity)
     QUIET(forth.interpreter);
     ASSERT_EQ(forth.boot(), true);
 
+    // TODO: Notation 1 is no longer accepted by SimForth after SHA1
+    // 918ef65bb5b4c9255fe78606e68698405318b77b to follow the standard which
+    // allows to concatenate new definition with older definition with the same
+    // name. But I do not like standard of doing it: I prefer to force the
+    // developer to change the name of the definition.
+    //
     // Notation 1
-    ASSERT_EQ(forth.interpretString(": FAC DUP 1 > IF DUP 1 - FAC * ELSE DROP 1 ENDIF ;"), true);
-    ASSERT_EQ(forth.dataStack().depth(), 0);
-    ASSERT_EQ(forth.interpretString("10 FAC"), true);
-    ASSERT_EQ(forth.dataStack().depth(), 1);
-    ASSERT_EQ(forth.dataStack().pop(), 3628800);
+    // ASSERT_EQ(forth.interpretString(": FAC DUP 1 > IF DUP 1 - FAC * ELSE DROP 1 ENDIF ;"), true);
+    // ASSERT_EQ(forth.dataStack().depth(), 0);
+    // ASSERT_EQ(forth.interpretString("10 FAC"), true);
+    // ASSERT_EQ(forth.dataStack().depth(), 1);
+    // ASSERT_EQ(forth.dataStack().pop(), 3628800);
 
     // Notation 2
     ASSERT_EQ(forth.interpretString(": FAC2 DUP 1 > IF DUP 1 - RECURSE * ELSE DROP 1 ENDIF ;"), true);

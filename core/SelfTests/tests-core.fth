@@ -249,9 +249,8 @@ TESTING INPUT: ACCEPT
 
 \ -------------------------------------------------------------
 TESTING DICTIONARY SEARCH RULES
-\ Note: the original forth2012-test-suite:
-\ T{ GDX 123 ; : GDX GDX 234 ; GDX -> 123 234 }T
-\ has been changed because in SimForth this would create a
-\ recursive function.
-T{ : GDX 123 ; : GDY GDX 234 ; -> }T
-T{ GDY -> 123 234 }T
+T{ : GDX    123 ; : GDX    GDX 234 ; -> }T
+T{ GDX -> 123 234 }T
+
+T{ : DIV / ; : DIV DUP 0= IF 2DROP 42 RETURN ENDIF DIV ; -> }T
+T{ 1 2 DIV -> 0 }T   T{ 1 0 DIV -> 42 }T

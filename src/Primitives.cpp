@@ -622,14 +622,13 @@ void Interpreter::executePrimitive(Token const xt)
         // End the definition of a new word
         CODE(SEMI_COLON) // ( -- )
           THROW_COMPILE_ONLY();
-          dictionary.append(Primitives::EXIT);
-          m_state = State::Interprete;
           if (m_memo.depth != DS.depth())
           {
               THROW(DS.name() + "-Stack depth changed during the definition "
                     "of the word " + m_memo.name);
           }
-          dictionary.m_backup.set = false;
+          dictionary.finalizeEntry();
+          m_state = State::Interprete;
         NEXT;
 
         // ---------------------------------------------------------------------
@@ -706,7 +705,7 @@ void Interpreter::executePrimitive(Token const xt)
           THROW_IF_NO_NEXT_WORD();
           dictionary.createEntry(toUpper(STREAM.word()));
           dictionary.append(Primitives::PCREATE);
-          dictionary.append(Primitives::EXIT);
+          dictionary.finalizeEntry();
         NEXT;
 
         // ---------------------------------------------------------------------
@@ -738,7 +737,7 @@ void Interpreter::executePrimitive(Token const xt)
           dictionary.append(Primitives::NOP); //
           dictionary.append(Primitives::COMPILE);
           dictionary.append(Primitives::PDOES);
-          dictionary.append(Primitives::EXIT);
+          dictionary.finalizeEntry();
           // :NONAME
           m_state = State::Compile;
           m_memo.depth = DS.depth();

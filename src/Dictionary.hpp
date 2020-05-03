@@ -220,8 +220,18 @@ public:
     //! name.
     //! \param[in] immediate set to true when the primitive shall be called
     //! during the compilation of the word.
+    //! \param[in] visible set to true to make the word visible during its
+    //! creation. Set it to false to make it invisible until the end of its
+    //! definition (this case is the standard behavior).
     //--------------------------------------------------------------------------
-    void createEntry(Token const token, char const* name, bool const immediate);
+    void createEntry(Token const token, char const* name, bool const immediate,
+                     bool const visible);
+
+    //--------------------------------------------------------------------------
+    //! \brief Finalize the word entry starting with createEntry().
+    //! Append the EXIT and make the word findable to dictionary search.
+    //--------------------------------------------------------------------------
+    void finalizeEntry();
 
     //--------------------------------------------------------------------------
     //! \brief Look for if a Forth word is stored inside the dictionary and
@@ -424,6 +434,8 @@ private:
         Token last = 0;
         //! \brief Save the first empty dictionary room
         Token here = 0;
+        //! \brief location of the smudged bit
+        uint8_t* smudge = nullptr;
         bool set = false;
     };
 

@@ -49,6 +49,7 @@ completely the Forth 2012 standard. See [deviations](doc/deviation.md).
 
 Implemented (see [doc](doc/standalone.md) for more information):
 - Standalone Forth.
+- Basic GTK+ spreadsheet standalone calling SimForth.
 - Shared library for your C++ project desiring to embed a Forth interpreter.
 - Interactive mode, interpret files and C++ strings.
 - Auto-completion of words in the interactive mode.

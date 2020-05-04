@@ -40,11 +40,11 @@ cd SimForth
 make -j8
 ```
 
-Where 8 of `-j8` is the number of CPU cores you have (8 in my case). 
+Where 8 of `-j8` is the number of CPU cores you have (8 in my case).
 For verbose you have to add `V=1 make`. For changing of compiler use CXX `V=1 make CXX=clang++-7 -j8`.
 Once compiled, the standalone project can be run by:
 
-```
+```sh
 ./build/SimForth
 ```
 
@@ -56,7 +56,7 @@ Once compiled, the standalone project can be run by:
 
 You can install the project (binary + libraries + forth files + doc) in your operating system with:
 
-```
+```sh
 sudo make install
 ```
 
@@ -67,6 +67,15 @@ This will install:
 * `/usr/include/SimForth-<version>/` header files for libraries.
 
 Note that several versions of SimForth can live together thanks to folder `<version>` or version value in the binary name.
+
+### Spreadsheet
+
+To compile the spreadsheet, you will have to install gtkmm-3.0 dev first.
+```sh
+cd SimForth/src/spreadsheet
+make -j8
+./build/SpreadSheet
+```
 
 ### Unit tests / Non regression check
 

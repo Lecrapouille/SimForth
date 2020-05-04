@@ -45,10 +45,7 @@ OBJS  = Exception.o File.o ILogger.o Logger.o Path.o LibC.o \
 ###################################################
 # Project defines
 #
-DEFINES += \
-  -DPROJECT_TEMP_DIR=\"/tmp/$(TARGET)/\" \
-  -DPROJECT_DATA_PATH=\"$(PWD)/core:$(PROJECT_DATA_ROOT)/core\" \
-  -DDYLIB_EXT=\".$(SO)\"
+DEFINES +=
 
 ###################################################
 # Compilation options.

@@ -18,11 +18,11 @@
 // along with SimForth.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
-#include "standalone/Config.hpp"
-#include "utils/TerminalColor.hpp"
 #include "SimForth/SimForth.hpp"
-//#include <unistd.h>
-//#include <memory>
+#include "config.hpp"
+#include "utils/Path.hpp"
+#include "utils/File.hpp"
+#include "utils/TerminalColor.hpp"
 
 static void usage(const char* fun)
 {

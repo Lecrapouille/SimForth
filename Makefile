@@ -59,10 +59,7 @@ OBJS = $(OBJS_UTILS) $(OBJS_FORTH) main.o
 ###################################################
 # Project defines
 #
-DEFINES += \
-  -DPROJECT_TEMP_DIR=\"/tmp/$(PROJECT)/\" \
-  -DPROJECT_DATA_PATH=\"$(PWD)/core:$(PROJECT_DATA_ROOT)/core\" \
-  -DDYLIB_EXT=\".$(SO)\"
+DEFINES +=
 
 ###################################################
 # Set Libraries. For knowing which libraries

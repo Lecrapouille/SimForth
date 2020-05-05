@@ -24,12 +24,12 @@
 PROJECT = SimForth
 TARGET = $(PROJECT)
 DESCRIPTION = A basic Forth for SimTaDyn
-BUILD_TYPE = release
+BUILD_TYPE = debug
 
 ###################################################
 # Location of the project directory and Makefiles
 #
-P := .
+P := ../..
 M := $(P)/.makefile
 include $(M)/Makefile.header
 
@@ -37,28 +37,31 @@ include $(M)/Makefile.header
 # Inform Makefile where to find header files
 #
 INCLUDES += \
-  -I$(P)/include -I$(P)/src -I$(P)/src/utils
+  -I$(P)/include -I$(P)/src -I$(P)/external/MyLogger/include \
+  -I$(P)/external/MyLogger/src -I$(P)/external
 
 ###################################################
 # Inform Makefile where to find *.cpp and *.o files
 #
-VPATH += \
-  $(P)/src $(P)/src/utils $(P)/src/standalone
+VPATH += $(P)/src
 
 ###################################################
 # Make the list of compiled files
 #
-OBJS_UTILS = \
-  Exception.o File.o ILogger.o Logger.o Path.o
-OBJS_FORTH = \
-  Utils.o Exceptions.o LibC.o Streams.o Dictionary.o \
-  Display.o Interpreter.o Primitives.o Forth.o
-OBJS = $(OBJS_UTILS) $(OBJS_FORTH)
+OBJS = main.o
 
 ###################################################
 # Project defines
 #
 DEFINES +=
+
+###################################################
+# Set Libraries compiled in the external/ directory.
+# For knowing which libraries is needed please read
+# the doc/Install.md file.
+#FIXME: the static lib name shall be extracted from root makefile
+#
+THIRDPART_LIBS += $(abspath $(P)/$(BUILD)/libsimforth.so.$(shell cat $(P)/VERSION))
 
 ###################################################
 # Set Libraries. For knowing which libraries
@@ -70,45 +73,13 @@ LINKER_FLAGS += -lreadline -ldl
 
 ###################################################
 # Compile the project
-all: $(STATIC_LIB_TARGET) $(SHARED_LIB_TARGET) $(PKG_FILE)
-
-###################################################
-# Compile and launch unit tests and generate the code coverage html report.
-.PHONY: unit-tests
-unit-tests:
-	@$(call print-simple,"Compiling unit tests")
-	@$(MAKE) -C tests coverage
-
-###################################################
-# Compile and launch unit tests and generate the code coverage html report.
-.PHONY: check
-check: unit-tests
+all: $(TARGET)
 
 ###################################################
 # Install project. You need to be root.
 .PHONY: install
-install: $(STATIC_LIB_TARGET) $(SHARED_LIB_TARGET) $(PKG_FILE)
-	@$(call INSTALL_DOCUMENTATION)
-	@$(call INSTALL_PROJECT_LIBRARIES)
-	@$(call INSTALL_PROJECT_HEADERS)
-	@$(call INSTALL_PROJECT_FOLDER,core)
-
-###################################################
-# Uninstall the project. You need to be root. FIXME: to be updated
-#.PHONY: uninstall
-#uninstall:
-#	@$(call print-simple,"Uninstalling",$(PREFIX)/$(TARGET))
-#	@rm $(PROJECT_EXE)
-#	@rm -r $(PROJECT_DATA_ROOT)
-
-###################################################
-# Clean the whole project.
-.PHONY: veryclean
-veryclean: clean
-	@rm -fr cov-int $(PROJECT).tgz *.log foo 2> /dev/null
-	@(cd tests && $(MAKE) -s clean)
-	@$(call print-simple,"Cleaning","$(PWD)/doc/html")
-	@rm -fr $(THIRDPART)/*/ doc/html 2> /dev/null
+install:
+	@$(call INSTALL_BINARY)
 
 ###################################################
 # Sharable informations between all Makefiles

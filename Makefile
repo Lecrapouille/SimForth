@@ -23,8 +23,8 @@
 #
 PROJECT = SimForth
 TARGET = $(PROJECT)
-DESCRIPTION = A basic Forth for SimTaDyn
-BUILD_TYPE = debug
+DESCRIPTION = Forth Library for C++ project
+BUILD_TYPE = release
 
 ###################################################
 # Location of the project directory and Makefiles
@@ -54,7 +54,7 @@ OBJS_THIRD_PART = \
 OBJS_FORTH = \
   Utils.o Exceptions.o LibC.o Streams.o Dictionary.o Display.o \
   Interpreter.o Primitives.o Forth.o
-OBJS = $(OBJS_THIRD_PART) $(OBJS_FORTH) main.o
+OBJS = $(OBJS_THIRD_PART) $(OBJS_FORTH)
 
 ###################################################
 # Project defines
@@ -67,17 +67,19 @@ DEFINES +=
 # lreadline: for interactive prompt
 # ldl: for loading symbols in shared libraries
 #
-LINKER_FLAGS += -lreadline -ldl
+NOT_PKG_LIBS += -lreadline -ldl
 
 ###################################################
 # Compile the project
-all: $(TARGET)
+all: $(STATIC_LIB_TARGET) $(SHARED_LIB_TARGET) $(PKG_FILE)
+	@echo "--------------------------------------------------------------------------"
+	@(cd src/standalone && $(MAKE) -s)
 
 ###################################################
 # Downoad third part libraries
-$(BUILD) : | $(THIRDPART)/.downloaded
-$(THIRDPART)/.downloaded:
-	(cd $(P)/$(THIRDPART) && ./download-external-libs.sh $(ARCHI) $(TARGET))
+#$(BUILD) : | $(THIRDPART)/.downloaded
+#$(THIRDPART)/.downloaded:
+#	(cd $(P)/$(THIRDPART) && ./download-external-libs.sh $(ARCHI) $(TARGET))
 
 ###################################################
 # Compile and launch unit tests and generate the code coverage html report.
@@ -94,10 +96,16 @@ check: unit-tests
 ###################################################
 # Install project. You need to be root.
 .PHONY: install
-install: $(TARGET)
-	@$(call INSTALL_BINARY)
+install: $(STATIC_LIB_TARGET) $(SHARED_LIB_TARGET) $(PKG_FILE)
 	@$(call INSTALL_DOCUMENTATION)
+	@$(call INSTALL_PROJECT_LIBRARIES)
+	@$(call INSTALL_PROJECT_HEADERS)
 	@$(call INSTALL_PROJECT_FOLDER,core)
+	@$(call INSTALL_THIRDPART_FOLDER,MyLogger/include,,-name "*.[tih]pp")
+	@$(call INSTALL_THIRDPART_FOLDER,MyLogger/src,,-name "*.[tih]pp")
+	@$(call INSTALL_THIRDPART_FILES,TerminalColor,TerminalColor,-name "*.hpp")
+	@$(call INSTALL_THIRDPART_FILES,Exception,Exception,-name "*.hpp")
+	@(cd src/standalone && $(MAKE) -s install)
 
 ###################################################
 # Uninstall the project. You need to be root. FIXME: to be updated
@@ -106,6 +114,9 @@ install: $(TARGET)
 #	@$(call print-simple,"Uninstalling",$(PREFIX)/$(TARGET))
 #	@rm $(PROJECT_EXE)
 #	@rm -r $(PROJECT_DATA_ROOT)
+
+clean::
+	@(cd src/standalone && $(MAKE) -s clean)
 
 ###################################################
 # Clean the whole project.

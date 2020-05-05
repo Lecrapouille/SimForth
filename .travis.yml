@@ -83,13 +83,27 @@ before_install:
  - sudo make install
  - cd "${TRAVIS_BUILD_DIR}"
 
-# before_script:
+before_script:
+ - function file_exists { test -e $1 && echo "The file $1 exists" || (echo "The file $1 does not exist" && exit 1) }
+ - function dir_exists { test -d $1 && echo "The dir $1 exists" || (echo "The directory $1 does not exist" && exit 1) }
+ - PROJECT_VERSION=`cat VERSION`
 
 script:
  - V=1 make CXX=$COMPILER download-external-libs
  - V=1 make CXX=$COMPILER -j8
  - sudo make install
+ - file_exists /usr/bin/SimForth-$PROJECT_VERSION
+ - file_exists /usr/lib/libsimforth.a
+ - file_exists /usr/lib/libsimforth.so
+ - file_exists /usr/lib/libsimforth.so.$PROJECT_VERSION
+ - file_exists /usr/lib/pkgconfig/simforth.pc
+ - file_exists /usr/lib/pkgconfig/simforth-$PROJECT_VERSION.pc
+ - dir_exists /usr/share/SimForth/$PROJECT_VERSION
+ - dir_exists /usr/share/SimForth/$PROJECT_VERSION/core
+ - dir_exists /usr/share/SimForth/$PROJECT_VERSION/doc
  - V=1 make check CXX=$COMPILER -j8
+ - git clone https://github.com/Lecrapouille/LinkAgainstMyLibs.git --recurse-submodules --depth=1
+ - (cd LinkAgainstMyLibs/Forth && make CXX=$COMPILER -j8 && ./build/Forth)
 
 after_success:
  - make coverall

@@ -19,10 +19,9 @@
 //=============================================================================
 
 #include "SimForth/SimForth.hpp"
+#include "MyLogger/Path.hpp"
+#include "MyLogger/File.hpp"
 #include "config.hpp"
-#include "utils/Path.hpp"
-#include "utils/File.hpp"
-#include "utils/TerminalColor.hpp"
 
 static void usage(const char* fun)
 {

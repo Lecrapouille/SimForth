@@ -21,8 +21,8 @@
 #ifndef FORTH_EXCEPTION_HPP
 #  define FORTH_EXCEPTION_HPP
 
-#  include "utils/Exception.hpp"
-#  include "utils/Logger.hpp"
+#  include "Exception/Exception.hpp"
+#  include "MyLogger/Logger.hpp"
 
 #  define THROW(e) { LOGX("Throw Exception"); throw forth::Exception(e); }
 

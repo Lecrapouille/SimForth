@@ -21,7 +21,7 @@
 #include "SimForth/SimForth.hpp"
 #include "Primitives.hpp"
 #include "Interpreter.hpp"
-#include "utils/Logger.hpp"
+#include "MyLogger/Logger.hpp"
 
 namespace forth
 {

@@ -78,6 +78,10 @@ The code source of SimForth has been largely inspired by the book and by project
 and [part2](https://github.com/AlexandreAbreu/jonesforth/blob/master/jonesforth.f).
 * colorforth [colors](http://www.profibing.de/colorforth/display.html).
 
+## Installation
+
+Read [docs](docs/standalone.md)
+
 ## Documentation
 
 Newbie with Forth? DO NOT PANIC! Read [Starting FORTH](https://www.forth.com/starting-forth/) first.

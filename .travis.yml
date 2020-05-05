@@ -86,6 +86,7 @@ before_install:
 # before_script:
 
 script:
+ - V=1 make CXX=$COMPILER download-external-libs
  - V=1 make CXX=$COMPILER -j8
  - sudo make install
  - V=1 make check CXX=$COMPILER -j8

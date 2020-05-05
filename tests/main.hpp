@@ -19,16 +19,16 @@
 //==============================================================================
 
 #ifndef MAIN_HPP
-#define MAIN_HPP
+#  define MAIN_HPP
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
+#  include <gmock/gmock.h>
+#  include <gtest/gtest.h>
 
 // Set interpreter quiet
-#define QUIET(interpreter) \
-  Options opt; \
-  opt.show_stack = false; \
-  opt.quiet = true; \
-  interpreter.setOptions(opt);
+#  define QUIET(interpreter) \
+     Options opt; \
+     opt.show_stack = false; \
+     opt.quiet = true; \
+     interpreter.setOptions(opt);
 
-#endif
+#endif // MAIN_HPP

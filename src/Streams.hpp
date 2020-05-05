@@ -22,7 +22,7 @@
 #  define INTERNAL_FORTH_INPUT_STREAMS_HPP
 
 #  include "Dictionary.hpp"
-#  include "utils/Logger.hpp"
+#  include "MyLogger/Logger.hpp"
 #  include <string>
 #  include <fstream>
 

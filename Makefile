@@ -25,7 +25,6 @@ PROJECT = SimForth
 TARGET = $(PROJECT)
 DESCRIPTION = A basic Forth for SimTaDyn
 BUILD_TYPE = debug
-#USE_GPROF=1
 
 ###################################################
 # Location of the project directory and Makefiles
@@ -38,23 +37,24 @@ include $(M)/Makefile.header
 # Inform Makefile where to find header files
 #
 INCLUDES += \
-  -I$(P)/include -I$(P)/src -I$(P)/src/utils
+  -I$(P)/include -I$(P)/src -I$(P)/external/MyLogger/include \
+  -I$(P)/external/MyLogger/src -I$(P)/external
 
 ###################################################
 # Inform Makefile where to find *.cpp and *.o files
 #
 VPATH += \
-  $(P)/src $(P)/src/utils $(P)/src/standalone
+  $(P)/src $(P)/external/Exception $(P)/external/MyLogger/src $(P)/src/standalone
 
 ###################################################
 # Make the list of compiled files
 #
-OBJS_UTILS = \
+OBJS_THIRD_PART = \
   Exception.o File.o ILogger.o Logger.o Path.o
 OBJS_FORTH = \
   Utils.o Exceptions.o LibC.o Streams.o Dictionary.o Display.o \
   Interpreter.o Primitives.o Forth.o
-OBJS = $(OBJS_UTILS) $(OBJS_FORTH) main.o
+OBJS = $(OBJS_THIRD_PART) $(OBJS_FORTH) main.o
 
 ###################################################
 # Project defines
@@ -72,6 +72,12 @@ LINKER_FLAGS += -lreadline -ldl
 ###################################################
 # Compile the project
 all: $(TARGET)
+
+###################################################
+# Downoad third part libraries
+$(BUILD) : | $(THIRDPART)/.downloaded
+$(THIRDPART)/.downloaded:
+	(cd $(P)/$(THIRDPART) && ./download-external-libs.sh $(ARCHI) $(TARGET))
 
 ###################################################
 # Compile and launch unit tests and generate the code coverage html report.
@@ -106,9 +112,11 @@ install: $(TARGET)
 .PHONY: veryclean
 veryclean: clean
 	@rm -fr cov-int $(PROJECT).tgz *.log foo 2> /dev/null
+	@$(call print-simple,"Cleaning","$(PWD)/$(THIRDPART)")
+	@rm -fr $(THIRDPART)/*/ $(THIRDPART)/.downloaded
 	@(cd tests && $(MAKE) -s clean)
-	@$(call print-simple,"Cleaning","$(PWD)/doc/html")
-	@rm -fr $(THIRDPART)/*/ doc/html 2> /dev/null
+	@$(call print-simple,"Cleaning","generated documentation")
+	@rm -fr doc/coverage doc/gprof doc/html tests/doc 2> /dev/null
 
 ###################################################
 # Sharable informations between all Makefiles

@@ -24,7 +24,7 @@
 #include "SimForth/Stack.hpp"
 #include "SimForth/Cell.hpp"
 #include "SimForth/Token.hpp"
-#include "utils/Path.hpp"
+#include "MyLogger/Path.hpp"
 
 namespace forth
 {

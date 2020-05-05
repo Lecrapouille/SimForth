@@ -21,7 +21,7 @@
 #include "LibC.hpp"
 #include "Exceptions.hpp"
 #include "Primitives.hpp"
-#include "utils/Logger.hpp"
+#include "MyLogger/Logger.hpp"
 #include <dlfcn.h> // dlopen
 
 namespace forth

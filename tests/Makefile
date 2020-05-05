@@ -62,12 +62,15 @@ LINKER_FLAGS += -lreadline -ldl --coverage
 ###################################################
 # Inform Makefile where to find header files
 #
-INCLUDES += -I$(P)/include -I$(P)/src -I$(P)/src/utils
+INCLUDES += \
+  -I$(P)/include -I$(P)/src -I$(P)/external/MyLogger/include \
+  -I$(P)/external/MyLogger/src -I$(P)/external
 
 ###################################################
 # Inform Makefile where to find *.cpp and *.o files
 #
-VPATH += $(P)/src $(P)/src/utils
+VPATH += \
+  $(P)/src $(P)/external/Exception $(P)/external/MyLogger/src $(P)/src/standalone
 
 ###################################################
 # Compile SimTaDyn unit tests

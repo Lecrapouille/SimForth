@@ -56,6 +56,9 @@ build
 cov-int
 src/*.tar.bz2
 external/backward-cpp
+external/Exception
+external/TerminalColor
+external/MyLogger
 tests/external/backward-cpp
 tests/bench/*.csv
 tests/build

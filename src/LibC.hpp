@@ -24,7 +24,7 @@
 #  include "SimForth/IForth.hpp"
 #  include "Dictionary.hpp"
 #  include "Streams.hpp"
-#  include "utils/Path.hpp"
+#  include "MyLogger/Path.hpp"
 #  include <string>
 #  include <fstream>
 #  include <vector>

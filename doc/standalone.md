@@ -22,10 +22,17 @@ By "Forth-like" we mean that SimForth is not 100% compliant to ANSI-Forth
 
 ### Compilation commands
 
-To compile the standalone SimForth binary:
+To download the source
 
 ```sh
 git clone git@github.com:Lecrapouille/SimForth.git --depth=1 --recurse-submodules
+cd SimForth
+make download-external-libs
+```
+
+To compile the standalone SimForth binary:
+
+```sh
 cd SimForth
 make
 ./build/SimForth
@@ -35,7 +42,6 @@ sudo make install
 Compile libsimforth static and shared libraries:
 
 ```sh
-git clone git@github.com:Lecrapouille/SimForth.git --depth=1 --recurse-submodules
 cd SimForth
 mv make make-bin
 mv make-lib make

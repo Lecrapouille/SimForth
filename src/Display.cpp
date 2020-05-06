@@ -88,26 +88,24 @@
 #define WORD_INFO()                                                   \
     color << type << DEFAULT_COLOR
 
-#define DISP_STRING(c1, c2)                                               \
+#define DISP_STRING(c1, c2)                                           \
     (smudge ? SMUDGED_WORD_COLOR : STRING_COLOR)                      \
     << c1 << c2 << color
 
-#define DISP_LITERAL(ptr)                                             \
-    (smudge ? SMUDGED_WORD_COLOR : LITERAL_COLOR)                     \
-    << std::setbase(base)                                             \
-    << *reinterpret_cast<int16_t const*>(ptr) << ' '                  \
-    << std::dec << color
+#define DISP_LITERAL(os, ptr)                                         \
+    ptr_int16 = reinterpret_cast<int16_t const*>(ptr);                \
+    os << (smudge ? SMUDGED_WORD_COLOR : LITERAL_COLOR)               \
+    << std::setbase(base) << *ptr_int16 << ' ' << std::dec << color
 
-#define DISP_ILITERAL(ptr)                                            \
-    (smudge ? SMUDGED_WORD_COLOR : LITERAL_COLOR)                     \
-    << std::setbase(base)                                             \
-    << *reinterpret_cast<Int const*>(ptr) << ' '                  \
-    << std::dec << color
+#define DISP_ILITERAL(os, ptr)                                        \
+    ptr_int = reinterpret_cast<Int const*>(ptr);                      \
+    os << (smudge ? SMUDGED_WORD_COLOR : LITERAL_COLOR)               \
+    << std::setbase(base) << *ptr_int << ' ' << std::dec << color
 
-#define DISP_FLITERAL(ptr)                                            \
-    (smudge ? SMUDGED_WORD_COLOR : LITERAL_COLOR)                     \
-    << *reinterpret_cast<Float const*>(ptr) << ' '                    \
-    << std::dec << color
+#define DISP_FLITERAL(os, ptr)                                        \
+    ptr_float = reinterpret_cast<Float const*>(ptr);                  \
+    os << (smudge ? SMUDGED_WORD_COLOR : LITERAL_COLOR)               \
+    << *ptr_float << ' ' << std::dec << color
 
 namespace forth
 {
@@ -150,6 +148,10 @@ static void display(Token const *nfa, Dictionary const& dictionary,
                     Token const* eod, int base, Token const *IP)
 {
     ForthConsoleColor color;
+
+    int16_t const* ptr_int16;
+    Int const* ptr_int;
+    Float const* ptr_float;
 
     // Extract information of the current Forth word
     bool immediate = isImmediate(nfa);
@@ -231,14 +233,14 @@ static void display(Token const *nfa, Dictionary const& dictionary,
             // are displayed in hexa.
             if (end)
             {
-                std::cout << DISP_LITERAL(ptr);
+                DISP_LITERAL(std::cout, ptr);
             }
             else if (sliteral) // string literal
             {
                 if (skip == 0)
                 {
                     // Display the count
-                    std::cout << DISP_LITERAL(ptr);
+                    DISP_LITERAL(std::cout, ptr);
                     skip += 1;
                 }
                 else if (skip < count)
@@ -259,7 +261,7 @@ static void display(Token const *nfa, Dictionary const& dictionary,
             {
                 if (skip++ == 0)
                 {
-                    std::cout << DISP_LITERAL(ptr);
+                    DISP_LITERAL(std::cout, ptr);
                     literal = false;
                 }
             }
@@ -267,7 +269,7 @@ static void display(Token const *nfa, Dictionary const& dictionary,
             {
                 if (skip == 0)
                 {
-                    std::cout << DISP_ILITERAL(ptr);
+                    DISP_ILITERAL(std::cout, ptr);
                 }
                 else if (skip == (sizeof(Int) / size::token) - 1)
                 {
@@ -279,7 +281,7 @@ static void display(Token const *nfa, Dictionary const& dictionary,
             {
                 if (skip == 0)
                 {
-                    std::cout << DISP_FLITERAL(ptr);
+                    DISP_FLITERAL(std::cout, ptr);
                 }
                 else if (skip == (sizeof(Float) / size::token) - 1)
                 {
@@ -290,7 +292,7 @@ static void display(Token const *nfa, Dictionary const& dictionary,
             else if (!dictionary.findToken(xt, word))
             {
                 // Token not found as word entry is simply displayed as hexa
-                std::cout << DISP_LITERAL(ptr);
+                DISP_LITERAL(std::cout, ptr);
             }
             else
             {
@@ -298,8 +300,11 @@ static void display(Token const *nfa, Dictionary const& dictionary,
                 if (!smudge)
                 {
                     // Ok use shadowed variables needed for the macro.
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wshadow"
                     bool smudge = isSmudge(word);
                     bool immediate = isImmediate(word);
+#  pragma GCC diagnostic pop
                     if (ptr != IP)
                     {
                         SELECT_COLOR();

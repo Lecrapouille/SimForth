@@ -51,6 +51,11 @@ public:
     {}
 
     //--------------------------------------------------------------------------
+    //! \brief Virtual destructor because of virtual methods.
+    //--------------------------------------------------------------------------
+    virtual ~InputStream() = default;
+
+    //--------------------------------------------------------------------------
     //! \brief Return the reference to the last word split by split().
     //! \note the return string can be dummy if not stream have been given or
     //! the end of the stream is reached.

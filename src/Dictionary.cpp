@@ -211,22 +211,27 @@ void Dictionary::compile(Cell const cell)
         if ((cell.i >= INT16_MIN) && (cell.i <= INT16_MAX))
         {
             append(Primitives::PLITERAL);
-            *reinterpret_cast<int16_t*>(m_memory + m_here) = int16_t(cell.i);
+            int16_t* p = reinterpret_cast<int16_t*>(m_memory + m_here);
+            *p = int16_t(cell.i);
             m_here += sizeof(int16_t) / size::token;
         }
         else
         {
             append(Primitives::PILITERAL);
-            *reinterpret_cast<Int*>(m_memory + m_here) = cell.i;
+            Int* i = reinterpret_cast<Int*>(m_memory + m_here);
+            *i = cell.i;
             m_here += sizeof(Int) / size::token;
         }
         break;
     case Cell::FLOAT:
-        //LOGD("Compile float %f", cell.f);
-        append(Primitives::PFLITERAL);
-        *reinterpret_cast<Float*>(m_memory + m_here) = cell.f;
-        m_here += sizeof(Float) / size::token;
-        break;
+        {
+            //LOGD("Compile float %f", cell.f);
+            append(Primitives::PFLITERAL);
+            Float *f = reinterpret_cast<Float*>(m_memory + m_here);
+            *f = cell.f;
+            m_here += sizeof(Float) / size::token;
+            break;
+        }
     default:
         break;
     }
@@ -238,13 +243,19 @@ void Dictionary::append(Cell const cell)
     switch (cell.tag)
     {
     case Cell::INT:
-        *reinterpret_cast<Int*>(m_memory + m_here) = cell.i;
-        m_here += sizeof(Int) / size::token;
-        break;
+        {
+            Int* i = reinterpret_cast<Int*>(m_memory + m_here);
+            *i = cell.i;
+            m_here += sizeof(Int) / size::token;
+            break;
+        }
     case Cell::FLOAT:
-        *reinterpret_cast<Float*>(m_memory + m_here) = cell.f;
-        m_here += sizeof(Float) / size::token;
-        break;
+        {
+            Float *f = reinterpret_cast<Float*>(m_memory + m_here);
+            *f = cell.f;
+            m_here += sizeof(Float) / size::token;
+            break;
+        }
     default:
         break;
     }

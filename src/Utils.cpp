@@ -185,6 +185,8 @@ static void keyAtExit(void)
 // Original version: https://github.com/MitchBradley/cforth
 static bool keyboard_raw(bool const echo)
 {
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wsign-conversion"
     struct termios raw;
 
     if (rawmode) return true;
@@ -219,6 +221,7 @@ static bool keyboard_raw(bool const echo)
 
 fatal:
     return false;
+#  pragma GCC diagnostic pop
 }
 
 //----------------------------------------------------------------------------

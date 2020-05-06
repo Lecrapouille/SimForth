@@ -665,22 +665,31 @@ void Interpreter::executePrimitive(Token const xt)
         // ---------------------------------------------------------------------
         // Float literal value stored inside a Forth definition
         CODE(PFLITERAL) // ( -- )
-          DPUSH(*reinterpret_cast<Float*>(dictionary() + IP + 1u));
-          IP += sizeof(Float) / size::token;
+          {
+              Float* f = reinterpret_cast<Float*>(dictionary() + IP + 1u);
+              DPUSH(*f);
+              IP += sizeof(Float) / size::token;
+          }
         NEXT;
 
         // ---------------------------------------------------------------------
         // Integer literal value stored inside a Forth definition
         CODE(PILITERAL) // ( -- )
-          DPUSH(*reinterpret_cast<Int*>(dictionary() + IP + 1u));
-          IP += sizeof(Int) / size::token;
+          {
+              Int* i = reinterpret_cast<Int*>(dictionary() + IP + 1u);
+              DPUSH(*i);
+              IP += sizeof(Int) / size::token;
+          }
         NEXT;
 
         // ---------------------------------------------------------------------
         // Integer literal value stored inside a Forth definition
         CODE(PLITERAL) // ( -- )
-          ++IP;
-          DPUSH(*reinterpret_cast<int16_t*>(dictionary() + IP));
+          {
+              ++IP;
+              int16_t* i = reinterpret_cast<int16_t*>(dictionary() + IP);
+              DPUSH(*i);
+          }
         NEXT;
 
         // ---------------------------------------------------------------------

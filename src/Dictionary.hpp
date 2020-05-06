@@ -173,11 +173,17 @@ public:
         switch (cell.tag)
         {
         case Cell::INT:
-            *(reinterpret_cast<Int*>(m_memory + addr)) = cell.i;
-            break;
+            {
+                Int* i = reinterpret_cast<Int*>(m_memory + addr);
+                *i = cell.i;
+                break;
+            }
         case Cell::FLOAT:
-            *(reinterpret_cast<Float*>(m_memory + addr)) = cell.f;
-            break;
+            {
+                Float* f = reinterpret_cast<Float*>(m_memory + addr);
+                *f = cell.f;
+                break;
+            }
         default: break;
         }
     }
@@ -185,7 +191,8 @@ public:
     template<class T = forth::Token>
     inline T fetch(Token const addr)
     {
-        return *(reinterpret_cast<T*>(m_memory + addr));
+        T* p = reinterpret_cast<T*>(m_memory + addr);
+        return *p;
     }
 
     //--------------------------------------------------------------------------

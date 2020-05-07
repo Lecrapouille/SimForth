@@ -74,6 +74,7 @@ NOT_PKG_LIBS += -lreadline -ldl
 all: $(STATIC_LIB_TARGET) $(SHARED_LIB_TARGET) $(PKG_FILE)
 	@echo "--------------------------------------------------------------------------"
 	@(cd src/standalone && $(MAKE) -s)
+	@cp src/standalone/$(BUILD)/SimForth $(BUILD)
 
 ###################################################
 # Downoad third part libraries
@@ -116,6 +117,7 @@ install: $(STATIC_LIB_TARGET) $(SHARED_LIB_TARGET) $(PKG_FILE)
 #	@rm -r $(PROJECT_DATA_ROOT)
 
 clean::
+	@(cd tests && $(MAKE) -s clean)
 	@(cd src/standalone && $(MAKE) -s clean)
 
 ###################################################

@@ -23,7 +23,7 @@
 #
 PROJECT = SimForth
 TARGET = $(PROJECT)
-DESCRIPTION = A basic Forth for SimTaDyn
+DESCRIPTION = A basic standalone Forth interpreter
 BUILD_TYPE = debug
 
 ###################################################

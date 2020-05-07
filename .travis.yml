@@ -47,35 +47,42 @@ matrix:
       apt:
         sources: ['ubuntu-toolchain-r-test']
         packages: [g++-7]
-#  - os: linux
-#    dist: bionic
-#    compiler: gcc
-#    env:
-#      - COMPILER=g++-8
-#      - GCOV=gcov-8
-#    addons:
-#      apt:
-#        sources: ['ubuntu-toolchain-r-test']
-#        packages: [g++-8]
-#  - os: linux
-#    dist: bionic
-#    compiler: gcc
-#    env:
-#      - COMPILER=g++-9
-#      - GCOV=gcov-9
-#    addons:
-#      apt:
-#        sources: ['ubuntu-toolchain-r-test']
-#        packages: [g++-9]
+  - os: linux
+    dist: bionic
+    compiler: gcc
+    env:
+      - COMPILER=g++-8
+      - GCOV=gcov-8
+    addons:
+      apt:
+        sources: ['ubuntu-toolchain-r-test']
+        packages: [g++-8]
+  - os: linux
+    dist: bionic
+    compiler: gcc
+    env:
+      - COMPILER=g++-9
+      - GCOV=gcov-9
+    addons:
+      apt:
+        sources: ['ubuntu-toolchain-r-test']
+        packages: [g++-9]
 
 
 before_install:
  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib64:/usr/local/lib64:/usr/local/lib/
  - sudo apt-get -qq update
  - sudo apt-get install -y libgtest-dev valgrind cmake libdw-dev libreadline-dev pkg-config bc
- - sudo apt-get install -y gcovr lcov ruby-dev
+ - sudo apt-get install -y gcovr ruby-dev
+ # Report code coverage to github service coveralls
  - sudo gem install coveralls-lcov
+ # Install the newer lcov (>= 1.14) because default lcov 1.13 does not support gcc >= 8
+ - sudo apt-get install -y libjson-perl libperlio-gzip-perl
+ - git clone https://github.com/linux-test-project/lcov.git --depth=1
+ - (cd lcov && sudo make install)
+ # Use the correct gcov according to the GCC used
  - (cd /usr/bin && sudo ln -sf $GCOV gcov)
+ # Install google test and googl mock
  - sudo wget https://github.com/google/googletest/archive/release-1.10.0.tar.gz
  - sudo tar xf release-1.10.0.tar.gz
  - cd googletest-release-1.10.0
@@ -89,7 +96,9 @@ before_script:
  - PROJECT_VERSION=`cat VERSION`
 
 script:
+ # Download SimForth's thirdparts
  - V=1 make CXX=$COMPILER download-external-libs
+ # Compile and install SimForth
  - V=1 make CXX=$COMPILER -j8
  - sudo make install
  - file_exists /usr/bin/SimForth-$PROJECT_VERSION
@@ -101,7 +110,9 @@ script:
  - dir_exists /usr/share/SimForth/$PROJECT_VERSION
  - dir_exists /usr/share/SimForth/$PROJECT_VERSION/core
  - dir_exists /usr/share/SimForth/$PROJECT_VERSION/doc
+ # Perform non-regression tests
  - V=1 make check CXX=$COMPILER -j8
+ # Check if libSimForth can be used
  - git clone https://github.com/Lecrapouille/LinkAgainstMyLibs.git --recurse-submodules --depth=1
  - (cd LinkAgainstMyLibs/Forth && make CXX=$COMPILER -j8 && ./build/Forth)
 

@@ -7,16 +7,16 @@ matrix:
   - amd64
   - s390x
   include:
-  - os: linux
-    dist: bionic
-    compiler: gcc
-    env:
-      - COMPILER=g++-4.8
-      - GCOV=gcov-4.8
-    addons:
-      apt:
-        sources: ['ubuntu-toolchain-r-test']
-        packages: [g++-4.8]
+#  - os: linux
+#    dist: bionic
+#    compiler: gcc
+#    env:
+#      - COMPILER=g++-4.8
+#      - GCOV=gcov-4.8
+#    addons:
+#      apt:
+#        sources: ['ubuntu-toolchain-r-test']
+#        packages: [g++-4.8]
   - os: linux
     dist: bionic
     compiler: gcc

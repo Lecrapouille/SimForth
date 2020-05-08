@@ -53,8 +53,12 @@
     std::string type;                                                 \
     if (immediate)                                                    \
         type = "immediate";                                           \
-    else if (smudge)                                                  \
-        type = "hidden";                                              \
+    else if (smudge) {                                                \
+        if (immediate)                                                \
+            type = "hidden immediate";                                \
+        else                                                          \
+            type = "hidden primitive";                                \
+    }                                                                 \
     else                                                              \
         type = "primitive"
 
@@ -92,6 +96,11 @@
     (smudge ? SMUDGED_WORD_COLOR : STRING_COLOR)                      \
     << c1 << c2 << color
 
+#define DISP_TOKEN(ptr)                                               \
+    (smudge ? SMUDGED_WORD_COLOR : EXEC_TOKEN_COLOR)                  \
+    << std::setfill('0') << std::setw(ADDRESS_SIZE)                   \
+    << std::hex << *ptr << ' ' << std::dec << color
+
 #define DISP_LITERAL(os, ptr)                                         \
     ptr_int16 = reinterpret_cast<int16_t const*>(ptr);                \
     os << (smudge ? SMUDGED_WORD_COLOR : LITERAL_COLOR)               \
@@ -124,11 +133,11 @@ static std::string getName(Token const *nfa)
 //----------------------------------------------------------------------------
 static void display_header()
 {
-    std::cout << "Address " << std::setw(32 - 3) << std::setfill(' ') << "Word"
+    std::cout << "Address " << std::setw(32 - 4) << std::setfill(' ') << "Name"
               << std::flush;
     std::cout << COLUMN_SEPARATOR << "Token" << COLUMN_SEPARATOR
-              << "Definition" << std::flush;
-    std::cout << std::setfill(' ') << std::setw(23) << "Translation" << std::endl;
+              << " Definition (Tokens)" << std::flush;
+    std::cout << std::setfill(' ') << std::setw(21) << "Definition (Words)" << std::endl;
     std::cout << std::setfill('=') << std::setw(100) << "=" << std::endl;
     restoreOutStates();
 }
@@ -188,6 +197,7 @@ static void display(Token const *nfa, Dictionary const& dictionary,
     bool fliteral = false;
     bool iliteral = false;
     bool literal = false;
+    bool ltoken = false;
     bool end = false;
     int skip = 0;
     int count = 0;
@@ -252,9 +262,17 @@ static void display(Token const *nfa, Dictionary const& dictionary,
                     if (skip >= count)
                         std::cout << ' ';
                 }
-                else if (skip >= count)
+                if (skip >= count)
                 {
                     sliteral = false;
+                }
+            }
+            else if (ltoken) // token literal
+            {
+                if (skip++ == 0)
+                {
+                    std::cout << DISP_TOKEN(ptr);
+                    ltoken = false;
                 }
             }
             else if (literal) // int16_t literal
@@ -292,7 +310,7 @@ static void display(Token const *nfa, Dictionary const& dictionary,
             else if (!dictionary.findToken(xt, word))
             {
                 // Token not found as word entry is simply displayed as hexa
-                DISP_LITERAL(std::cout, ptr);
+                std::cout << DISP_TOKEN(ptr);
             }
             else
             {
@@ -328,7 +346,7 @@ static void display(Token const *nfa, Dictionary const& dictionary,
                     if (!compile)
                     {
                         sliteral = true;
-                        count = *(ptr + 1) + 1;
+                        count = int(NEXT_MULTIPLE_OF_2(*(ptr + 1u) + 1u));
                         skip = 0;
                     }
                 }
@@ -356,10 +374,20 @@ static void display(Token const *nfa, Dictionary const& dictionary,
                         skip = 0;
                     }
                 }
+                else if (xt == Primitives::PDOES)
+                {
+                    compile = (*(ptr - 1) == Primitives::COMPILE);
+                    if (!compile)
+                    {
+                        ltoken = true;
+                        skip = 0;
+                    }
+                }
             }
 
             // End of the secondary word definition ?
-            end = (xt == Primitives::EXIT);
+            if (end == false)
+                end = (xt == Primitives::EXIT);
 
             // Leave the definition of the secondary word
             if (ptr >= eod)
@@ -433,10 +461,8 @@ static bool policy_see(Token const *nfa, Dictionary const& dictionary,
 void Dictionary::display(int const base) const
 {
     display_header();
-
-    //std::cout << DICO_ADDRESS(m_last) << << DOTS(32) << "LATEST\n"
-    //          << DICO_ADDRESS(m_here) << << DOTS(32) << "HERE\n"
-    //
+    std::cout << COLORED_ADDRESS(DICO_ADDRESS_COLOR, m_here) << DOTS(28) << "HERE\n"
+              << COLORED_ADDRESS(DICO_ADDRESS_COLOR, m_last) << DOTS(26) << "LATEST\n";
     Token xt = m_last;
     Token const* prev = m_memory + m_here;
     iterate(policy_display_all, xt, 0, *this, &prev, base, nullptr); // FIXME Primitives::DUP au lieu 0 => KO

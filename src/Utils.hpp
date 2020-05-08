@@ -474,7 +474,7 @@ using ForthConsoleColor = termcolor::color;
 // Color for displaying token
 //----------------------------------------------------------------------------
 #define EXEC_TOKEN_COLOR						\
-    termcolor::color(termcolor::style::bold, termcolor::fg::cyan)
+    termcolor::color(termcolor::style::normal, termcolor::fg::cyan)
 
 #define UNDERLINE_EXEC_TOKEN_COLOR					\
     termcolor::color(termcolor::style::underline, termcolor::fg::cyan)

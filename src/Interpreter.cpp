@@ -511,7 +511,7 @@ void Interpreter::verboseExecuteToken(Token xt)
                     (xt == Primitives::BRANCH) ||
                     (xt == Primitives::ZERO_BRANCH))
                 {
-                    nextIP = Token(nextIP + 1); // Token
+                    //nextIP = Token(nextIP + 1); // Token
                     // TODO afficher les 2 branches
                 }
                 else if ((xt == Primitives::PILITERAL) ||

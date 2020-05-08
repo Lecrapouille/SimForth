@@ -22,7 +22,7 @@ By "Forth-like" we mean that SimForth is not 100% compliant to ANSI-Forth
 
 ### Compilation commands
 
-To download the source
+To download the source:
 
 ```sh
 git clone git@github.com:Lecrapouille/SimForth.git --depth=1 --recurse-submodules
@@ -30,26 +30,21 @@ cd SimForth
 make download-external-libs
 ```
 
-To compile the standalone SimForth binary:
+The last command allows to download extra GitHub libraries that SimForth depends on.
+To compile the SimForth project (standalone + static and shared libraries):
 
 ```sh
 cd SimForth
 make
-./build/SimForth
+```
+
+The standalone project can be run by: `./build/SimForth`. You can install the project in your operating system by:
+
+```
 sudo make install
 ```
 
-Compile libsimforth static and shared libraries:
-
-```sh
-cd SimForth
-mv make make-bin
-mv make-lib make
-make
-sudo make install
-```
-**FIXME: WIP the makefile-lib shall be used!**
-
+Note that several version of SimForth can live together.
 Optionally, compile unit tests, run tests and display code coverage (for developers only):
 ```sh
 cd SimForth
@@ -137,7 +132,7 @@ I you have typed `sudo make install` you will see in folders:
 SimForth already knows the path `/usr/share/SimForth/<version>/core` but if you
 want to add extra folders in which to search your files, you have to use the
 option `-p path1:path2:...`. To replace the path use the option `-r
-path1:path2:...`. The `:` is used for separting folders in the same way than the
+path1:path2:...`. The `:` is used for separating folders in the same way than the
 Unix environment variable `$PATH` (the order of search is given by the order of
 folders).
 
@@ -205,7 +200,7 @@ Let see the second Forth entry: `83 42 59 45 00 00 05 00 01 00`
 * `83` meaning a new word entry with 3 characters.
 * `42 59 45 00` codding for the C-string "BYE".
 * `00` for the padding.
-* `05 00` for the LFA refering to Name Field Address (NFA) of the previous word
+* `05 00` for the LFA referring to Name Field Address (NFA) of the previous word
   `NOP`. The relative address is `5` (be careful with endianess).
 * `01 00` meaning the 2nd primitive.
 

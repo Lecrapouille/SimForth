@@ -5,7 +5,7 @@
 SimForth is a Forth-like interpreter and therefore it does follow 100% of
 ANSI-Forth 2012. Main differences are explained in this document. Note I am a
 beginner in Forth and not an expert, as consequence some of my decision may be
-an odd decision for to eyes of a Forth expert.
+an odd decision to Forth expert's eyes.
 
 ## Reminder and definition
 
@@ -25,7 +25,7 @@ words. The dictionary contains up to 65536 tokens (because tokens are 16-bits: 2
 
 Dictionary is made of two parts which can be separated or mixed : the byte
 code and an index for searching word definitions (word entries). Following Forth
-78 convention word entries and definitions are consecutive in the dictionary.A
+78 convention word entries and definitions are consecutive in the dictionary. A
 word entry is made of:
 - the name of the word (up to 32 chars).
 - 1 byte for storing flags (immediate word, smudge word) and the number of chars
@@ -155,6 +155,6 @@ Comes from a Forth noob decision of mine. In SimForth storing bytes is not
 allowed while possible in classic Forth. Words such as `ALLOT` and `,` modifies
 the value of the word HERE. In SimForth Dictionary rooms are tokens (two bytes)
 and I did not to reduce my dictionary to 64 KiB but to 65536 tokens. In addition
-I did not want to manage the alignement of the word HERE (undefined behavior in
+I did not want to manage the alignment of the word HERE (undefined behavior in
 classic Forth) as consequence in SimForth the value of HERE should be divided by
-2 whith is not possible with integers.
+2 witch is not possible with integers.

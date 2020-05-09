@@ -359,14 +359,6 @@ static inline Token const* NFA2PFA(Token const* nfa)
 
 #  pragma GCC diagnostic pop
 
-//------------------------------------------------------------------------------
-//! \brief Nearest integer
-//------------------------------------------------------------------------------
-static inline Int nearest(Float const num)
-{
-    return (num < Float(0.0)) ? Int(num - Float(0.5)) : Int(num + Float(0.5));
-}
-
 bool toInteger(std::string const& word, int base, Cell& number);
 bool toFloat(std::string const& word, Cell& number);
 

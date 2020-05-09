@@ -37,7 +37,7 @@ using Float = double;
 //! \brief A cell holds a numerical signed value. Forth use a stack of cells for
 //! managing function parameters. In classic Forth a cell is 2 bytes but
 //******************************************************************************
-struct Cell
+struct Cell // TODO: to be redone 1.5 1 + shall return 2.5, currently return int(2.5)
 {
     union {
         Int      i;     // Signed integer cell
@@ -150,6 +150,41 @@ private:
         return os;
     }
 };
+
+//------------------------------------------------------------------------------
+//! \brief Nearest integer
+//------------------------------------------------------------------------------
+template <typename N = Int>
+static inline N nearest(Float const num)
+{
+    return (num < Float(0.0)) ? N(num - Float(0.5)) : N(num + Float(0.5));
+}
+
+template <typename N>
+static inline N get(Cell const& c)
+{
+    switch (c.tag)
+    {
+    case Cell::INT:
+        return N(c.i);
+    case Cell::FLOAT:
+    default:
+        return nearest<N>(c.f);
+    }
+}
+
+template <>
+inline Float get(Cell const& c)
+{
+    switch (c.tag)
+    {
+    case Cell::INT:
+        return Float(c.i);
+    case Cell::FLOAT:
+    default:
+        return c.f;
+    }
+}
 
 namespace size
 {

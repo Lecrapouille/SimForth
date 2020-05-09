@@ -59,33 +59,6 @@ namespace forth
     if (!STREAM.split(delimiter))                                            \
         THROW("Unterminated script. Missing terminaison word");
 
-
-template <typename N>
-static inline N get(Cell const& c)
-{
-    switch (c.tag)
-    {
-    case Cell::INT:
-        return N(c.i);
-    case Cell::FLOAT:
-    default:
-        return nearest(c.f);
-    }
-}
-
-template <>
-inline Float get(Cell const& c)
-{
-    switch (c.tag)
-    {
-    case Cell::INT:
-        return Float(c.i);
-    case Cell::FLOAT:
-    default:
-        return c.f;
-    }
-}
-
 //----------------------------------------------------------------------------
 // FIXME use Float just for casting to int is not the best stuff ever
 #define BINARY_INT_OP(op) { DDEEP(2); TOSf = DPOPf(); DPUSH(get<Int>(DPOPf() op TOSf)); }

@@ -131,7 +131,7 @@ bool Forth::boot()
     LOGI("%s", "Booting Forth ...");
 
     interpreter.abort();
-    dictionary.reset();
+    dictionary.clear();
 
     primitive(NOP, "NOP");
     primitive(BYE, "BYE");

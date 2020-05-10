@@ -36,7 +36,7 @@ Dictionary::Dictionary()
 {}
 
 //----------------------------------------------------------------------------
-void Dictionary::reset()
+void Dictionary::clear()
 {
     m_last = m_here = 0;
     m_backup.set = false;

@@ -206,7 +206,7 @@ TEST(Dico, CreateEntry)
     uint8_t const* bytes = reinterpret_cast<uint8_t const*>(dictionary());
 
     //
-    dictionary.reset();
+    dictionary.clear();
     dictionary.createEntry(42, "FOO", false, true);
     uint8_t const expected1[] = {
         0x83, // flags
@@ -218,7 +218,7 @@ TEST(Dico, CreateEntry)
     EXPECT_TRUE(0 == std::memcmp(bytes, expected1, sizeof(expected1)));
 
     //
-    dictionary.reset();
+    dictionary.clear();
     dictionary.createEntry(42, "FOOBAR", true, true);
     bytes = reinterpret_cast<uint8_t const*>(dictionary());
     uint8_t const expected2[] = {
@@ -230,7 +230,7 @@ TEST(Dico, CreateEntry)
     EXPECT_TRUE(0 == std::memcmp(bytes, expected2, sizeof(expected2)));
 
     //
-    dictionary.reset();
+    dictionary.clear();
     dictionary.createEntry(42, "", true, true);
     bytes = reinterpret_cast<uint8_t const*>(dictionary());
     uint8_t const expected3[] = {
@@ -241,7 +241,7 @@ TEST(Dico, CreateEntry)
     };
     EXPECT_TRUE(0 == std::memcmp(bytes, expected3, sizeof(expected3)));
 
-    dictionary.reset();
+    dictionary.clear();
     const char* ooo = "AOOOOOOOOOOOOOOOOOOOOOOOOOOOOOB";
     dictionary.createEntry(42, ooo, false, true);
     bytes = reinterpret_cast<uint8_t const*>(dictionary());

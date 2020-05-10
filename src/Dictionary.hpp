@@ -81,7 +81,7 @@ public:
     //!
     //! Reset LAST, HERE to the begining of the dictionary.
     //--------------------------------------------------------------------------
-    void reset();
+    void clear();
 
     //--------------------------------------------------------------------------
     //! \brief Restore the dictionary to its previous state.

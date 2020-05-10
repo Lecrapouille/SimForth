@@ -105,7 +105,6 @@ class Interpreter
 public:
 
     //--------------------------------------------------------------------------
-
     //! \brief Constructor. Initialize internal states. Do not perform other
     //! actions.
     //! \param[inout] dico the dictionary where are stored word entris and byte
@@ -248,22 +247,38 @@ private:
     //--------------------------------------------------------------------------
     bool toNumber(std::string const& word, Cell& number);
 
+    void included();
+
     //--------------------------------------------------------------------------
     //! \brief Manage the inclusion of a new stream (push the new stream, execute
     //! it ... push a stream, execute it ... then when EOF is reached pop it and
     //! continue to execute the previous stream.
     //--------------------------------------------------------------------------
-    void include(std::string const& filepath);
+    template<class S>
+    void include(std::string const& script)
+    {
+        LOGI("include '%s'", script.c_str());
+        pushStream<S>(script);
+        included();
+    }
 
     //--------------------------------------------------------------------------
     //! \brief Helper function for stacking a new stream.
     //--------------------------------------------------------------------------
-    void pushStream(std::string const& filepath);
+    template<class S>
+    void pushStream(std::string const& filepath)
+    {
+        // TODO assert max depth
+        LOGI("Push stream %d: %s", SS.depth() + 1, filepath.c_str());
+        SS.push(std::make_unique<S>(filepath.c_str(), m_base));
+    }
 
     //--------------------------------------------------------------------------
     //! \brief Helper function for unstacking the current stream.
     //--------------------------------------------------------------------------
     void popStream();
+
+    void resetStreams();
 
     //--------------------------------------------------------------------------
     //! \brief Used in debug/verbose mode for identing messages when executing

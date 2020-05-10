@@ -65,21 +65,7 @@ void Interpreter::abort()
     AS.reset();
     RS.reset();
     m_level = 0;
-
-    if (m_interactive)
-    {
-        // Discard all streams except the first stream that we have to reset
-        while (SS.pick(0)->name() != "Interactive")
-            popStream();
-        if (SS.depth() == 1)
-            SS.pick(0)->reset();
-    }
-    else
-    {
-        //FIXME SS.reset();
-        while (SS.depth() > 0)
-            popStream();
-    }
+    resetStreams();
     restoreOutStates();
 }
 
@@ -564,11 +550,13 @@ bool Interpreter::isPrimitive(Token const xt)
 }
 
 //----------------------------------------------------------------------------
-void Interpreter::pushStream(std::string const& filepath)
+void Interpreter::resetStreams()
 {
-    // TODO assert max depth
-    LOGI("Push stream %d: %s", SS.depth() + 1, filepath.c_str());
-    SS.push(std::make_unique<FileStream>(filepath.c_str(), m_base));
+    // Discard all streams except the first stream that we have to reset
+    while ((SS.depth() > 0) && (SS.pick(0)->name() != "Interactive"))
+        popStream();
+    if (SS.depth() != 0)
+        SS.pick(0)->reset();
 }
 
 //----------------------------------------------------------------------------
@@ -589,17 +577,14 @@ void Interpreter::popStream()
 }
 
 //----------------------------------------------------------------------------
-void Interpreter::include(std::string const& filepath)
+void Interpreter::included() // TODO: to be cleaned
 {
-    LOGI("include '%s'", filepath.c_str());
-
-    pushStream(filepath);
     Result result = interpret();
     if (result.res) // Success
     {
         if (options.traces) // Display more debug info
         {
-            result.msg.append(" parsed ").append(filepath);
+            result.msg.append(" parsed ").append(STREAM.name());
             ok(result);
         }
         popStream();

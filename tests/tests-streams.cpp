@@ -504,9 +504,9 @@ TEST(StringStream, PushPopStreams)
     forth::InputStream* is;
 
     // Push 1 and 2
-    forth.interpreter.pushStream("/tmp/f1.fth");
+    forth.interpreter.pushStream<FileStream>("/tmp/f1.fth");
     forth.interpreter.m_base = 16;
-    forth.interpreter.pushStream("/tmp/f2.fth");
+    forth.interpreter.pushStream<FileStream>("/tmp/f2.fth");
 
     // Check stack of streams
     ASSERT_EQ(forth.interpreter.SS.depth(), 2);

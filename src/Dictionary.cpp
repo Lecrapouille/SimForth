@@ -267,15 +267,13 @@ void Dictionary::append(std::string const& s, Token& here)
     // Store number of char of the string (aligned ?)
     m_memory[here++] = s.size();
 
-    // Store characters
-    char* destination = reinterpret_cast<char*>(m_memory + here);
-    memcpy(destination, s.data(), s.size());
-    destination += s.size();
-
-    // Store '\0' and padding
-    size_t size = static_cast<Token>(NEXT_MULTIPLE_OF_2(s.size() + 1u));
-    for (size_t i = 0; i < size - s.size(); ++i)
-        *destination++ = '\0';
+    // Store characters 2 bytes by two bytes
+    size_t size = NEXT_MULTIPLE_OF_2(s.size() + 1u);
+    size_t tokens = size / 2u;
+    Token* dst = m_memory + here;
+    Token const* src = reinterpret_cast<Token const*>(s.data());
+    while (tokens--)
+        *dst++ = *src++;
 
     // Move and aligne HERE
     here += size / size::token;

@@ -718,39 +718,40 @@ void Interpreter::executePrimitive(Token const xt)
         NEXT;
 
         // ---------------------------------------------------------------------
-        //
+        // Old sibling version of CREATE. The code is probably not standard-78.
         CODE(BUILDS)
           THROW_IF_NO_NEXT_WORD();
           dictionary.createEntry(toUpper(STREAM.word()));
-        NEXT;
-
-        // ---------------------------------------------------------------------
-        // Modify previous definition to execute code at xt
-        CODE(PDOES) // ( xt -- )
-          {
-              // *(CFA + 1) := DPOP()
-              Token* opcode = NFA2CFA(dictionary() + dictionary.last()) + 1;
-              *opcode = DPOP().i;
-              std::cout << "Store at " << std::hex << (dictionary() - opcode)
-                        << " " << *opcode << std::endl;
-          }
-        NEXT;
-
-        // ---------------------------------------------------------------------
-        // CREATE name ( ... -- ... ) initialization DOES> code ;
-        // is equivalent to:
-        // :NONAME DOES> code ; CREATE name EXECUTE ( ... -- ... ) initialization
-        CODE(DOES)
-          // Reserver a dictionary slot for storing the nex XT
-          TOSt = dictionary.here();
-          dictionary.append(Primitives::NOP); //
-          dictionary.append(Primitives::COMPILE);
           dictionary.append(Primitives::PDOES);
+          // Reserve a slot for the address to the DOES> treatement
+          TOSt = dictionary.here();
+          dictionary.append(Primitives::NOP);
           dictionary.finalizeEntry();
-          // :NONAME
-          m_state = State::Compile;
-          m_memo.depth = DS.depth();
-          dictionary[TOSt] = dictionary.createEntry("");
+        NEXT;
+
+        // ---------------------------------------------------------------------
+        // Do the DOES>
+        CODE(PDOES)
+          // Place the address of data to the data stack.
+          // +3 for skiping (DOES), address to DOES> traitment and EXIT
+          DPUSH(IP + 3);
+          // Branch to the DOES> treatement
+          IP = dictionary[IP + 1];
+        NEXT;
+
+        // ---------------------------------------------------------------------
+        // Fill the empty slot created by the <BUILDS word and exit the definition
+        CODE(DOES)
+          // Address of the DOES treatement
+          dictionary[TOSt] = IP;
+          // Call EXIT
+          IP = RPOP();
+          if (options.traces)
+          {
+              indent();
+              std::cout << "RPOP: IP=" << std::hex << IP << " "
+                        << dictionary.token2name(dictionary[IP]) << "\n";
+          }
         NEXT;
 
         // ---------------------------------------------------------------------

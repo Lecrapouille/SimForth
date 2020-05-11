@@ -197,8 +197,8 @@ bool Forth::boot()
     hidden(PCREATE, "(CREATE)");
     primitive(CREATE, "CREATE");
     primitive(BUILDS, "<BUILDS");
-    primitive(PDOES, "(DOES)");
-    immediate(DOES, "DOES>");
+    hidden(PDOES, "(DOES)");
+    primitive(DOES, "DOES>");
     primitive(IMMEDIATE, "IMMEDIATE");
     primitive(SMUDGE, "SMUDGE");
     immediate(TICK, "'");

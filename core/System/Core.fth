@@ -356,7 +356,7 @@
 \ Constant:
 \   12 CONSTANT foo
 \   foo .
-\ TODO : CONSTANT <BUILDS , DOES> @ ;
+: CONSTANT   <BUILDS , DOES> @ ;
 
 \ TODO http://amforth.sourceforge.net/TG/recipes/Builds.html
 \ <BUILDS is the older sibling of create. Unlike create it does

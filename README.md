@@ -39,7 +39,7 @@ present in this repo.
 
 ## Installation
 
-See file [doc/standalone.md](doc/standalone.md)
+See file [doc/install.md](doc/install.md)
 
 ## Features
 
@@ -112,6 +112,9 @@ SimForth, used as shared library, offers a simpler API than gforth, in my opinio
 ## Documentation and Inspiration
 
 SimForth has some documentation inside the folder [docs](doc):
-* [docs/standalone.md](doc/stastandalone.md) shows how to compile, install and use SimForth.
+* [doc/install.md](doc/install.md) shows how to compile, install and use SimForth.
+* [docs/standalone.md](doc/standalone.md) show how to use the standalone binary.
+* [docs/libsimforth.md](doc/libsimforth.md) show how to use the libsimforth library.
+* [docs/learning.md](doc/learning.md) links for learning Forth.
+* [docs/simforth.md](doc/simforth.md) learning SimForth.
 * [docs/deviation.md](doc/deviation.md) shows deviation from ANSI-Forth.
-* [docs/forth.md](doc/forth.md) links for learning Forth.

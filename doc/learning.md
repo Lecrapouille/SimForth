@@ -1,5 +1,7 @@
 # Learning Forth
 
+## Starting Forth
+
 Newbie with Forth? DO NOT PANIC! Read these following documents:
 * [Starting FORTH](https://www.forth.com/starting-forth/) first.
 * jonesforth [part1](https://github.com/AlexandreAbreu/jonesforth/blob/master/jonesforth.S)
@@ -15,3 +17,7 @@ If you are looking for a faster and complete forth, you should look at some proj
 * [4th](https://thebeez.home.xs4all.nl/4tH/),
 * [VFX](https://www.mpeforth.com/vfxlinux.htm),
 * [reforth](https://github.com/seanpringle/reforth).
+
+## Forth word glossary
+
+https://forth-standard.org/

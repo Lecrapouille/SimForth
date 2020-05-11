@@ -28,33 +28,45 @@
 namespace forth
 {
 
+//----------------------------------------------------------------------------
 // FIXME Token = short but when doing short + short they are cast to int
 #  pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored "-Wconversion"
 #    pragma GCC diagnostic ignored "-Wsign-conversion"
 
 //----------------------------------------------------------------------------
+//! \brief Check if the token xt has enough parameters to consume in the stack S
+//! (meaning if the depth d of the stack S is enough deep).
 #define CHECK_DEPTH(S, d, xt)                                \
-    if (S.depth() < d) {                                    \
+    if (S.depth() < d) {                                     \
         THROW(S.name() + "-Stack underflow caused by word "  \
               + dictionary.token2name(xt));                  \
     }
 
+//----------------------------------------------------------------------------
+//! \brief Data-Stack
 #define DDEEP(d)  CHECK_DEPTH(DS, d, xt);
+//! \brief Auxillary-Stack
 #define ADEEP(d)  CHECK_DEPTH(AS, d, xt);
+//! \brief Return-Stack
 #define RDEEP(d)  CHECK_DEPTH(RS, d, xt);
 
 //----------------------------------------------------------------------------
+//! \brief Throw an exception if the interpreter is not in compilation mode
 #define THROW_COMPILE_ONLY()                                            \
     if (m_state == State::Interprete)                                   \
         THROW("Interpreting a compile-only word " + toUpper(STREAM.word()))
 
 //----------------------------------------------------------------------------
+//! \brief Throw an exception if the input stream is finished (and therefore
+//! has no more word to consume).
 #define THROW_IF_NO_NEXT_WORD()                                     \
     if (!STREAM.split())                                            \
         THROW("Unterminated script. Missing terminaison word");
 
 //----------------------------------------------------------------------------
+//! \brief Throw an exception if the input stream is finished before finding
+//! the delimiter symbol
 #define THROW_IF_NO_DELIMITER(delimiter)                                     \
     if (!STREAM.split(delimiter))                                            \
         THROW("Unterminated script. Missing terminaison word");
@@ -94,6 +106,13 @@ void Interpreter::skipComment()
 }
 
 //----------------------------------------------------------------------------
+// All primitives check their number of parameters against the depth of stacks.
+// Deviation from ANSI-Forth: An exception is thrown if the stack has less
+// paramaters than expected.
+//
+// Notation: C: Control flow. S: Data-Stack. R: Return-Stack. *: all stacks.
+// n: number (float or int)
+// addr: address ie HERE or CFA.
 void Interpreter::executePrimitive(Token const xt)
 {
     //LOGW("executePrimitive %u %s", xt, dictionary.token2name(xt).c_str());
@@ -101,36 +120,74 @@ void Interpreter::executePrimitive(Token const xt)
     DISPATCH(primitive)
     {
         // ---------------------------------------------------------------------
-        // Dummy word / No operation
+        // Dummy word. Do no operation. Use it for reserving slots in the
+        // dictionary ie. dictionary.append(Primitives::NOP).
         CODE(NOP) // ( -- )
         NEXT;
 
         // ---------------------------------------------------------------------
-        // Quit the interactive mode
+        // Quit the interactive mode or when interpreting file abort silently
         CODE(BYE) // ( -- )
-                //if (m_interactive)
-          {
-              m_interactive = false;
-              THROW("bye");
-          }
+          // TODO if (m_interactive) ?
+          m_interactive = false;
+          THROW("bye");
         NEXT;
 
         // ---------------------------------------------------------------------
-        //
-        CODE(SEE)
+        // Decompile the word that follow SEE. Throw an error if the word is
+        // unknown or the stream is finished before the name.
+        CODE(SEE) // ( C: <spaces>name -- )
           THROW_IF_NO_NEXT_WORD();
           if (!dictionary.see(STREAM.word(), m_base))
               THROW("Unknown word " + STREAM.word());
         NEXT;
 
         // ---------------------------------------------------------------------
-        // Show the list of Forth words stored in the dictionary
+        // Show the list of Forth words stored in the dictionary.
         CODE(WORDS) // ( -- )
           dictionary.display(m_base);
         NEXT;
 
         // ---------------------------------------------------------------------
-        // Change the current base
+        // Clear all stacks. Reset states of the interpreter and of the input
+        // stream.
+        CODE(ABORT) // ( *: ... -- )
+          THROW("ABORT");
+        NEXT;
+
+        // ---------------------------------------------------------------------
+        //
+        CODE(PABORT_MSG)
+        {
+          DDROP();
+          char const* msg = reinterpret_cast<char const*>(&dictionary[DPOPi() + 1]);
+          THROW(msg);
+        }
+        NEXT;
+
+        // ---------------------------------------------------------------------
+        // Clear all stacks. Reset states of the interpreter and of the input
+        // stream. Display the error message
+        CODE(ABORT_MSG)  // ( ccc<quote> ; *: ... -- )
+          THROW_IF_NO_DELIMITER("\"");
+          if (m_state == State::Compile)
+          {
+              if (STREAM.word().size() > size::tib)
+                  THROW("Max string chars reached");
+              dictionary.append(Primitives::PSLITERAL);
+              dictionary.append(STREAM.word(), dictionary.here());
+              dictionary.append(Primitives::PABORT_MSG);
+          }
+          else
+          {
+              std::cout << "abort interpret\n";
+              THROW(STREAM.word());
+          }
+        NEXT;
+
+        // ---------------------------------------------------------------------
+        // Change the current base.
+        // Deviation: in SimForth BASE is not a user variable.
         CODE(SET_BASE) // ( base -- )
           DDEEP(1);
           TOSi = DPOPi();
@@ -145,32 +202,25 @@ void Interpreter::executePrimitive(Token const xt)
         NEXT;
 
         // ---------------------------------------------------------------------
-        // Return the current base
+        // Return the current base.
+        // Deviation: in SimForth BASE is not a user variable.
         CODE(GET_BASE) // ( -- base )
           DPUSH(m_base);
         NEXT;
 
         // ---------------------------------------------------------------------
-        // Return the address of the start of the terminal input buffer.
-        // Note: +1: because 1st byte holds the number of char
-        CODE(TIB) // ( -- addr )
-          DPUSH(Cell(size::dictionary - size::tib + 1_z));
-        NEXT;
-
-        // ---------------------------------------------------------------------
-        // Contains the size of the contents of the terminal input buffer.
-        CODE(COUNT_TIB) // ( -- n )
-          DPUSH(dictionary[size::dictionary - size::tib]);
-        NEXT;
-
-        // ---------------------------------------------------------------------
-        // Deviation: The Stream class does not belong to the dictionary and
-        // therefore the TIB address cannot be reached directly. To stay
-        // compatible with classic Forth, we have to copy the current stream
-        // line into the end of the dictionary region that we name it the
-        // TIB. The first cell of TIB is used for storing the size of the
-        // string.
-        CODE(SOURCE)
+        // Return the starting address of the terminal input buffer
+        // (TIB). Return the number of characters stored in the terminal input
+        // buffer.
+        //
+        // Deviation: in SimForth, the Input Stream class does not belong to the
+        // dictionary and therefore the TIB address cannot be reached
+        // directly. To stay compatible with ANSI Forth, we have to copy the
+        // current line read at the end of the dictionary, region that we'll
+        // name TIB. The first cell of TIB is used for holding the size of the
+        // string. Next cells store char 2 by 2 and the last byte is '\0' to be
+        // compatible with C++.
+        CODE(SOURCE) // ( -- addr u )
         {
             Token const it = size::dictionary - size::tib;
             char* tib = reinterpret_cast<char*>(&dictionary[it + 1_z]);
@@ -184,38 +234,48 @@ void Interpreter::executePrimitive(Token const xt)
             tib[size] = '\0';
 
             // Push the size of the string and the TIB address. The word TYPE
-            // can consum them.
+            // can consume them.
             DPUSH(Cell(it));
             DPUSH(size);
         }
         NEXT;
 
         // ---------------------------------------------------------------------
-        //  Read from the current input device a single ASCII char and push it in
-        // the data stack.
+        // Read a single ASCII char from the keyboard input (which is not the
+        // TIB) and push it on the data stack.
         CODE(KEY) // ( -- char )
           DPUSH(key());
         NEXT;
 
         // ---------------------------------------------------------------------
-        // Change the color of the terminal
-        CODE(TERMINAL_COLOR)
+        // Change the displayed text color of the output console.
+        CODE(TERMINAL_COLOR) // ( style fg -- )
           std::cout << termcolor::color(termcolor::style(DPOPi()),
                                         termcolor::fg(DPOPi()));
         NEXT;
 
         // ---------------------------------------------------------------------
-        // Parses one word from the input stream (separated by spaces). Moves
-        // the string to the address TIB with the count in the first byte,
-        // leaving the address on the stack.
-        CODE(WORD) // ( c -- addr )
+        // Parse one word from the input stream: skip leading delimiters. Parse
+        // characters ccc delimited by <char>. Return the TIB address on the
+        // stack.
+        //
+        // Deviation: because SimForth does not manage a TIB. A copy of the
+        // string to the address TIB with the count in the first byte is
+        // necessary.
+        CODE(WORD) // ( C: char "<chars>ccc<char>" -- addr ) // TODO place it at HERE ?
           {
               DDEEP(1);
-              std::string delimiter(1, char(DPOPi()));
+              std::string delimiter(1, char(DPOPi())); // TODO: evolution: single char is old. Pass a string : :SPACES: " \t\n\v\f\r" ;
               if (!STREAM.split(delimiter))
               {
                   if (m_interactive)
+                  {
                       STREAM.split(delimiter);
+                  }
+                  else
+                  {
+                      THROW("Unterminated script. Missing terminaison word");
+                  }
               }
               dictionary[size::dictionary - size::tib] = STREAM.word().size() + 1_z;
               strcpy(reinterpret_cast<char*>(dictionary() + size::dictionary - size::tib + 1_z),
@@ -225,34 +285,48 @@ void Interpreter::executePrimitive(Token const xt)
         NEXT;
 
         // ---------------------------------------------------------------------
-        // Display the count sting stored at the top to the data stack
+        // Display the count string stored at the top to the data stack.
+        // Deviation: String in SimForth has an extra '\0' char to be compatible
+        // with C and C++. Therefore the number of char is ignored (FIXME not very crash proof).
         CODE(TYPE) // ( addr u -- )
           DDROP();
           std::cout << reinterpret_cast<char*>(&dictionary[DPOPi() + 1]) << std::flush;
         NEXT;
 
         // ---------------------------------------------------------------------
-        //
-        CODE(TO_IN)
+        // Move the parsing cursor of the input stream to a given number of chars.
+        // Deviation: in SimForth this word is not a user variable.
+        CODE(TO_IN) // ( n -- )
           DDEEP(1);
           STREAM.skip(DPOPi());
         NEXT;
 
         // ---------------------------------------------------------------------
-        // Enable traces when executing a word
+        //
+        CODE(EVALUATE)
+        {
+          DDROP(); // number of chars in the string
+          char const* script = reinterpret_cast<char const*>(&dictionary[DPOPi() + 1]);
+          include<StringStream>(script);
+        }
+        NEXT;
+
+        // ---------------------------------------------------------------------
+        // Enable traces when executing a word. Use it for debugging a code.
         CODE(TRACES_ON) // ( -- )
           options.traces = true;
         NEXT;
 
         // ---------------------------------------------------------------------
-        // Disable traces
+        // Disable traces.
         CODE(TRACES_OFF) // ( -- )
           options.traces = false;
         NEXT;
 
         // ---------------------------------------------------------------------
-        // Display the top of the data stack on the current output device.
-        CODE(EMIT) // ( -- c )
+        // Consume the top of the data stack and display it on the output
+        // console.
+        CODE(EMIT) // ( c -- )
           DDEEP(1);
           TOSc0 = DPOP();
           for (size_t i = 0; i < size::cell; ++i)
@@ -263,40 +337,44 @@ void Interpreter::executePrimitive(Token const xt)
         NEXT;
 
         // ---------------------------------------------------------------------
-        // Display a cariage return on the current output device.
+        // Display a carriage return on the current output console.
         CODE(CR) // ( -- )
           std::cout << std::endl;
         NEXT;
 
         // ---------------------------------------------------------------------
-        // Display the data stack on the current output device.
+        // Display the data stack on the current output console.
         CODE(DOT_DSTACK) // ( -- )
           DS.display(std::cout, m_base);
         NEXT;
 
         // ---------------------------------------------------------------------
-        // Consum the top element of the data stack and display it on the
-        // current output device.
+        // Consume the top element of the data stack and display it on the
+        // current output device. No carriage return is added but a single space.
         CODE(DOT) // ( n -- )
-          {
-              DDEEP(1);
-              TOSc0 = DPOP();
-              std::cout << std::setbase(m_base) << TOSc0 << ' ';//std::endl;
-              restoreOutStates();
-          }
+          DDEEP(1);
+          std::cout << std::setbase(m_base) << DPOP() << std::dec << ' ';
         NEXT;
 
         // ---------------------------------------------------------------------
+        // Store a string as count string at the location of HERE. The string
+        // shall by ended by the char '"' in the input stream. Throw an
+        // exception if the string is not terminated when the input stream
+        // ends. Throw is the string has more than size::tib chars.
         //
-        CODE(STORE_STRING)
+        // Note: this word is not in the ANSI-Forth.
+        CODE(STORE_STRING) // ( C: <chars>" ; -- )
            THROW_IF_NO_DELIMITER("\"");
            if (STREAM.word().size() > size::tib)
                THROW("Max string chars reached");
+           dictionary.append(STREAM.word().size());
            dictionary.append(STREAM.word(), dictionary.here());
         NEXT;
 
         // ---------------------------------------------------------------------
-        //
+        // Literal string. In compilation mode store characters inside the word
+        // definition. In interpretation mode, store characters temporary in the
+        // TIB and return the TIB address and the number of char in the string.
         CODE(SSTRING)
           THROW_IF_NO_DELIMITER("\"");
           if (m_state == State::Compile)
@@ -316,7 +394,8 @@ void Interpreter::executePrimitive(Token const xt)
         NEXT;
 
         // ---------------------------------------------------------------------
-        // Print a string or compile it depending on the current interpreter mode
+        // In interpretation mode, print a string on the output console. In
+        // compilation mode, compile the string as literal.
         CODE(DOT_STRING)
           THROW_IF_NO_DELIMITER("\"");
           if (m_state == State::Compile)
@@ -378,18 +457,19 @@ void Interpreter::executePrimitive(Token const xt)
         NEXT;
 
         // ---------------------------------------------------------------------
-        // Read on the current input stream the name of the Forth file, open it
-        // and push the file descriptor on the stream stack. This stream becomes
-        // the current stream that the interpreter will read. The stream is poped
-        // off automaticaly when the end of the file is reached and the previously
-        // opened stream becomes the current.
-        CODE(INCLUDE) // ( -- )
+        // Read the filr name following this word. Open it and push the file
+        // descriptor on the stream stack. This stream becomes the current
+        // stream that the interpreter will read. The stream is pop off
+        // automatically when the end of the file is reached and the previously
+        // opened stream becomes the current. The current base is saved and
+        // restored at the end of the file.
+        CODE(INCLUDE) // ( C: file name -- )
           THROW_IF_NO_NEXT_WORD();
-          include(STREAM.word());
+          include<FileStream>(STREAM.word());
         NEXT;
 
         // ---------------------------------------------------------------------
-        // Jump IP
+        // Branch IP to the relative address stored in the next token.
         CODE(BRANCH) // ( -- )
           IP += dictionary[IP + 1u];
           if (options.traces)
@@ -397,53 +477,60 @@ void Interpreter::executePrimitive(Token const xt)
         NEXT;
 
         // ---------------------------------------------------------------------
-        // Jump IP if if top of stack is 0
-        CODE(ZERO_BRANCH) // ( 'f -- )
+        // Branch IP to the relative address stored in the next token if and
+        // only if the top value in the data stack is 0. This value is eaten.
+        CODE(ZERO_BRANCH) // ( false -- )
           DDEEP(1);
-          if (DPOPi() == 0)
+          IP += ((DPOPi() == 0) ? dictionary[IP + 1u] : 1u);
+          if (options.traces)
           {
-              TOSi = *reinterpret_cast<int16_t*>(&dictionary[IP + 1]);
-              IP += TOSi;
-              if (options.traces)
-              {
-                  indent();
-                  std::cout << "  Relative jump: " << std::dec << TOSi << "\n";
-              }
-          }
-          else
-          {
-              ++IP;
+              indent();
+              std::cout << "IP jumps to " << std::dec << IP << "\n";
           }
         NEXT;
 
         // ---------------------------------------------------------------------
-        //
+        // Return the index I position after it has left the loop. Example in C:
+        // int i; for (i = A; i < B; ++i) { ... }; f(i);
+        // Note: this word is not in the standard.
         CODE(QI)
           DPUSH(I);
         NEXT;
 
         // ---------------------------------------------------------------------
-        // Loop iterator (outer loop)
+        // Loop iterator (outer loop).
+        // Deviation: index is not stored in the return-stack but the other stack
         CODE(I)
           I = APICK(0);
           DPUSH(I);
         NEXT;
 
-       // ---------------------------------------------------------------------
-        //
+        // ---------------------------------------------------------------------
+        // Return the index I position after it has left the loop. Example in C:
+        // int i, j; for (i = A; i < B; ++i) { for (j = C; j < D; ++j) ... }; f(j);
+        // Note: this word is not in the standard.
         CODE(QJ)
           DPUSH(J);
         NEXT;
 
         // ---------------------------------------------------------------------
-        // Second loop iterator (inner loop)
+        // Second loop iterator (inner loop).
+        // Deviation: index is not stored in the return-stack but the other stack
         CODE(J)
           J = APICK(2);
           DPUSH(J);
         NEXT;
 
         // ---------------------------------------------------------------------
-        // A Data-Stack cell can be store by 2 dictionary tokens
+        // A Dictionary slot store a token (2 bytes). Dictionary addresses are
+        // multiple of tokens (not of bytes). So return 1.
+        CODE(TOKEN) // ( -- 1 )
+          DPUSH(1);
+        NEXT;
+
+        // ---------------------------------------------------------------------
+        // We need x Dictionary slots (tokens) to store a Data-Stack. Return this
+        // number.
         CODE(CELL) // ( -- 2 )
           DPUSH(size::cell / size::token);
         NEXT;
@@ -455,9 +542,29 @@ void Interpreter::executePrimitive(Token const xt)
         NEXT;
 
         // ---------------------------------------------------------------------
-        // Push the latest word entry on the top of the data stack
-        CODE(LATEST) // ( -- addr )
+        // Return the NFA of the latest word stored in the dictionary.
+        CODE(LATEST) // ( -- nfa )
           DPUSH(dictionary.last());
+        NEXT;
+
+        // ---------------------------------------------------------------------
+        // Convert the NFA to CFA
+        CODE(TO_CFA) // ( nfa -- cfa )
+          DPUSH(NFA2indexCFA(dictionary(), DPOPi()));
+        NEXT;
+
+        // ---------------------------------------------------------------------
+        // Search the word in the input stream. Return its token (or NOP if not
+        // found) and return 0 if not found or 1 if found and immediate or -1
+        // if found and non-immediate word.
+        CODE(FIND) // ( -- xt n )
+        {
+            THROW_IF_NO_NEXT_WORD();
+            Token nfa;
+            int res = dictionary.find(STREAM.word(), nfa);
+            DPUSH(nfa);
+            DPUSH(res);
+        }
         NEXT;
 
         // ---------------------------------------------------------------------
@@ -486,11 +593,48 @@ void Interpreter::executePrimitive(Token const xt)
         NEXT;
 
         // ---------------------------------------------------------------------
+        //
+        CODE(BYTE_FETCH) // ( 2*addr -- x )
+        {
+          DDEEP(1);
+          char* ptr = reinterpret_cast<char*>(dictionary() + Token(DPOPi()));
+          DPUSH(*ptr);
+        }
+        NEXT;
+
+        // ---------------------------------------------------------------------
+        //
+        CODE(BYTE_STORE) // ( x addr -- )
+        {
+          DDEEP(2);
+          char* ptr = reinterpret_cast<char*>(dictionary() + Token(DPOPi()));
+          *ptr = char(DPOPi());
+        }
+        NEXT;
+
+        // ---------------------------------------------------------------------
         // Append in the dictionary the token stored on the top of the stack
         CODE(TOKEN_COMMA) // ( xt -- )
           DDEEP(1);
           dictionary.append(static_cast<Token>(DPOP().i));
         NEXT;
+
+        // ---------------------------------------------------------------------
+        // x is the value stored at addr.
+        CODE(TOKEN_FETCH) // ( addr -- x )
+          DDEEP(1);
+          TOSc0 = dictionary.fetch<Token>(Token(DPOPi()));
+          DPUSH(TOSc0);
+        NEXT;
+
+        // ---------------------------------------------------------------------
+        //
+        CODE(TOKEN_STORE) // ( x addr -- )
+          DDEEP(2);
+          TOSi = DPOPi(); // addr
+          dictionary[Token(TOSi)] = Token(DPOPi());
+        NEXT;
+
 
         // ---------------------------------------------------------------------
         // Append in the dictionary the cell in the top of the stack
@@ -507,43 +651,36 @@ void Interpreter::executePrimitive(Token const xt)
         NEXT;
 
         // ---------------------------------------------------------------------
-        // x is the value stored at a-addr.
-        CODE(TOKEN_FETCH) // ( a-addr -- x )
-          DDEEP(1);
-          TOSc0 = dictionary.fetch<Token>(Token(DPOPi()));
-          DPUSH(TOSc0);
-        NEXT;
-
-        // ---------------------------------------------------------------------
-        // x is the value stored at a-addr.
-        CODE(FLOAT_FETCH) // ( a-addr -- x )
+        // x is the value stored at addr.
+        CODE(FLOAT_FETCH) // ( addr -- x )
           DDEEP(1);
           TOSc0 = dictionary.fetch<Float>(Token(DPOPi()));
           DPUSH(TOSc0);
         NEXT;
 
         // ---------------------------------------------------------------------
-        // x is the value stored at a-addr.
-        CODE(CELL_FETCH) // ( a-addr -- x )
+        // x is the value stored at addr.
+        CODE(CELL_FETCH) // ( addr -- x )
           DDEEP(1);
           TOSi = dictionary.fetch<Int>(Token(DPOPi()));
           DPUSH(TOSi);
         NEXT;
 
         // ---------------------------------------------------------------------
-        // Store x at a-addr.
+        // Store x at addr.
         // TODO avoid storing date where primitives are stored
-        CODE(CELL_STORE) // ( x a-addr -- )
+        CODE(CELL_STORE) // ( x addr -- )
           DDEEP(2);
           TOSi = DPOPi(); // addr
           dictionary.store(Token(TOSi), DPOP());
         NEXT;
 
-        CODE(TOKEN_STORE) // ( x a-addr -- )
-          DDEEP(2);
-          TOSi = DPOPi(); // addr
-          dictionary[Token(TOSi)] = Token(DPOPi());
-        NEXT;
+        // ---------------------------------------------------------------------
+        //
+        // CODE(PLUS_STORE)
+        //   TOSc0 = dictionary.fetch<Cell>(DPOPi());
+        //   DPUSH(TOSc0 + DPOP());
+        // NEXT;
 
         // ---------------------------------------------------------------------
         // Throw an error if the interpretor is not in compilation mode
@@ -674,7 +811,7 @@ void Interpreter::executePrimitive(Token const xt)
 
         // ---------------------------------------------------------------------
         // Push in data stack the next free slot in the dictionary
-        // +1 skip CFA
+        // +1 to skip CFA of EXIT
         CODE(PCREATE) // ( -- addr )
           DPUSH(IP + 2);
         NEXT;
@@ -686,6 +823,10 @@ void Interpreter::executePrimitive(Token const xt)
         CODE(CREATE)
           THROW_IF_NO_NEXT_WORD();
           dictionary.createEntry(toUpper(STREAM.word()));
+          if (options.traces)
+          {
+              std::cout << "Create entry " << STREAM.word() << "\n";
+          }
           dictionary.append(Primitives::PCREATE);
           dictionary.finalizeEntry();
         NEXT;
@@ -696,7 +837,7 @@ void Interpreter::executePrimitive(Token const xt)
           THROW_IF_NO_NEXT_WORD();
           dictionary.createEntry(toUpper(STREAM.word()));
           dictionary.append(Primitives::PDOES);
-          // Reserve a slot for the address to the DOES> treatement
+          // Reserve a slot for the address to the DOES> treatment
           TOSt = dictionary.here();
           dictionary.append(Primitives::NOP);
           dictionary.finalizeEntry();
@@ -706,17 +847,17 @@ void Interpreter::executePrimitive(Token const xt)
         // Do the DOES>
         CODE(PDOES)
           // Place the address of data to the data stack.
-          // +3 for skiping (DOES), address to DOES> traitment and EXIT
+          // +3 for skipping (DOES), address to DOES> treatment and EXIT
           DPUSH(IP + 3);
-          // Branch to the DOES> treatement
-          IP = dictionary[IP + 1];
+          // Branch to the DOES> treatment
+          IP = dictionary[IP + 1]; // FIXME: use relative address
         NEXT;
 
         // ---------------------------------------------------------------------
         // Fill the empty slot created by the <BUILDS word and exit the definition
         CODE(DOES)
-          // Address of the DOES treatement
-          dictionary[TOSt] = IP;
+          // Address of the DOES treatment
+          dictionary[TOSt] = IP;  // FIXME: use relative address
           // Call EXIT
           IP = RPOP();
           if (options.traces)
@@ -735,14 +876,15 @@ void Interpreter::executePrimitive(Token const xt)
 
         // ---------------------------------------------------------------------
         // Set smudge the next word in the stream
-        CODE(SMUDGE)
+        CODE(HIDE)
           {
               THROW_IF_NO_NEXT_WORD();
-              std::string const word = toUpper(STREAM.word());
-              if (!dictionary.smudge(word))
+              toUpper(STREAM.word());
+              if (!dictionary.smudge(STREAM.word()))
               {
-                  std::cerr << FORTH_WARNING_COLOR << "[WARNING] Unknown word '"
-                            << word << "'. Word SMUDGE Ignored !"
+                  std::cerr << FORTH_WARNING_COLOR
+                            << "[WARNING] Cannot hide unknown word '"
+                            << STREAM.word() << "'. Ignored !"
                             << DEFAULT_COLOR << std::endl;
               }
           }
@@ -1181,27 +1323,30 @@ void Interpreter::executePrimitive(Token const xt)
         NEXT;
 
         // ---------------------------------------------------------------------
-        //
+        // 2 ROLL == ROT
+        // 1 ROLL == SWAP
+        // 0 ROLL == no operation
         CODE(ROLL)
           {
-              THROW("not yet implemented");
-              /*
-              DDEEP(xx);
-              TOSc1 = DPICK(TOSc);
-              Cell *src = &DPICK(TOSc0 - 1);
-              Cell *dst = &DPICK(TOSc);
-              Cell ri = TOSc;
-              while (ri--)
+              DDEEP(1);
+              TOSi = DPOPi();
+              DDEEP(TOSi + 1);
+              Cell scratch = DPICK(TOSi);
+              Cell *src = &DPICK(TOSi - 1);
+              Cell *dst = &DPICK(TOSi);
+              while (TOSi--)
               {
-                  *dst-- = *src--;
+                  *dst++ = *src++;
               }
-              TOSc0 = TOSc1;
-              // FIXME ++m_dsp;*/
+              DPOP();
+              DPUSH(scratch);
           }
         NEXT;
 
         // ---------------------------------------------------------------------
         // ( ... n -- sp(n) )
+        // 0 PICK == DUP
+        // 1 PICK == OVER
         CODE(PICK)
           TOSi = DPOPi();
           DDEEP(TOSi);

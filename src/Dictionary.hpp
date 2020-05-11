@@ -241,6 +241,11 @@ public:
     void finalizeEntry();
 
     //--------------------------------------------------------------------------
+    //! \brief ANSI-Forth API
+    //--------------------------------------------------------------------------
+    int find(std::string const& word, Token& nfa) const;
+
+    //--------------------------------------------------------------------------
     //! \brief Look for if a Forth word is stored inside the dictionary and
     //! return its information.
     //! \param[in] word the world to look for.
@@ -431,6 +436,7 @@ private:
     }
 
 private:
+
     //-------------------------------------------------------------------------
     //! \brief Memorize states before compiling a new word. Allow to restore
     //! dictionary states if the definition is odd.

@@ -137,18 +137,20 @@ bool Forth::boot()
     primitive(BYE, "BYE");
     primitive(SEE, "SEE");
     primitive(WORDS, "WORDS");
+    primitive(ABORT, "ABORT");
+    hidden(PABORT_MSG, "(ABORT)");
+    immediate(ABORT_MSG, "ABORT\"");
     primitive(SET_BASE, "BASE!");
     primitive(GET_BASE, "BASE");
 
     // Input
-    primitive(TIB, "TIB");
-    primitive(COUNT_TIB, "#TIB");
     primitive(SOURCE, "SOURCE");
     primitive(KEY, "KEY");
     primitive(TERMINAL_COLOR, "TERM.COLOR");
     primitive(WORD, "WORD");
     primitive(TYPE, "TYPE");
     primitive(TO_IN, ">IN");
+    primitive(EVALUATE, "EVALUATE");
 
     // Display
     primitive(TRACES_ON, "TRACES.ON");
@@ -200,7 +202,7 @@ bool Forth::boot()
     hidden(PDOES, "(DOES)");
     primitive(DOES, "DOES>");
     primitive(IMMEDIATE, "IMMEDIATE");
-    primitive(SMUDGE, "SMUDGE");
+    primitive(HIDE, "HIDE");
     immediate(TICK, "'");
     primitive(COMPILE, "COMPILE");
     immediate(ICOMPILE, "[COMPILE]");
@@ -210,20 +212,31 @@ bool Forth::boot()
     primitive(RIGHT_BRACKET, "]");
 
     // Dictionary manipulation
+    primitive(TOKEN, "TOKEN");
     primitive(CELL, "CELL");
     primitive(HERE, "HERE");
     primitive(LATEST, "LATEST");
+    primitive(TO_CFA, ">CFA");
+    primitive(FIND, "FIND");
     primitive(FILL, "FILL");
-    primitive(CELLS_MOVE, "CMOVE");
-    primitive(TOKEN_COMMA, "X,");
+    primitive(CELLS_MOVE, "MOVE");
+    primitive(BYTE_FETCH, "BYTE@");
+    primitive(BYTE_STORE, "BYTE!");
+    primitive(TOKEN_COMMA, "TOKEN,");
+    primitive(TOKEN_FETCH, "TOKEN@");
+    primitive(TOKEN_STORE, "TOKEN!");
+    primitive(CELL_COMMA, "CELL,");
     primitive(CELL_COMMA, ",");
     primitive(ALLOT, "ALLOT");
-    primitive(TOKEN_FETCH, "X@");
-    primitive(FLOAT_FETCH, "F@");
+    primitive(FLOAT_FETCH, "FLOAT@");
+    primitive(CELL_FETCH, "INT@");
+    primitive(CELL_FETCH, "CELL@");
     primitive(CELL_FETCH, "@");
+    primitive(CELL_STORE, "FLOAT!");
+    primitive(CELL_STORE, "INT!");
+    primitive(CELL_STORE, "CELL!");
     primitive(CELL_STORE, "!");
-    primitive(TOKEN_STORE, "X!");
-    // TODO primitive(PLUS_STORE, "+!");
+    //primitive(PLUS_STORE, "+!");
 
     // Return stack manipulation
     primitive(TWOTO_ASTACK, "2>R");

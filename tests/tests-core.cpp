@@ -123,7 +123,7 @@ TEST(CheckForth, CheckSmudge)
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("Redefining 'FOO'"));
 
     // Smudge the second definition. Check the first definition is executed
-    ASSERT_EQ(forth.interpretString("DROP SMUDGE FOO  FOO"), true);
+    ASSERT_EQ(forth.interpretString("DROP HIDE FOO  FOO"), true);
     ASSERT_EQ(forth.dataStack().depth(), 1);
     ASSERT_EQ(forth.dataStack().pick(0), 42);
 }
@@ -191,7 +191,7 @@ TEST(CheckForth, Variables)
 
     // Integer <= size of token
     std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
-    ASSERT_EQ(forth.interpretString("VARIABLE A   42 A !  A @ DUP ."), true);
+    ASSERT_EQ(forth.interpretString("VARIABLE A   42 A !  A CELL@ DUP ."), true);
     std::cout.rdbuf(old);
     EXPECT_STREQ(buffer.str().c_str(), "42 ");
     ASSERT_EQ(forth.dataStack().depth(), 1);
@@ -200,7 +200,7 @@ TEST(CheckForth, Variables)
     // Integer > size of token
     buffer.str(std::string());
     old = std::cout.rdbuf(buffer.rdbuf());
-    ASSERT_EQ(forth.interpretString("VARIABLE B   65536 B !  B @ DUP ."), true);
+    ASSERT_EQ(forth.interpretString("VARIABLE B   65536 B !  B CELL@ DUP ."), true);
     std::cout.rdbuf(old);
     EXPECT_STREQ(buffer.str().c_str(), "65536 ");
     ASSERT_EQ(forth.dataStack().depth(), 1);
@@ -209,7 +209,7 @@ TEST(CheckForth, Variables)
     // Negative integer
     buffer.str(std::string());
     old = std::cout.rdbuf(buffer.rdbuf());
-    ASSERT_EQ(forth.interpretString("VARIABLE C   -42 C !  C @ DUP ."), true);
+    ASSERT_EQ(forth.interpretString("VARIABLE C   -42 C !  C CELL@ DUP ."), true);
     std::cout.rdbuf(old);
     EXPECT_STREQ(buffer.str().c_str(), "-42 ");
     ASSERT_EQ(forth.dataStack().depth(), 1);
@@ -218,7 +218,7 @@ TEST(CheckForth, Variables)
     // Small float
     buffer.str(std::string());
     old = std::cout.rdbuf(buffer.rdbuf());
-    ASSERT_EQ(forth.interpretString("VARIABLE FA   0.001 FA !  FA F@ DUP ."), true);
+    ASSERT_EQ(forth.interpretString("VARIABLE FA   0.001 FA !  FA FLOAT@ DUP ."), true);
     std::cout.rdbuf(old);
     EXPECT_STREQ(buffer.str().c_str(), "0.001 ");
     ASSERT_EQ(forth.dataStack().depth(), 1);
@@ -227,7 +227,7 @@ TEST(CheckForth, Variables)
     // Big float
     buffer.str(std::string());
     old = std::cout.rdbuf(buffer.rdbuf());
-    ASSERT_EQ(forth.interpretString("VARIABLE FB   65536.6 FB !  FB F@ DUP ."), true);
+    ASSERT_EQ(forth.interpretString("VARIABLE FB   65536.6 FB !  FB FLOAT@ DUP ."), true);
     std::cout.rdbuf(old);
     EXPECT_STREQ(buffer.str().c_str(), "65536.600 ");
     ASSERT_EQ(forth.dataStack().depth(), 1);
@@ -236,7 +236,7 @@ TEST(CheckForth, Variables)
     // Negative float
     buffer.str(std::string());
     old = std::cout.rdbuf(buffer.rdbuf());
-    ASSERT_EQ(forth.interpretString("VARIABLE FC   -42.6 FC !  FC F@ DUP ."), true);
+    ASSERT_EQ(forth.interpretString("VARIABLE FC   -42.6 FC !  FC FLOAT@ DUP ."), true);
     std::cout.rdbuf(old);
     EXPECT_STREQ(buffer.str().c_str(), "-42.600 ");
     ASSERT_EQ(forth.dataStack().depth(), 1);
@@ -245,7 +245,7 @@ TEST(CheckForth, Variables)
     // Float to integer
     buffer.str(std::string());
     old = std::cout.rdbuf(buffer.rdbuf());
-    ASSERT_EQ(forth.interpretString("VARIABLE FC   -42 FC !  FC @ DUP ."), true);
+    ASSERT_EQ(forth.interpretString("VARIABLE FC   -42 FC !  FC CELL@ DUP ."), true);
     std::cout.rdbuf(old);
     EXPECT_STREQ(buffer.str().c_str(), "-42 ");
     ASSERT_EQ(forth.dataStack().depth(), 1);
@@ -371,7 +371,7 @@ TEST(CheckForth, Here)
     ASSERT_EQ(here_allot, here + 10 + 10 * size::cell / size::token);
 
     // 1 token
-    ASSERT_EQ(forth.interpretString("3 X,"), true);
+    ASSERT_EQ(forth.interpretString("3 TOKEN,"), true);
     ASSERT_EQ(forth.dataStack().depth(), 0);
     ASSERT_EQ(forth.interpretString("HERE"), true);
     ASSERT_EQ(forth.dataStack().depth(), 1);
@@ -379,7 +379,7 @@ TEST(CheckForth, Here)
     ASSERT_EQ(here_allot_comma, here_allot + 1);
 
     // 1 cell
-    ASSERT_EQ(forth.interpretString("3 ,"), true);
+    ASSERT_EQ(forth.interpretString("3 CELL,"), true);
     ASSERT_EQ(forth.dataStack().depth(), 0);
     ASSERT_EQ(forth.interpretString("HERE"), true);
     ASSERT_EQ(forth.dataStack().depth(), 1);
@@ -423,46 +423,46 @@ TEST(CheckForth, StoreFetch)
     ASSERT_EQ(forth.boot(), true);
 
     // Token
-    ASSERT_EQ(forth.interpretString("42 X, HERE 1- X@"), true);
+    ASSERT_EQ(forth.interpretString("42 TOKEN, HERE 1- TOKEN@"), true);
     ASSERT_EQ(forth.dataStack().depth(), 1);
     ASSERT_EQ(forth.dataStack().pop(), 42);
 
-    ASSERT_EQ(forth.interpretString("42 HERE X! HERE X@"), true);
+    ASSERT_EQ(forth.interpretString("42 HERE TOKEN! HERE TOKEN@"), true);
     ASSERT_EQ(forth.dataStack().depth(), 1);
     ASSERT_EQ(forth.dataStack().pop(), 42);
 
     // TODO: lost of sign ok ?
-    ASSERT_EQ(forth.interpretString("-42 X, HERE 1- X@"), true);
+    ASSERT_EQ(forth.interpretString("-42 TOKEN, HERE 1- TOKEN@"), true);
     ASSERT_EQ(forth.dataStack().depth(), 1);
     ASSERT_EQ(forth.dataStack().pop(), 65494);
 
-    ASSERT_EQ(forth.interpretString("-42 HERE X! HERE X@"), true);
+    ASSERT_EQ(forth.interpretString("-42 HERE TOKEN! HERE TOKEN@"), true);
     ASSERT_EQ(forth.dataStack().depth(), 1);
     ASSERT_EQ(forth.dataStack().pop(), 65494);
 
     // Integer Cells
-    ASSERT_EQ(forth.interpretString("75535 , HERE CELL - @"), true);
+    ASSERT_EQ(forth.interpretString("75535 CELL, HERE CELL - CELL@"), true);
     ASSERT_EQ(forth.dataStack().depth(), 1);
     ASSERT_EQ(forth.dataStack().pop(), 75535);
 
-    ASSERT_EQ(forth.interpretString("75535 HERE ! HERE @"), true);
+    ASSERT_EQ(forth.interpretString("75535 HERE ! HERE CELL@"), true);
     ASSERT_EQ(forth.dataStack().depth(), 1);
     ASSERT_EQ(forth.dataStack().pop(), 75535);
 
-    ASSERT_EQ(forth.interpretString("-75535 , HERE CELL - @"), true);
+    ASSERT_EQ(forth.interpretString("-75535 CELL, HERE CELL - CELL@"), true);
     ASSERT_EQ(forth.dataStack().depth(), 1);
     ASSERT_EQ(forth.dataStack().pop(), -75535);
 
-    ASSERT_EQ(forth.interpretString("-75535 HERE ! HERE @"), true);
+    ASSERT_EQ(forth.interpretString("-75535 HERE ! HERE CELL@"), true);
     ASSERT_EQ(forth.dataStack().depth(), 1);
     ASSERT_EQ(forth.dataStack().pop(), -75535);
 
     // Float Cells
-    ASSERT_EQ(forth.interpretString("75535.5 , HERE CELL - F@"), true);
+    ASSERT_EQ(forth.interpretString("75535.5 CELL, HERE CELL - FLOAT@"), true);
     ASSERT_EQ(forth.dataStack().depth(), 1);
     ASSERT_EQ(forth.dataStack().pop(), 75535.5f);
 
-    ASSERT_EQ(forth.interpretString("75535.5 HERE ! HERE F@"), true);
+    ASSERT_EQ(forth.interpretString("75535.5 HERE ! HERE FLOAT@"), true);
     ASSERT_EQ(forth.dataStack().depth(), 1);
     ASSERT_EQ(forth.dataStack().pop(), 75535.5f);
 }
@@ -532,8 +532,8 @@ TEST(CheckForth, Compile)
     ASSERT_EQ(forth.dataStack().depth(), 0);
     // ESSAI-DUP store Primitives::DUP in the dictionary at location 'HERE'
     // Because storing in the dictionaray makes moved HERE, we backup its
-    // value with HERE >R R> @. Finaly ' DUP returns Primitives::DUP.
-    ASSERT_EQ(forth.interpretString("HERE >R ESSAI-DUP R> @ ' DUP =="), true);
+    // value with HERE >R R> CELL@. Finaly ' DUP returns Primitives::DUP.
+    ASSERT_EQ(forth.interpretString("HERE >R ESSAI-DUP R> CELL@ ' DUP =="), true);
     ASSERT_EQ(forth.dataStack().depth(), 1);
     ASSERT_EQ(forth.dataStack().pop(), -1);
 }

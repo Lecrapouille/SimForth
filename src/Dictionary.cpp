@@ -379,6 +379,18 @@ static bool policy_compare(Token const *nfa, std::string const& word)
 }
 
 //----------------------------------------------------------------------------
+int Dictionary::find(std::string const& word, Token& nfa) const
+{
+    nfa = m_last;
+    if (!iterate(policy_compare, nfa, 0, word))
+        return 0;
+
+    if (isImmediate(m_memory + nfa))
+        return 1;
+    return -1;
+}
+
+//----------------------------------------------------------------------------
 bool Dictionary::findWord(std::string const& word, Token& xt, bool& immediate) const
 {
     Token iter = m_last;

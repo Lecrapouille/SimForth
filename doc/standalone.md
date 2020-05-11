@@ -273,6 +273,24 @@ secondary word named `FOOBAR` starts at address `00e4`, its definition starts at
   in `hexdump` the flags byte `c7` for `FOOBAR` starts at `01c8`.
 * LFA are not displayed because this information is not important.
 
+#### Display of variables
+
+When you use words such as `CREATE` (ie used in the definition of `VARIABLE`) data are stored after `EXIT`.
+They are displayed as int16. For example:
+
+```
+VARIABLE SEIZE
+16 SEIZE !
+```
+
+Will display:
+```
+Address                         Name  Token   Definition (Tokens)   Definition (Words)
+====================================================================================================
+07ba ......................... SEIZE   07bf   0033 002b 0010 0000   (CREATE) EXIT 16 0
+07c4                                          0000 0000             0 0
+```
+
 #### Dictionary Colors convention
 
 * blue: primitives
@@ -312,3 +330,79 @@ the debugger halts to give you time to analyse the Data-Stack (aka parameters
 stack). Stacks are for the moment read only so you cannot manipulate them.
 
 Tokens and address are always displayed in hexadecimal.
+
+### Hidden words and Modules
+
+### Hidden words
+
+Hidden words are words stored in the dictionary but tagged with the smudge bit
+(Forth-78). They are ignored during a dictionary search (ie `FIND`). By
+"ignored" we mean that the dictionary still knows them (their LFA is still
+linked to the previous word entry and their NFA is known from the next word
+entry) but their execution token cannot be used in the definition of a new
+secondary word. You still can print them (ie. with words such as `WORDS` or
+`SEE`) they are rendered in grey. Nevertheless, words that already include them
+in their definition will keep working. Consider this behavior as a way to
+privatize word from the usage of an user. Example:
+
+```
+: FOO + + ;
+: BAR FOO . ;
+HIDE FOO       \ FOO is now hidden
+SEE FOO        \ Displayed in grey
+SEE BAR        \ Token FOO is displayed in grey
+1 2 3 FOO .    \ [ERROR] Unknown word FOO
+: FOOBAR FOO ; \ [ERROR] Unknown word FOO
+1 2 3 BAR      \ ok 6
+```
+
+### Modules
+
+Inspired by [this article](http://www.forth.org/fd/FD-V02N5.pdf) starting on
+page 14, (132 as printed), you can really make private words and contrary to
+hidden words, their LFA are modified and the dictionary no longer knows
+them. When displayed in the dictionary, you will see them as literals not as
+byte-code. For example without module:
+
+```
+: FOO + + ;
+: BAR FOO . ;
+WORDS
+```
+
+will display:
+```
+Address                         Name  Token   Definition (Tokens)   Definition (Words)
+====================================================================================================
+07b2 ........................... BAR   07b6   07ae 0015 002b        FOO . EXIT
+07aa ........................... FOO   07ae   0070 0070 002b        + + EXIT
+07a3 .................... other word   ....
+```
+
+But within module:
+
+```
+INTERNAL:
+  : FOO + + ;
+EXTERNAL:
+  : BAR FOO . ;
+MODULE
+```
+
+`FOO` is private and unknown from the dictionary:
+```
+Address                         Name  Token   Definition (Tokens)   Definition (Words)
+====================================================================================================
+07b2 ........................... BAR   07b6   07ae 0015 002b        07ae . EXIT
+07a3 .................... other word   ....   xxxx xxxx 002b 4683   XXX XXX EXIT 18051
+07ab                                          4f4f 0000 0007 07ae   20303 0 7 1966
+07af                                          0070 0070 002b        112 112 43
+```
+
+`FOO` is no longer displayed and its name inside `BAR` definition has not been
+found and its token `07ae` is displayed instead of the name. Finally, `FOO`
+definition is still present inside the dictionary and the byte-code is displayed
+as `4683 4f4f 0000 0007 07ae 0070 0070 002b`. Remember that `83` is flags and
+name size and `464f4f0000` means `FOO`. These tokens follow the definition of
+the previous word entry and the reason has been explained in the previous
+section "Display Variables".

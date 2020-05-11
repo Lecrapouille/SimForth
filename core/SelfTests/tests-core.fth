@@ -254,3 +254,9 @@ T{ GDX -> 123 234 }T
 
 T{ : DIV / ; : DIV DUP 0= IF 2DROP 42 RETURN ENDIF DIV ; -> }T
 T{ 1 2 DIV -> 0 }T   T{ 1 0 DIV -> 42 }T
+
+\ -------------------------------------------------------------
+TESTING FIND >CFA XT@
+T{ : DADD + + ; -> }T
+T{ FIND DADD SWAP DROP -> 1 }T
+T{ 1 2 3 FIND DADD DROP >CFA TOKEN@ EXECUTE -> 6 }T

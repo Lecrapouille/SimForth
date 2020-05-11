@@ -439,7 +439,7 @@ TEST(Dico, Display)
     ASSERT_EQ(forth.boot(), true);
 
     ASSERT_EQ(forth.interpretString(": foo + + ;"), true);
-    ASSERT_EQ(forth.interpretString(": foobar + + ; SMUDGE foobar"), true);
+    ASSERT_EQ(forth.interpretString(": foobar + + ; HIDE foobar"), true);
     ASSERT_EQ(forth.interpretString("VARIABLE bar 0xffff bar !"), true);
     ASSERT_EQ(forth.interpretString("0xffff ,"), true);
     ASSERT_EQ(forth.interpretString(": fgfg ;"), true);
@@ -459,7 +459,7 @@ TEST(Dico, See)
     ASSERT_EQ(forth.boot(), true);
 
     ASSERT_EQ(forth.interpretString(": foo + + ;"), true);
-    ASSERT_EQ(forth.interpretString(": foobar + + ; SMUDGE foobar"), true);
+    ASSERT_EQ(forth.interpretString(": foobar + + ; HIDE foobar"), true);
     ASSERT_EQ(forth.interpretString("VARIABLE bar 0xffff bar !"), true);
     ASSERT_EQ(forth.interpretString("0xffff ,"), true);
     ASSERT_EQ(forth.interpretString(": fgfg ;"), true);

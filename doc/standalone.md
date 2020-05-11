@@ -279,9 +279,9 @@ secondary word named `FOOBAR` starts at address `00e4`, its definition starts at
 * yellow: immediate primitives
 * red: secondary words
 * orange: immediate secondary words
-* flashy green: literals (integer or float)
-* darky green: tokens.
-* grey: smudged words.
+* green: literals (integer or float)
+* cyan: tokens.
+* grey: hidden words.
 
 Inspired by Moore's colorforth:
 * http://www.profibing.de/colorforth/display.html

@@ -114,7 +114,7 @@ bool Interpreter::toNumber(std::string const& word, Cell& number)
     {
         if (toInteger(word, m_base, number))
             return true;
-        return toFloat(word, number);
+        return toReal(word, number);
     }
     catch (const std::out_of_range&)
     {
@@ -128,7 +128,7 @@ bool Interpreter::toNumber(std::string const& word, Cell& number)
         std::cerr << "Limited range of integer type '"
                   << word << "' will be convert to float value"
                   << DEFAULT_COLOR << std::endl;
-        return toFloat(word, number);
+        return toReal(word, number);
     }
 }
 
@@ -164,7 +164,7 @@ Result Interpreter::interpret()
                     {
                         std::cout << "\n================================\n"
                                   << DS.name() << "-Stack push "
-                                  << ((number.tag == Cell::Tag::INT) ? "integer " : "float ")
+                                  << ((number.isInteger()) ? "integer " : "float ")
                                   << number << "\n";
                     }
                     DPUSH(number);
@@ -187,7 +187,7 @@ Result Interpreter::interpret()
                     if (options.traces)
                     {
                         std::cout << "Compile "
-                                  << ((number.tag == Cell::Tag::INT) ? "integer " : "float ")
+                                  << ((number.isInteger()) ? "integer " : "float ")
                                   << number << "\n";
                     }
                     dictionary.compile(number);
@@ -339,19 +339,19 @@ void Interpreter::indent()
 
 static char question()
 {
-    Cell k;
+    Int k;
 
     std::cout << "\n";
     do {
         std::cout << LITERAL_COLOR
                 << "c: Continue? s: Skip? a: Abort?"
                 << DEFAULT_COLOR << std::endl;
-        k = key(false);
+        k = key(false).integer();
         std::cout << "\n";
-    } while ((k.i != KEY_CONTINUE) && (k.i != KEY_SKIP) && (k.i != KEY_ABORT));
+    } while ((k != KEY_CONTINUE) && (k != KEY_SKIP) && (k != KEY_ABORT));
     std::cout << "\n";
 
-    return char(k.i);
+    return char(k);
 }
 
 //----------------------------------------------------------------------------

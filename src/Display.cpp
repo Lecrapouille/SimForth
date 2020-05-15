@@ -112,7 +112,7 @@
     << std::setbase(base) << *ptr_int << ' ' << std::dec << color
 
 #define DISP_FLITERAL(os, ptr)                                        \
-    ptr_float = reinterpret_cast<Float const*>(ptr);                  \
+    ptr_float = reinterpret_cast<Real const*>(ptr);                  \
     os << (smudge ? SMUDGED_WORD_COLOR : LITERAL_COLOR)               \
     << *ptr_float << ' ' << std::dec << color
 
@@ -160,7 +160,7 @@ static void display(Token const *nfa, Dictionary const& dictionary,
 
     int16_t const* ptr_int16;
     Int const* ptr_int;
-    Float const* ptr_float;
+    Real const* ptr_float;
 
     // Extract information of the current Forth word
     bool immediate = isImmediate(nfa);
@@ -301,7 +301,7 @@ static void display(Token const *nfa, Dictionary const& dictionary,
                 {
                     DISP_FLITERAL(std::cout, ptr);
                 }
-                else if (skip == (sizeof(Float) / size::token) - 1)
+                else if (skip == (sizeof(Real) / size::token) - 1)
                 {
                     fliteral = false;
                 }

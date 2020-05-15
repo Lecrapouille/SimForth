@@ -228,83 +228,83 @@ TEST(Utils, ChecktoInteger)
 
     ret = forth::toInteger("123", 10, number);
     ASSERT_EQ(ret, true);
-    ASSERT_EQ(number, forth::Cell(123));
+    ASSERT_EQ(number.integer(), 123);
 
     ret = forth::toInteger("-123", 10, number);
     ASSERT_EQ(ret, true);
-    ASSERT_EQ(number, forth::Cell(-123));
+    ASSERT_EQ(number.integer(), -123);
 
     ret = forth::toInteger("7b", 16, number);
     ASSERT_EQ(ret, true);
-    ASSERT_EQ(number, forth::Cell(123));
+    ASSERT_EQ(number.integer(), 123);
 
     ret = forth::toInteger("7B", 16, number);
     ASSERT_EQ(ret, true);
-    ASSERT_EQ(number, forth::Cell(123));
+    ASSERT_EQ(number.integer(), 123);
 
     ret = forth::toInteger("$7b", 16, number);
     ASSERT_EQ(ret, true);
-    ASSERT_EQ(number, forth::Cell(123));
+    ASSERT_EQ(number.integer(), 123);
 
     ret = forth::toInteger("$7B", 16, number);
     ASSERT_EQ(ret, true);
-    ASSERT_EQ(number, forth::Cell(123));
+    ASSERT_EQ(number.integer(), 123);
 
     ret = forth::toInteger("0x7b", 16, number);
     ASSERT_EQ(ret, true);
-    ASSERT_EQ(number, forth::Cell(123));
+    ASSERT_EQ(number.integer(), 123);
 
     ret = forth::toInteger("0X7b", 16, number);
     ASSERT_EQ(ret, true);
-    ASSERT_EQ(number, forth::Cell(123));
+    ASSERT_EQ(number.integer(), 123);
 
     ret = forth::toInteger("0X7B", 16, number);
     ASSERT_EQ(ret, true);
-    ASSERT_EQ(number, forth::Cell(123));
+    ASSERT_EQ(number.integer(), 123);
 
     ret = forth::toInteger("7B", 16, number);
     ASSERT_EQ(ret, true);
-    ASSERT_EQ(number, forth::Cell(123));
+    ASSERT_EQ(number.integer(), 123);
 
     ret = forth::toInteger("$7B", 16, number);
     ASSERT_EQ(ret, true);
-    ASSERT_EQ(number, forth::Cell(123));
+    ASSERT_EQ(number.integer(), 123);
 
     ret = forth::toInteger("0x7B", 16, number);
     ASSERT_EQ(ret, true);
-    ASSERT_EQ(number, forth::Cell(123));
+    ASSERT_EQ(number.integer(), 123);
 
     ret = forth::toInteger("-123", 10, number);
     ASSERT_EQ(ret, true);
-    ASSERT_EQ(number, forth::Cell(-123));
+    ASSERT_EQ(number.integer(), -123);
 
     ret = forth::toInteger("-7B", 16, number);
     ASSERT_EQ(ret, true);
-    ASSERT_EQ(number, forth::Cell(-123));
+    ASSERT_EQ(number.integer(), -123);
 
     ret = forth::toInteger("-0x7B", 16, number);
     ASSERT_EQ(ret, true);
-    ASSERT_EQ(number, forth::Cell(-123));
+    ASSERT_EQ(number.integer(), -123);
 
     ret = forth::toInteger("-0X7B", 16, number);
     ASSERT_EQ(ret, true);
-    ASSERT_EQ(number, forth::Cell(-123));
+    ASSERT_EQ(number.integer(), -123);
 
     ret = forth::toInteger("-$7b", 16, number);
     ASSERT_EQ(ret, true);
-    ASSERT_EQ(number, forth::Cell(-123));
+    ASSERT_EQ(number.integer(), -123);
 
     ret = forth::toInteger("-$7B", 16, number);
     ASSERT_EQ(ret, true);
-    ASSERT_EQ(number, forth::Cell(-123));
+    ASSERT_EQ(number.integer(), -123);
 
     ret = forth::toInteger("$-7B", 16, number);
     ASSERT_EQ(ret, true);
-    ASSERT_EQ(number, forth::Cell(-123));
+    ASSERT_EQ(number.integer(), -123);
 
     ret = forth::toInteger("$-7b", 16, number);
     ASSERT_EQ(ret, true);
-    ASSERT_EQ(number, forth::Cell(-123));
+    ASSERT_EQ(number.integer(), -123);
 }
 
 //------------------------------------------------------------------------------
@@ -315,15 +315,15 @@ TEST(Utils, CheckFromAscii)
 
     ret = forth::toInteger("'''", 10, number);
     ASSERT_EQ(ret, true);
-    ASSERT_EQ(number, forth::Cell(39));
+    ASSERT_EQ(number.integer(), 39);
 
     ret = forth::toInteger("'r'", 10, number);
     ASSERT_EQ(ret, true);
-    ASSERT_EQ(number, forth::Cell(114));
+    ASSERT_EQ(number.integer(), 114);
 
     ret = forth::toInteger("'R'", 10, number);
     ASSERT_EQ(ret, true);
-    ASSERT_EQ(number, forth::Cell(82));
+    ASSERT_EQ(number.integer(), 82);
 
     // Control char not managed
     ret = forth::toInteger("'\\n'", 10, number);
@@ -340,8 +340,8 @@ TEST(Utils, CheckBigNumber)
     // No integer out of range error
     ret = forth::toInteger("9223372036854775807", 10, number);
     ASSERT_EQ(ret, true);
-    ASSERT_EQ(number.tag, forth::Cell::Tag::INT);
-    ASSERT_EQ(number.i, 9223372036854775807);
+    ASSERT_EQ(number.isInteger(), true);
+    ASSERT_EQ(number.integer(), 9223372036854775807);
 
     // Integer out of range error
     try {
@@ -357,15 +357,15 @@ TEST(Utils, CheckBigNumber)
     ASSERT_EQ(forth.interpreter.m_base, 10);
     ret = forth.interpreter.toNumber("92233720368547758078", number);
     ASSERT_EQ(ret, true);
-    ASSERT_EQ(number.tag, forth::Cell::Tag::FLOAT);
-    ASSERT_EQ(number.f, 92233720368547758080.000);
+    ASSERT_EQ(number.isReal(), true);
+    ASSERT_EQ(number.real(), 92233720368547758080.000);
 
-    // Float conversion: no integer out of range error
+    // Real conversion: no integer out of range error
     ASSERT_EQ(forth.interpreter.m_base, 10);
     ret = forth.interpreter.toNumber("92233720368547758078.0", number);
     ASSERT_EQ(ret, true);
-    ASSERT_EQ(number.tag, forth::Cell::Tag::FLOAT);
-    ASSERT_EQ(number.f, 92233720368547758080.000);
+    ASSERT_EQ(number.isReal(), true);
+    ASSERT_EQ(number.real(), 92233720368547758080.000);
 }
 
 //------------------------------------------------------------------------------
@@ -380,9 +380,11 @@ TEST(Utils, ChecktoNumberRealWord)
     ASSERT_EQ(forth.boot(), true);
     ASSERT_EQ(forth.interpretString("-$7B"), true);
     ASSERT_EQ(forth.interpreter.DS.depth(), 1);
-    ASSERT_EQ(forth.interpreter.DS.pick(0), -123);
+    ASSERT_EQ(forth.interpreter.DS.pick(0).isInteger(), true);
+    ASSERT_EQ(forth.interpreter.DS.pick(0).integer(), -123);
 
     ASSERT_EQ(forth.interpretString("DROP $-7E"), true);
     ASSERT_EQ(forth.interpreter.DS.depth(), 1);
-    ASSERT_EQ(forth.interpreter.DS.pick(0), -126);
+    ASSERT_EQ(forth.interpreter.DS.pick(0).isInteger(), true);
+    ASSERT_EQ(forth.interpreter.DS.pick(0).integer(), -126);
 }

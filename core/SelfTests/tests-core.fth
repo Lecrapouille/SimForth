@@ -13,7 +13,7 @@ T{ -1 -> -1 }T   T{ -1 -2 -> -1 -2 }T   T{ -1 -2 -3 -> -1 -2 -3 }T
 \ T{  1.0 ->  1.0 }T   T{  1.0  2.0 ->  1.0  2.0 }T   T{  1.0  2.0  3.0 ->  1.0  2.0  3.0 }T
 
 \ -------------------------------------------------------------
-( TESTING Float-Int convertions
+( TESTING Real-Int convertions
 T{  1.1 >INT ->  1 }T    T{ 1.4 >INT ->  1 }T   T{  1.5 >INT ->  2 }T
 T{ -1.1 >INT -> -1 }T   T{ -1.4 >INT -> -1 }T   T{ -1.5 >INT -> -2 }T
 T{ 1 >FLOAT -> 1.0 }T
@@ -47,7 +47,7 @@ T{ 1 1- -> 0 }T
 T{ 0 1- -> -1 }T
 
 \ -------------------------------------------------------------
-( TESTING Float operations
+( TESTING Real operations
 T{ 0.0 COS -> 1.0 }T   T{ PI COS -> -1.0 }T   T{ -PI COS -> -1.0 }T
 T{ PI 2.0 F/ COS -> 0.0 }T   T{ -PI 2.0 F/ COS -> 0.0 }T
 

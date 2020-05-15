@@ -202,62 +202,66 @@ void Dictionary::allot(int const nbCells)
 }
 
 //----------------------------------------------------------------------------
+void Dictionary::store(Token const addr, Cell const cell)
+{
+    if (cell.isInteger())
+    {
+        Int* i = reinterpret_cast<Int*>(m_memory + addr);
+        *i = cell.integer();
+    }
+    else
+    {
+        Real* f = reinterpret_cast<Real*>(m_memory + addr);
+        *f = cell.real();
+    }
+}
+
+//----------------------------------------------------------------------------
 void Dictionary::compile(Cell const cell)
 {
-    switch (cell.tag)
+    if (cell.isInteger())
     {
-    case Cell::INT:
         //LOGD("Compile integer %d", cell.i);
-        if ((cell.i >= INT16_MIN) && (cell.i <= INT16_MAX))
+        Int i = cell.integer();
+        if ((i >= INT16_MIN) && (i <= INT16_MAX))
         {
             append(Primitives::PLITERAL);
             int16_t* p = reinterpret_cast<int16_t*>(m_memory + m_here);
-            *p = int16_t(cell.i);
+            *p = static_cast<int16_t>(i);
             m_here += sizeof(int16_t) / size::token;
         }
         else
         {
             append(Primitives::PILITERAL);
-            Int* i = reinterpret_cast<Int*>(m_memory + m_here);
-            *i = cell.i;
+            Int* p = reinterpret_cast<Int*>(m_memory + m_here);
+            *p = i;
             m_here += sizeof(Int) / size::token;
         }
-        break;
-    case Cell::FLOAT:
-        {
-            //LOGD("Compile float %f", cell.f);
-            append(Primitives::PFLITERAL);
-            Float *f = reinterpret_cast<Float*>(m_memory + m_here);
-            *f = cell.f;
-            m_here += sizeof(Float) / size::token;
-            break;
-        }
-    default:
-        break;
+    }
+    else
+    {
+        //LOGD("Compile float %f", cell.f);
+        append(Primitives::PFLITERAL);
+        Real *f = reinterpret_cast<Real*>(m_memory + m_here);
+        *f = cell.real();
+        m_here += sizeof(Real) / size::token;
     }
 }
 
 //----------------------------------------------------------------------------
 void Dictionary::append(Cell const cell)
 {
-    switch (cell.tag)
+    if (cell.isInteger())
     {
-    case Cell::INT:
-        {
-            Int* i = reinterpret_cast<Int*>(m_memory + m_here);
-            *i = cell.i;
-            m_here += sizeof(Int) / size::token;
-            break;
-        }
-    case Cell::FLOAT:
-        {
-            Float *f = reinterpret_cast<Float*>(m_memory + m_here);
-            *f = cell.f;
-            m_here += sizeof(Float) / size::token;
-            break;
-        }
-    default:
-        break;
+        Int* i = reinterpret_cast<Int*>(m_memory + m_here);
+        *i = cell.integer();
+        m_here += sizeof(Int) / size::token;
+    }
+    else
+    {
+        Real *f = reinterpret_cast<Real*>(m_memory + m_here);
+        *f = cell.real();
+        m_here += sizeof(Real) / size::token;
     }
 }
 

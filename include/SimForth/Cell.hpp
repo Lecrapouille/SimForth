@@ -26,165 +26,144 @@
 #  include <cstddef> // size_t
 #  include <ostream> // operator<<
 #  include <iomanip> // setprecision
+#  include <math.h>
 
 namespace forth
 {
 
 using Int = int64_t;
-using Float = double;
+using Real = double;
+
+#define INLINE __attribute__((always_inline))
 
 //******************************************************************************
 //! \brief A cell holds a numerical signed value. Forth use a stack of cells for
 //! managing function parameters. In classic Forth a cell is 2 bytes but
 //******************************************************************************
-struct Cell // TODO: to be redone 1.5 1 + shall return 2.5, currently return int(2.5)
+struct Cell // TODO routines for endian
 {
-    union {
-        Int      i;     // Signed integer cell
-        Float    f;     // Float32 cell
-        char*    a;
-        Token    t[sizeof(Int) / size::token];  // tokens
-        char     b[sizeof(Int)];       // bytes
+public:
+
+    static INLINE Cell integer(Int i) { return Cell(i); }
+    static INLINE Cell real(Real d) { return Cell(d); }
+
+    INLINE Cell()
+        : i(0), tag(Cell::INTEGER)
+    {}
+
+    INLINE bool isInteger() const { return tag == Cell::INTEGER; }
+    INLINE bool isReal() const { return tag == Cell::REAL; }
+    INLINE Int integer() const { return isInteger() ? i : nearest(r); }
+    INLINE Real real() const { return isReal() ? r : Real(i); }
+    INLINE char byte(int const i) { return b[i]; }
+
+    Cell& operator+=(Cell const& n2) { doOp(n2, Plus()); return *this; }
+    Cell& operator-=(Cell const& n2) { doOp(n2, Minus()); return *this; }
+    Cell& operator*=(Cell const& n2) { doOp(n2, Times()); return *this; }
+    Cell& operator/=(Cell const& n2) { doOp(n2, Div()); return *this; }
+    Cell& operator^=(Cell const& n2) { doBoolOp(n2, Xor()); return *this; }
+    Cell& operator|=(Cell const& n2) { doBoolOp(n2, Or()); return *this; }
+    bool operator>(Cell const& n2) const { return doComp(n2, Gt()); }
+    bool operator>=(Cell const& n2) const { return doComp(n2, Ge()); }
+    bool operator<(Cell const& n2) const { return doComp(n2, Lt()); }
+    bool operator<=(Cell const& n2) const { return doComp(n2, Le()); }
+    bool operator==(Cell const& n2) const { return doComp(n2, Eq()); }
+    bool operator!=(Cell const& n2) const { return doComp(n2, Ne()); }
+    Cell& operator&=(Cell const& n2) { doBoolOp(n2, And()); return *this; }
+    Cell& operator++() { if (isInteger()) { i += 1; } else { r += 1.0;} return *this; }
+    Cell& operator--() { if (isInteger()) { i -= 1; } else { r -= 1.0;} return *this; }
+
+private:
+
+    INLINE explicit Cell(Int i_)
+        : i(i_), tag(Cell::INTEGER)
+    {}
+
+    INLINE explicit Cell(Real r_)
+        : r(r_), tag(Cell::REAL)
+    {}
+
+    struct Plus { template<typename T> T exec(T const& a, T const& b) { return a + b; } };
+    struct Minus { template<typename T> T exec(T const& a, T const& b) { return a - b; } };
+    struct Times { template<typename T> T exec(T const& a, T const& b) { return a * b; } };
+    struct Div { template<typename T> T exec(T const& a, T const& b) { return a / b; } };
+    struct And { template<typename T> T exec(T const& a, T const& b) { return a & b; } };
+    struct Or { template<typename T> T exec(T const& a, T const& b) { return a | b; } };
+    struct Xor { template<typename T> T exec(T const& a, T const& b) { return a ^ b; } };
+    struct Gt { template<typename T> bool exec(T const& a, T const& b) const { return a > b; } };
+    struct Ge { template<typename T> bool exec(T const& a, T const& b) const { return a >= b; } };
+    struct Lt { template<typename T> bool exec(T const& a, T const& b) const { return a < b; } };
+    struct Le { template<typename T> bool exec(T const& a, T const& b) const { return a <= b; } };
+    struct Eq
+    {
+        bool exec(Int const& a, Int const& b) const { return a == b; }
+        bool exec(Real const& a, Real const& b) const { return fabs(a - b) < 0.00001; }
     };
-    enum Tag { INT, FLOAT } tag;
-
-    Cell()
-        : i(0), tag(Cell::INT)
-    {}
-
-    Cell(Int const i_)
-        : i(i_), tag(Cell::INT)
-    {}
-
-    Cell(int const i_)
-        : i(i_), tag(Cell::INT)
-    {}
-
-    Cell(size_t const u_)
-        : i(Int(u_)), tag(Cell::INT)
-    {}
-
-    Cell(Float const f_)
-        : f(f_), tag(Cell::FLOAT)
-    {}
-
-    Cell& operator++()
+    struct Ne
     {
-        switch (tag)
+        bool exec(Int const& a, Int const& b) const { return a != b; }
+        bool exec(Real const& a, Real const& b) const { return fabs(a - b) >= 0.00001; }
+    };
+
+    template<typename R>
+    INLINE Int nearest(R const r) const
+    {
+        return (r < R(0.0)) ? Int(r - R(0.5)) : Int(r + R(0.5));
+    }
+
+    template<typename OP>
+    void doOp(Cell const& n2, OP op)
+    {
+        if (tag == n2.tag)
         {
-        case Cell::INT: i += 1; break;
-        case Cell::FLOAT: f += 1.0f; break;
-        default: break;
+            if (isInteger())
+                i = op.exec(i, n2.i);
+            else
+                r = op.exec(r, n2.r);
         }
-        return *this;
-    }
-
-    Cell& operator--()
-    {
-        switch (tag)
+        else
         {
-        case Cell::INT: i -= 1; break;
-        case Cell::FLOAT: f -= 1.0f; break;
-        default: break;
-        }
-        return *this;
-    }
-
-    bool operator==(Cell const& other) const
-    {
-        return (i == other.i) && (tag == other.tag);
-    }
-
-    bool operator==(int const& other)
-    {
-        switch (tag)
-        {
-        case Cell::INT: return other == i;
-        case Cell::FLOAT: return Int(other) == i;
-        default: break;
+            r = op.exec(real(), n2.real());
+            tag = Cell::REAL;
         }
     }
 
-    Cell& operator=(Int const other)
+    template<typename OP>
+    void doBoolOp(Cell const& n2, OP op)
     {
-        this->i = other;
-        this->tag = Cell::INT;
-        return *this;
+        i = op.exec(i, n2.i);
     }
 
-    Cell& operator=(int const other)
+    template<typename OP>
+    bool doComp(Cell const& n2, OP op) const
     {
-        this->i = other;
-        this->tag = Cell::INT;
-        return *this;
+        if (tag == n2.tag)
+        {
+            if (isInteger())
+                return op.exec(i, n2.i);
+            return op.exec(r, n2.r);
+        }
+        return op.exec(real(), n2.real());
     }
 
-    /*Cell& operator=(unsigned int const other)
+    friend std::ostream& operator<<(std::ostream& os, const Cell& c)
     {
-        this->u = other;
-        this->tag = Cell::INT;
-        return *this;
-    }*/
-
-    Cell& operator=(Float const other)
-    {
-        this->f = other;
-        this->tag = Cell::FLOAT;
-        return *this;
+        if (c.isInteger())
+            os << c.i;
+        else
+            os << c.r;
+        return os;
     }
 
 private:
 
-    friend std::ostream& operator<<(std::ostream& os, const Cell& u)
-    {
-        switch (u.tag)
-        {
-        case Cell::INT:
-            os << u.i;
-            break;
-        case Cell::FLOAT:
-            os << std::fixed << std::setprecision(3) /*<< std::showpoint*/ << u.f;
-            break;
-        default: break;
-        }
-        return os;
-    }
+    union {
+        Int  i; // integer
+        Real r; // real
+        char b[sizeof(Real)]; // bytes
+    };
+    enum Tag { INTEGER, REAL } tag;
 };
-
-//------------------------------------------------------------------------------
-//! \brief Nearest integer
-//------------------------------------------------------------------------------
-template <typename N = Int>
-static inline N nearest(Float const num)
-{
-    return (num < Float(0.0)) ? N(num - Float(0.5)) : N(num + Float(0.5));
-}
-
-template <typename N>
-static inline N get(Cell const& c)
-{
-    switch (c.tag)
-    {
-    case Cell::INT:
-        return N(c.i);
-    case Cell::FLOAT:
-    default:
-        return nearest<N>(c.f);
-    }
-}
-
-template <>
-inline Float get(Cell const& c)
-{
-    switch (c.tag)
-    {
-    case Cell::INT:
-        return Float(c.i);
-    case Cell::FLOAT:
-    default:
-        return c.f;
-    }
-}
 
 namespace size
 {

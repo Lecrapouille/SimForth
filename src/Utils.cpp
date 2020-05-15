@@ -39,19 +39,19 @@ void restoreOutStates()
 
 // TODO: redo it completely
 // *****************************************************************************
-bool toFloat(std::string const& word, Cell& number)
+bool toReal(std::string const& word, Cell& number)
 {
     char *p;
 
     errno = 0;
-    Float f = strtod(word.c_str(), &p);
+    Real f = strtod(word.c_str(), &p);
     if (errno)
         return false;
 
     // Entire string valid ?
     bool ret = (*p == 0);
     if (ret)
-        number = f;
+        number = Cell::real(f);
 
     return ret;
 }
@@ -118,7 +118,7 @@ bool toInteger(std::string const& word, int base, Cell& number)
   {
       if ((3u == word.size()) && ('\'' == word[i + 2]))
       {
-          number = (negative ? -word[i + 1] : word[i + 1]);
+          number = (negative ? Cell::integer(-word[i + 1]) : Cell::integer(word[i + 1]));
           return true;
       }
       return false;
@@ -129,7 +129,7 @@ bool toInteger(std::string const& word, int base, Cell& number)
     {
       std::size_t sz;
       Int val = std::stoll(word.substr(i, word.length() - i), &sz, base);
-      number = (negative ? -val : val);
+      number = (negative ? Cell::integer(-val) : Cell::integer(val));
       return (sz + i) == word.length();
     }
   catch (const std::invalid_argument& /*ia*/)
@@ -236,10 +236,10 @@ Cell key(bool const echo)
     if (read(STDIN_FILENO, &c, 1) == 1)
     {
        keyboard_cooked();
-       return Cell(size_t(c));
+       return Cell::integer(c);
     }
 
-    return 0;
+    return Cell::integer(0);
 }
 
 } // namespace forth

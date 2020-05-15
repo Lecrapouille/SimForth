@@ -388,15 +388,6 @@
   AND
 ;
 
-\ TODO deviendra inutile car FNEGATE == NEGATE
-: FNEGATE -1.0 * ;
-
-\ Convert an integer to a float value. \ TODO definition deviendra fausse
-: >INT ZERO + ;
-
-\ Convert an float value to the nearest integer. \ TODO definition deviendra fausse
-: >FLOAT 0.0 F+ ;
-
 \ -------------------------------------------------------------
 \ Stack manipulation
 \ -------------------------------------------------------------

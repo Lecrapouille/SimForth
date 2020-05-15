@@ -25,6 +25,8 @@
 #  include <iomanip> // setbase
 #  include <memory>  // unique_ptr
 
+#define INLINE __attribute__((always_inline))
+
 namespace forth
 {
 namespace size
@@ -60,44 +62,43 @@ public:
     //--------------------------------------------------------------------------
     //! \brief Reset the stack to an empty state.
     //--------------------------------------------------------------------------
-    inline void reset() { sp = sp0; } // TODO zeros(m_data, sp0 - m_data);
+    INLINE void reset() { sp = sp0; } // TODO zeros(m_data, sp0 - m_data);
 
     //--------------------------------------------------------------------------
     //! \brief Return the current depth of the stack.
     //--------------------------------------------------------------------------
-    inline int32_t depth() const { return int32_t(sp - sp0); }
+    INLINE int32_t depth() const { return int32_t(sp - sp0); }
 
     //--------------------------------------------------------------------------
     //! \brief Insert a Forth Cell on the top of the stack
     //--------------------------------------------------------------------------
-    template<typename N>
-    inline void push(N const n) { *(sp++) = T(n); }
+    INLINE void push(T const& n) { *(sp++) = n; }
 
     template<typename N>
-    inline void push(std::unique_ptr<N> n) { *(sp++) = std::move(n); }
+    INLINE void push(std::unique_ptr<N> n) { *(sp++) = std::move(n); }
 
     //--------------------------------------------------------------------------
     //! \brief Remove the top of stack
     //--------------------------------------------------------------------------
-    inline void drop() { --sp; }
+    INLINE void drop() { --sp; }
+    INLINE void dup() { *(sp) = *(sp - 1); ++sp; }
 
     //--------------------------------------------------------------------------
     //! \brief Consum the top of stack
     //--------------------------------------------------------------------------
-    template<typename N = T>
-    inline N pop() { return static_cast<N>(*(--sp)); }
+    INLINE T& pop() { return *(--sp); }
 
     //--------------------------------------------------------------------------
     //! \brief Consum the Nth element of stack from its top
     //--------------------------------------------------------------------------
-    template<typename N = T>
-    inline N& pick(int const n) { return *(sp - n - 1); }
+    INLINE T& pick(int const n) { return *(sp - n - 1); }
+
+    INLINE T& tos() { return *(sp - 1); }
 
     //--------------------------------------------------------------------------
     //! \brief Consum the Nth element of stack from its top
     //--------------------------------------------------------------------------
-    template<typename N = T>
-    inline N const& pick(int const n) const { return *(sp - n - 1); }
+    INLINE T const& pick(int const n) const { return *(sp - n - 1); }
 
     //--------------------------------------------------------------------------
     //! \brief Check if the stack is enough deep.
@@ -169,6 +170,7 @@ public:
     }
 
 private:
+public:
 
     //--------------------------------------------------------------------------
     //! \brief A stack is a memory segment of Forth cells.

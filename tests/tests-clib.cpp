@@ -225,7 +225,7 @@ END-C-LIB)FORTH";
     // Run
     ASSERT_EQ(forth.interpretString("42.2 66 HELLO"), true);
     ASSERT_EQ(forth.dataStack().depth(), 1);
-    Float val = forth.dataStack().pop().f;
+    Real val = forth.dataStack().pop().real();
     EXPECT_NEAR(val, 108.2, 0.00001);
 }
 

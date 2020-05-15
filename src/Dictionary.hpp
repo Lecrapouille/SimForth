@@ -168,25 +168,7 @@ public:
     //--------------------------------------------------------------------------
     void allot(int const nbCells);
 
-    inline void store(Token const addr, Cell const cell)
-    {
-        switch (cell.tag)
-        {
-        case Cell::INT:
-            {
-                Int* i = reinterpret_cast<Int*>(m_memory + addr);
-                *i = cell.i;
-                break;
-            }
-        case Cell::FLOAT:
-            {
-                Float* f = reinterpret_cast<Float*>(m_memory + addr);
-                *f = cell.f;
-                break;
-            }
-        default: break;
-        }
-    }
+    void store(Token const addr, Cell const cell);
 
     template<class T = forth::Token>
     inline T fetch(Token const addr)

@@ -72,13 +72,6 @@ namespace forth
         THROW("Unterminated script. Missing terminaison word");
 
 //----------------------------------------------------------------------------
-// FIXME use Float just for casting to int is not the best stuff ever
-#define BINARY_INT_OP(op) { DDEEP(2); TOSf = DPOPf(); DPUSH(get<Int>(DPOPf() op TOSf)); }
-#define BOOL_OP(op) { DDEEP(2); TOSi = DPOPi(); DPUSH((DPOPi() op TOSi) ? -1 : 0); }
-#define BINARY_OP(op) { DDEEP(2); TOSi = DPOPi(); DPUSH(DPOPi() op TOSi); }
-#define BINARY_FLOAT_OP(op) { DDEEP(2); TOSf = DPOPf(); DPUSH(DPOPf() op TOSf); }
-
-//----------------------------------------------------------------------------
 void Interpreter::skipComment()
 {
     // Deviation: Comments can be nested
@@ -160,7 +153,7 @@ void Interpreter::executePrimitive(Token const xt)
         CODE(PABORT_MSG)
         {
           DDROP();
-          char const* msg = reinterpret_cast<char const*>(&dictionary[DPOPi() + 1]);
+          char const* msg = reinterpret_cast<char const*>(&dictionary[DPOPI() + 1]);
           THROW(msg);
         }
         NEXT;
@@ -190,7 +183,7 @@ void Interpreter::executePrimitive(Token const xt)
         // Deviation: in SimForth BASE is not a user variable.
         CODE(SET_BASE) // ( base -- )
           DDEEP(1);
-          TOSi = DPOPi();
+          TOSi = DPOPI();
           if ((TOSi >= 2) && (TOSi <= 36))
           {
               m_base = TOSi;
@@ -205,7 +198,7 @@ void Interpreter::executePrimitive(Token const xt)
         // Return the current base.
         // Deviation: in SimForth BASE is not a user variable.
         CODE(GET_BASE) // ( -- base )
-          DPUSH(m_base);
+          DPUSHI(m_base);
         NEXT;
 
         // ---------------------------------------------------------------------
@@ -235,8 +228,8 @@ void Interpreter::executePrimitive(Token const xt)
 
             // Push the size of the string and the TIB address. The word TYPE
             // can consume them.
-            DPUSH(Cell(it));
-            DPUSH(size);
+            DPUSHI(it);
+            DPUSHI(size);
         }
         NEXT;
 
@@ -250,8 +243,8 @@ void Interpreter::executePrimitive(Token const xt)
         // ---------------------------------------------------------------------
         // Change the displayed text color of the output console.
         CODE(TERMINAL_COLOR) // ( style fg -- )
-          std::cout << termcolor::color(termcolor::style(DPOPi()),
-                                        termcolor::fg(DPOPi()));
+          std::cout << termcolor::color(termcolor::style(DPOPI()),
+                                        termcolor::fg(DPOPI()));
         NEXT;
 
         // ---------------------------------------------------------------------
@@ -265,7 +258,7 @@ void Interpreter::executePrimitive(Token const xt)
         CODE(WORD) // ( C: char "<chars>ccc<char>" -- addr ) // TODO place it at HERE ?
           {
               DDEEP(1);
-              std::string delimiter(1, char(DPOPi())); // TODO: evolution: single char is old. Pass a string : :SPACES: " \t\n\v\f\r" ;
+              std::string delimiter(1, char(DPOPI())); // TODO: evolution: single char is old. Pass a string : :SPACES: " \t\n\v\f\r" ;
               if (!STREAM.split(delimiter))
               {
                   if (m_interactive)
@@ -280,7 +273,7 @@ void Interpreter::executePrimitive(Token const xt)
               dictionary[size::dictionary - size::tib] = STREAM.word().size() + 1_z;
               strcpy(reinterpret_cast<char*>(dictionary() + size::dictionary - size::tib + 1_z),
                      STREAM.word().c_str());
-              DPUSH(Token(size::dictionary - size::tib));
+              DPUSHI(size::dictionary - size::tib);
           }
         NEXT;
 
@@ -290,7 +283,7 @@ void Interpreter::executePrimitive(Token const xt)
         // with C and C++. Therefore the number of char is ignored (FIXME not very crash proof).
         CODE(TYPE) // ( addr u -- )
           DDROP();
-          std::cout << reinterpret_cast<char*>(&dictionary[DPOPi() + 1]) << std::flush;
+          std::cout << reinterpret_cast<char*>(&dictionary[DPOPI() + 1]) << std::flush;
         NEXT;
 
         // ---------------------------------------------------------------------
@@ -298,7 +291,7 @@ void Interpreter::executePrimitive(Token const xt)
         // Deviation: in SimForth this word is not a user variable.
         CODE(TO_IN) // ( n -- )
           DDEEP(1);
-          STREAM.skip(DPOPi());
+          STREAM.skip(DPOPI());
         NEXT;
 
         // ---------------------------------------------------------------------
@@ -306,7 +299,7 @@ void Interpreter::executePrimitive(Token const xt)
         CODE(EVALUATE)
         {
           DDROP(); // number of chars in the string
-          char const* script = reinterpret_cast<char const*>(&dictionary[DPOPi() + 1]);
+          char const* script = reinterpret_cast<char const*>(&dictionary[DPOPI() + 1]);
           include<StringStream>(script);
         }
         NEXT;
@@ -331,8 +324,10 @@ void Interpreter::executePrimitive(Token const xt)
           TOSc0 = DPOP();
           for (size_t i = 0; i < size::cell; ++i)
           {
-              if (isgraph(TOSc0.b[i]))
-                  std::cout << TOSc0.b[i];
+              if (isgraph(TOSc0.byte(i)))
+              {
+                  std::cout << TOSc0.byte(i);
+              }
           }
         NEXT;
 
@@ -388,8 +383,8 @@ void Interpreter::executePrimitive(Token const xt)
           {
               Token tib = size::dictionary - size::tib;
               dictionary.append(STREAM.word(), tib);
-              DPUSH(size::dictionary - size::tib);
-              DPUSH(dictionary[size::dictionary - size::tib]);
+              DPUSHI(size::dictionary - size::tib);
+              DPUSHI(dictionary[size::dictionary - size::tib]);
           }
         NEXT;
 
@@ -459,7 +454,7 @@ void Interpreter::executePrimitive(Token const xt)
         // ---------------------------------------------------------------------
         // Run the C function refered by TOSc
         CODE(CLIB_EXEC) // ( -- )
-          m_clibs.exec(DPOPi(), DS);
+          m_clibs.exec(DPOPI(), DS);
         NEXT;
 
         // ---------------------------------------------------------------------
@@ -479,7 +474,10 @@ void Interpreter::executePrimitive(Token const xt)
         CODE(BRANCH) // ( -- )
           IP += dictionary[IP + 1u];
           if (options.traces)
+          {
+              indent();
               std::cout << "IP jumps to " << std::hex << IP << "\n";
+          }
         NEXT;
 
         // ---------------------------------------------------------------------
@@ -487,7 +485,7 @@ void Interpreter::executePrimitive(Token const xt)
         // only if the top value in the data stack is 0. This value is eaten.
         CODE(ZERO_BRANCH) // ( false -- )
           DDEEP(1);
-          IP += ((DPOPi() == 0) ? dictionary[IP + 1u] : 1u);
+          IP += ((DPOPI() == 0) ? dictionary[IP + 1u] : 1u);
           if (options.traces)
           {
               indent();
@@ -531,32 +529,32 @@ void Interpreter::executePrimitive(Token const xt)
         // A Dictionary slot store a token (2 bytes). Dictionary addresses are
         // multiple of tokens (not of bytes). So return 1.
         CODE(TOKEN) // ( -- 1 )
-          DPUSH(1);
+          DPUSHI(1);
         NEXT;
 
         // ---------------------------------------------------------------------
         // We need x Dictionary slots (tokens) to store a Data-Stack. Return this
         // number.
         CODE(CELL) // ( -- 2 )
-          DPUSH(size::cell / size::token);
+          DPUSHI(size::cell / size::token);
         NEXT;
 
         // ---------------------------------------------------------------------
         // Return the next available dictionary location.
         CODE(HERE) // ( -- addr )
-          DPUSH(dictionary.here());
+          DPUSHI(dictionary.here());
         NEXT;
 
         // ---------------------------------------------------------------------
         // Return the NFA of the latest word stored in the dictionary.
         CODE(LATEST) // ( -- nfa )
-          DPUSH(dictionary.last());
+          DPUSHI(dictionary.last());
         NEXT;
 
         // ---------------------------------------------------------------------
         // Convert the NFA to CFA
         CODE(TO_CFA) // ( nfa -- cfa )
-          DPUSH(NFA2indexCFA(dictionary(), DPOPi()));
+          DPUSHI(NFA2indexCFA(dictionary(), DPOPI()));
         NEXT;
 
         // ---------------------------------------------------------------------
@@ -568,8 +566,8 @@ void Interpreter::executePrimitive(Token const xt)
             THROW_IF_NO_NEXT_WORD();
             Token nfa;
             int res = dictionary.find(STREAM.word(), nfa);
-            DPUSH(nfa);
-            DPUSH(res);
+            DPUSHI(nfa);
+            DPUSHI(res);
         }
         NEXT;
 
@@ -580,9 +578,9 @@ void Interpreter::executePrimitive(Token const xt)
           TOSc0 = DPOP(); // value
           TOSc1 = DPOP(); // nb bytes
           TOSc2 = DPOP(); // source
-          dictionary.fill(get<Token>(TOSc2),
-                          get<Token>(TOSc1),
-                          get<Token>(TOSc0));
+          dictionary.fill(TOSc2.integer(),
+                          TOSc1.integer(),
+                          TOSc0.integer());
         NEXT;
 
         // ---------------------------------------------------------------------
@@ -590,12 +588,12 @@ void Interpreter::executePrimitive(Token const xt)
         // TODO avoid to move the part where primitives are stored
         CODE(CELLS_MOVE) // ( src dst nbbytes -- )
           DDEEP(3);
-          TOSc0 = DPOP();  // nb bytes
+          TOSc0 = DPOP(); // nb bytes
           TOSc1 = DPOP(); // destination
           TOSc2 = DPOP(); // source
-          dictionary.move(get<Token>(TOSc2),
-                          get<Token>(TOSc1),
-                          get<Token>(TOSc0));
+          dictionary.move(TOSc2.integer(),
+                          TOSc1.integer(),
+                          TOSc0.integer());
         NEXT;
 
         // ---------------------------------------------------------------------
@@ -603,8 +601,8 @@ void Interpreter::executePrimitive(Token const xt)
         CODE(BYTE_FETCH) // ( 2*addr -- x )
         {
           DDEEP(1);
-          char* ptr = reinterpret_cast<char*>(dictionary() + Token(DPOPi()));
-          DPUSH(*ptr);
+          char* ptr = reinterpret_cast<char*>(dictionary() + DPOPT());
+          DPUSHI(*ptr);
         }
         NEXT;
 
@@ -613,8 +611,8 @@ void Interpreter::executePrimitive(Token const xt)
         CODE(BYTE_STORE) // ( x addr -- )
         {
           DDEEP(2);
-          char* ptr = reinterpret_cast<char*>(dictionary() + Token(DPOPi()));
-          *ptr = char(DPOPi());
+          char* ptr = reinterpret_cast<char*>(dictionary() + DPOPT());
+          *ptr = char(DPOPI());
         }
         NEXT;
 
@@ -622,23 +620,22 @@ void Interpreter::executePrimitive(Token const xt)
         // Append in the dictionary the token stored on the top of the stack
         CODE(TOKEN_COMMA) // ( xt -- )
           DDEEP(1);
-          dictionary.append(static_cast<Token>(DPOP().i));
+          dictionary.append(DPOPT());
         NEXT;
 
         // ---------------------------------------------------------------------
         // x is the value stored at addr.
         CODE(TOKEN_FETCH) // ( addr -- x )
           DDEEP(1);
-          TOSc0 = dictionary.fetch<Token>(Token(DPOPi()));
-          DPUSH(TOSc0);
+          DPUSHI(dictionary.fetch<Token>(DPOPT()));
         NEXT;
 
         // ---------------------------------------------------------------------
         //
         CODE(TOKEN_STORE) // ( x addr -- )
           DDEEP(2);
-          TOSi = DPOPi(); // addr
-          dictionary[Token(TOSi)] = Token(DPOPi());
+          TOSi = DPOPI(); // addr
+          dictionary[Token(TOSi)] = DPOPT();
         NEXT;
 
 
@@ -653,23 +650,21 @@ void Interpreter::executePrimitive(Token const xt)
         // Reserve n dictionary slots (n tokens or 2n bytes).
         CODE(ALLOT) // ( n -- )
           DDEEP(1);
-          dictionary.allot(DPOPi());
+          dictionary.allot(DPOPI());
         NEXT;
 
         // ---------------------------------------------------------------------
-        // x is the value stored at addr.
-        CODE(FLOAT_FETCH) // ( addr -- x )
+        // x is the floating point value stored at addr.
+        CODE(FLOAT_FETCH) // ( addr -- r )
           DDEEP(1);
-          TOSc0 = dictionary.fetch<Float>(Token(DPOPi()));
-          DPUSH(TOSc0);
+          DPUSH(Cell::real(dictionary.fetch<Real>(DPOPT())));
         NEXT;
 
         // ---------------------------------------------------------------------
         // x is the value stored at addr.
         CODE(CELL_FETCH) // ( addr -- x )
           DDEEP(1);
-          TOSi = dictionary.fetch<Int>(Token(DPOPi()));
-          DPUSH(TOSi);
+          DPUSHI(dictionary.fetch<Int>(DPOPT()));
         NEXT;
 
         // ---------------------------------------------------------------------
@@ -677,14 +672,14 @@ void Interpreter::executePrimitive(Token const xt)
         // TODO avoid storing date where primitives are stored
         CODE(CELL_STORE) // ( x addr -- )
           DDEEP(2);
-          TOSi = DPOPi(); // addr
+          TOSi = DPOPI(); // addr
           dictionary.store(Token(TOSi), DPOP());
         NEXT;
 
         // ---------------------------------------------------------------------
         //
         // CODE(PLUS_STORE)
-        //   TOSc0 = dictionary.fetch<Cell>(DPOPi());
+        //   TOSc0 = dictionary.fetch<Cell>(DPOPI());
         //   DPUSH(TOSc0 + DPOP());
         // NEXT;
 
@@ -697,7 +692,7 @@ void Interpreter::executePrimitive(Token const xt)
         // ---------------------------------------------------------------------
         // Return the state of the interpreter
         CODE(STATE) // ( -- st )
-          DPUSH(Int(m_state));
+          DPUSHI(m_state);
         NEXT;
 
         // ---------------------------------------------------------------------
@@ -706,7 +701,7 @@ void Interpreter::executePrimitive(Token const xt)
           m_state = State::Compile;
           m_memo.depth = DS.depth() + 1;
           m_memo.xt = dictionary.createEntry("");
-          DPUSH(m_memo.xt);
+          DPUSHI(m_memo.xt);
         NEXT;
 
         // ---------------------------------------------------------------------
@@ -773,18 +768,18 @@ void Interpreter::executePrimitive(Token const xt)
         // String literal. Return the count string on the data stack.
         CODE(PSLITERAL) // ( -- )
           ++IP;
-          DPUSH(IP);
-          DPUSH(dictionary[IP]);
+          DPUSHI(IP);
+          DPUSHI(dictionary[IP]);
           IP += NEXT_MULTIPLE_OF_2(dictionary[IP] + 1) / 2; // +1 for the '\0' char
         NEXT;
 
         // ---------------------------------------------------------------------
-        // Float literal value stored inside a Forth definition
+        // Real literal value stored inside a Forth definition
         CODE(PFLITERAL) // ( -- )
           {
-              Float* f = reinterpret_cast<Float*>(dictionary() + IP + 1u);
-              DPUSH(*f);
-              IP += sizeof(Float) / size::token;
+              Real* f = reinterpret_cast<Real*>(dictionary() + IP + 1u);
+              DPUSHR(*f);
+              IP += sizeof(Real) / size::token;
           }
         NEXT;
 
@@ -793,7 +788,7 @@ void Interpreter::executePrimitive(Token const xt)
         CODE(PILITERAL) // ( -- )
           {
               Int* i = reinterpret_cast<Int*>(dictionary() + IP + 1u);
-              DPUSH(*i);
+              DPUSHI(*i);
               IP += sizeof(Int) / size::token;
           }
         NEXT;
@@ -804,7 +799,7 @@ void Interpreter::executePrimitive(Token const xt)
           {
               ++IP;
               int16_t* i = reinterpret_cast<int16_t*>(dictionary() + IP);
-              DPUSH(*i);
+              DPUSHI(*i);
           }
         NEXT;
 
@@ -819,7 +814,7 @@ void Interpreter::executePrimitive(Token const xt)
         // Push in data stack the next free slot in the dictionary
         // +1 to skip CFA of EXIT
         CODE(PCREATE) // ( -- addr )
-          DPUSH(IP + 2);
+          DPUSHI(IP + 2);
         NEXT;
 
         // ---------------------------------------------------------------------
@@ -854,7 +849,7 @@ void Interpreter::executePrimitive(Token const xt)
         CODE(PDOES)
           // Place the address of data to the data stack.
           // +3 for skipping (DOES), address to DOES> treatment and EXIT
-          DPUSH(IP + 3);
+          DPUSHI(IP + 3);
           // Branch to the DOES> treatment
           IP = dictionary[IP + 1]; // FIXME: use relative address
         NEXT;
@@ -909,7 +904,7 @@ void Interpreter::executePrimitive(Token const xt)
                   token = 0;
                   THROW("Unkown word " + word);
               }
-              DPUSH(token);
+              DPUSHI(token);
           }
         NEXT;
 
@@ -963,7 +958,7 @@ void Interpreter::executePrimitive(Token const xt)
         // Excute the token placed on the data stack
         CODE(EXECUTE)
           DDEEP(1);
-          executeToken(static_cast<Token>(DPOPi()));
+          executeToken(static_cast<Token>(DPOPI()));
         NEXT;
 
         // ---------------------------------------------------------------------
@@ -1037,242 +1032,246 @@ void Interpreter::executePrimitive(Token const xt)
         // Increment iterator and test if the loop shall continue
         CODE(PLOOP)
           ++APICK(0); // ++I
-          DPUSH(0 == (APICK(0).i < APICK(1).i));
+          DPUSHI(0 == (APICK(0).integer() < APICK(1).integer()));
         NEXT;
 
         // ---------------------------------------------------------------------
         //
         CODE(FLOOR)
           DDEEP(1);
-          DPUSH(::floor(DPOPf()));
+          DPUSHR(::floor(DPOPR()));
         NEXT;
 
         // ---------------------------------------------------------------------
         //
         CODE(ROUND)
           DDEEP(1);
-          DPUSH(::round(DPOPf()));
+          DPUSHR(::round(DPOPR()));
         NEXT;
 
         // ---------------------------------------------------------------------
         //
         CODE(CEIL)
           DDEEP(1);
-          DPUSH(::ceil(DPOPf()));
+          DPUSHR(::ceil(DPOPR()));
         NEXT;
 
         // ---------------------------------------------------------------------
         //
         CODE(SQRT)
           DDEEP(1);
-          DPUSH(::sqrt(DPOPf()));
+          DPUSHR(::sqrt(DPOPR()));
         NEXT;
 
         // ---------------------------------------------------------------------
         //
         CODE(EXP)
           DDEEP(1);
-          DPUSH(::exp(DPOPf()));
+          DPUSHR(::exp(DPOPR()));
         NEXT;
 
         // ---------------------------------------------------------------------
         //
         CODE(LN)
           DDEEP(1);
-          DPUSH(::log(DPOPf()));
+          DPUSHR(::log(DPOPR()));
         NEXT;
 
         // ---------------------------------------------------------------------
         //
         CODE(LOG)
           DDEEP(1);
-          DPUSH(::log10(DPOPf()));
+          DPUSHR(::log10(DPOPR()));
         NEXT;
 
         // ---------------------------------------------------------------------
         //
         CODE(ASIN)
           DDEEP(1);
-          DPUSH(::asin(DPOPf()));
+          DPUSHR(::asin(DPOPR()));
         NEXT;
 
         // ---------------------------------------------------------------------
         //
         CODE(SIN)
           DDEEP(1);
-          DPUSH(::sin(DPOPf()));
+          DPUSHR(::sin(DPOPR()));
         NEXT;
 
         // ---------------------------------------------------------------------
         //
         CODE(ACOS)
           DDEEP(1);
-          DPUSH(::acos(DPOPf()));
+          DPUSHR(::acos(DPOPR()));
         NEXT;
 
         // ---------------------------------------------------------------------
         //
         CODE(COS)
           DDEEP(1);
-          DPUSH(::cos(DPOPf()));
+          DPUSHR(::cos(DPOPR()));
         NEXT;
 
         // ---------------------------------------------------------------------
         //
         CODE(ATAN)
           DDEEP(2);
-          TOSf = DPOPf();
-          DPUSH(::atan2(DPOPf(), TOSf));
+          TOSr = DPOPR();
+          DPUSHR(::atan2(DPOPR(), TOSr));
         NEXT;
 
         // ---------------------------------------------------------------------
         //
         CODE(TAN)
           DDEEP(1);
-          DPUSH(::tan(DPOPf()));
+          DPUSHR(::tan(DPOPR()));
+        NEXT;
+
+        // ---------------------------------------------------------------------
+        // Cast to nearest int
+        CODE(TO_INT)
+          DPUSHI(DPOPI());
+        NEXT;
+
+        // ---------------------------------------------------------------------
+        // Cast integer to floating point
+        CODE(TO_FLOAT)
+          DPUSHR(DPOPR());
         NEXT;
 
         // ---------------------------------------------------------------------
         // Data depth
         CODE(DEPTH)
-          DPUSH(DS.depth());
+          DPUSHI(DS.depth());
         NEXT;
 
         // ---------------------------------------------------------------------
         // Decrement
         CODE(MINUS_ONE)
           DDEEP(1);
-          --DPICK(0);
+          --DTOS();
         NEXT;
 
        // ---------------------------------------------------------------------
         // Increment
         CODE(PLUS_ONE)
           DDEEP(1);
-          ++DPICK(0);
+          ++DTOS();
         NEXT;
 
         // ---------------------------------------------------------------------
         //
         CODE(LSHIFT)
           DDEEP(2);
-          TOSi = DPOPi();
-          DPUSH(DPOPi() << TOSi);
+          TOSi = DPOPI();
+          DPUSHI(DPOPI() << TOSi);
         NEXT;
 
         // ---------------------------------------------------------------------
         //
         CODE(RSHIFT)
           DDEEP(2);
-          TOSi = DPOPi();
-          DPUSH(DPOPi() >> TOSi);
+          TOSi = DPOPI();
+          DPUSHI(DPOPI() >> TOSi);
         NEXT;
 
         // ---------------------------------------------------------------------
         // Binary exclusive or
         CODE(XOR)
-          BINARY_OP(^);
+          DDEEP(2);
+          DTOS() ^= DPOP();
         NEXT;
 
         // ---------------------------------------------------------------------
         // Binary inclusive or
         CODE(OR)
-          BINARY_OP(|);
+          DDEEP(2);
+          DTOS() |= DPOP();
         NEXT;
 
         // ---------------------------------------------------------------------
         // Binary and
         CODE(AND)
-          BINARY_OP(&);
+          DDEEP(2);
+          DTOS() &= DPOP();
         NEXT;
 
         // ---------------------------------------------------------------------
         // Addition
         CODE(ADD)
-          BINARY_INT_OP(+);
+          DDEEP(2);
+          DTOS() += DPOP();
         NEXT;
 
         // ---------------------------------------------------------------------
         // Substraction
         CODE(MINUS)
-          BINARY_INT_OP(-);
+          DDEEP(2);
+          DTOS() -= DPOP();
         NEXT;
 
         // ---------------------------------------------------------------------
         // Multiplication
         CODE(TIMES)
-          BINARY_INT_OP(*);
+          DDEEP(2);
+          DTOS() *= DPOP();
         NEXT;
 
         // ---------------------------------------------------------------------
         // Division
         CODE(DIVIDE)
           DDEEP(2);
-          TOSi = DPOPi();
-          if (TOSi == 0)
+          if (DTOS().integer() == 0)
               THROW("Division by zero");
-          DPUSH(DPOPi() / TOSi);
-        NEXT;
-
-        // ---------------------------------------------------------------------
-        // Addition
-        CODE(FLOAT_ADD)
-          BINARY_FLOAT_OP(+);
-        NEXT;
-
-        // ---------------------------------------------------------------------
-        // Substraction
-        CODE(FLOAT_MINUS)
-          BINARY_FLOAT_OP(-);
-        NEXT;
-
-        // ---------------------------------------------------------------------
-        // Multiplication
-        CODE(FLOAT_TIMES)
-          BINARY_FLOAT_OP(*);
-        NEXT;
-
-        // ---------------------------------------------------------------------
-        // Division
-        CODE(FLOAT_DIVIDE)
-          DDEEP(2);
-          BINARY_FLOAT_OP(/);
+          DTOS() /= DPOP();
         NEXT;
 
         // ---------------------------------------------------------------------
         //
         CODE(GREATER)
-          BOOL_OP(>);
+          DDEEP(2);
+          TOSc0 = DPOP();
+          DTOS() = Cell::integer((DTOS() > TOSc0) ? -1 : 0);
         NEXT;
 
         // ---------------------------------------------------------------------
         //
         CODE(GREATER_EQUAL)
-          BOOL_OP(>=);
+          DDEEP(2);
+          TOSc0 = DPOP();
+          DTOS() = Cell::integer((DTOS() >= TOSc0) ? -1 : 0);
         NEXT;
 
         // ---------------------------------------------------------------------
         //
         CODE(LOWER)
-          BOOL_OP(<);
+          DDEEP(2);
+          TOSc0 = DPOP();
+          DTOS() = Cell::integer((DTOS() < TOSc0) ? -1 : 0);
         NEXT;
 
         // ---------------------------------------------------------------------
         //
         CODE(LOWER_EQUAL)
-          BOOL_OP(<=);
+          DDEEP(2);
+          TOSc0 = DPOP();
+          DTOS() = Cell::integer((DTOS() <= TOSc0) ? -1 : 0);
         NEXT;
 
         // ---------------------------------------------------------------------
         //
         CODE(EQUAL)
-          BOOL_OP(==);
+          DDEEP(2);
+          TOSc0 = DPOP();
+          DTOS() = Cell::integer((DTOS() == TOSc0) ? -1 : 0);
         NEXT;
 
         // ---------------------------------------------------------------------
         //
         CODE(NOT_EQUAL)
-          BOOL_OP(!=);
+          DDEEP(2);
+          TOSc0 = DPOP();
+          DTOS() = Cell::integer((DTOS() != TOSc0) ? -1 : 0);
         NEXT;
 
         // ---------------------------------------------------------------------
@@ -1312,7 +1311,7 @@ void Interpreter::executePrimitive(Token const xt)
         // 2DUP = OVER OVER
         CODE(TWO_DUP)
           DDEEP(2);
-          TOSc0 = DPICK(0);
+          TOSc0 = DTOS();
           TOSc1 = DPICK(1);
           DPUSH(TOSc1);
           DPUSH(TOSc0);
@@ -1335,7 +1334,7 @@ void Interpreter::executePrimitive(Token const xt)
         CODE(ROLL)
           {
               DDEEP(1);
-              TOSi = DPOPi();
+              TOSi = DPOPI();
               DDEEP(TOSi + 1);
               Cell scratch = DPICK(TOSi);
               Cell *src = &DPICK(TOSi - 1);
@@ -1354,7 +1353,7 @@ void Interpreter::executePrimitive(Token const xt)
         // 0 PICK == DUP
         // 1 PICK == OVER
         CODE(PICK)
-          TOSi = DPOPi();
+          TOSi = DPOPI();
           DDEEP(TOSi);
           DPUSH(DPICK(TOSi));
         NEXT;
@@ -1400,7 +1399,7 @@ void Interpreter::executePrimitive(Token const xt)
         // ( a -- a a )
         CODE(DUP)
           DDEEP(1);
-          DPUSH(DPICK(0));
+          DDUP();
         NEXT;
 
         // ---------------------------------------------------------------------
@@ -1408,8 +1407,7 @@ void Interpreter::executePrimitive(Token const xt)
         // ( x -- 0 | x x )
         CODE(QDUP)
           DDEEP(1);
-          TOSc0 = DPICK(0);
-          if (get<Int>(TOSc0) != 0) { DPUSH(TOSc0); }
+          if (DTOS().integer() != 0) { DDUP(); }
         NEXT;
 
         // ---------------------------------------------------------------------

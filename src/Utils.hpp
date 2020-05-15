@@ -108,28 +108,32 @@ namespace forth
 //
 // ***************************************************************************
 
-// Data stack (function parameters manipulation) short names
-#  define DPUSH(n)  DS.push<forth::Cell>(n)             // Store the cell value on the top of stack
-#  define DDROP()   DS.drop()                           // Discard the top of the stack
-#  define DPOPi()   get<Int>(DS.pop<forth::Cell>()) // Discard the top of the stack and save its value in the register r
-#  define DPOPf()   get<Float>(DS.pop<forth::Cell>())   // Discard the top of the stack and save its value in the register r
-#  define DPOPt()   DS.pop<forth::Token>()
-#  define DPOP()    DS.pop<forth::Cell>()               // Discard the top of the stack and save its value in the register r
-#  define DPICK(n)  DS.pick<forth::Cell>(n)             // Look at the nth element (n >= 1) of the stack from the top (1 = 1st element)
+// Data stack (function parameters manipulation)
+#  define DPUSH(n)  DS.push(n)                // Store a Cell value to the top of stack (TOS)
+#  define DPUSHI(n) DS.push(Cell::integer(n)) // Push an integer to the top of stack
+#  define DPUSHR(n) DS.push(Cell::real(n))    // Push a float to the top of stack
+#  define DDROP()   DS.drop()                 // Discard the top of the stack
+#  define DPOP()    DS.pop()                  // Discard an return the Cell on the top of the stack
+#  define DPOPI()   DS.pop().integer()        // Discard an return the Cell on the top of the stack converted as integer
+#  define DPOPR()   DS.pop().real()           // Discard an return the Cell on the top of the stack converted as float
+#  define DPOPT()   static_cast<forth::Token>(DPOPI()) // Discard an return the Cell on the top of the stack converted as token
+#  define DPICK(n)  DS.pick(n)                // Look at the nth element (n >= 0) of the stack from the top (0 = TOS)
+#  define DTOS()    DS.tos()                  // Look at the 1st element of the stack from the top
+#  define DDUP()    DS.dup()                  // Duplicate the TOS
 
 // Auxillary stack (second function parameters manipulation) short names.
 // Deviation: this is it not ANSI-Forth but storing temporary elements in the
 // return stack is not very safe.
-#  define APUSH(n)  AS.push<forth::Cell>(n) // Store the cell value on the top of stack
+#  define APUSH(n)  AS.push(n) // Store the cell value on the top of stack
 #  define ADROP()   AS.drop()               // Discard the top of the stack
-#  define APOP()    AS.pop<forth::Cell>()   // Discard the top of the stack and save its value in the register r
-#  define APICK(n)  AS.pick<forth::Cell>(n) // Look at the nth element (n >= 1) of the stack from the top (1 = 1st element)
+#  define APOP()    AS.pop()   // Discard the top of the stack and save its value in the register r
+#  define APICK(n)  AS.pick(n) // Look at the nth element (n >= 1) of the stack from the top (1 = 1st element)
 
 // Return stack (word addresses manipulation) short names
-#  define RPUSH(n)  RS.push<forth::Token>(n) // Store the cell value on the top of stack
+#  define RPUSH(n)  RS.push(n) // Store the cell value on the top of stack
 #  define RDROP()   RS.drop()                // Discard the top of the stack
-#  define RPOP( )   RS.pop<forth::Token>()   // Discard the top of the stack and save its value in the register r
-#  define RPICK(n)  RS.pick<forth::Token>(n) // Look at the nth element (n >= 1) of the stack from the top (1 = 1st element)
+#  define RPOP( )   RS.pop()   // Discard the top of the stack and save its value in the register r
+#  define RPICK(n)  RS.pick(n) // Look at the nth element (n >= 1) of the stack from the top (1 = 1st element)
 
 // ***************************************************************************
 //
@@ -363,7 +367,7 @@ static inline Token const* NFA2PFA(Token const* nfa)
 #  pragma GCC diagnostic pop
 
 bool toInteger(std::string const& word, int base, Cell& number);
-bool toFloat(std::string const& word, Cell& number);
+bool toReal(std::string const& word, Cell& number);
 
 // ***************************************************************************
 //! \brief Escape unprintable character stored in a string

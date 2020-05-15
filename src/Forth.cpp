@@ -250,7 +250,7 @@ bool Forth::boot()
     // TODO DUP>R 2DUP>R et RDROP et 2RDROP
     primitive(PLOOP, "(LOOP?)");
 
-    // Floating operations
+    // FLOATing operations
     primitive(FLOOR, "FLOOR");
     primitive(ROUND, "ROUND");
     primitive(CEIL, "CEIL");
@@ -266,6 +266,8 @@ bool Forth::boot()
     primitive(TAN, "TAN");
 
     // Data stack manipulation
+    primitive(TO_INT, ">INT");
+    primitive(TO_FLOAT, ">FLOAT");
     primitive(DEPTH, "DEPTH");
     primitive(PLUS_ONE, "1+");
     primitive(MINUS_ONE, "1-");
@@ -278,10 +280,6 @@ bool Forth::boot()
     primitive(MINUS, "-");
     primitive(TIMES, "*");
     primitive(DIVIDE, "/");
-    primitive(FLOAT_ADD, "F+");
-    primitive(FLOAT_MINUS, "F-");
-    primitive(FLOAT_TIMES, "F*");
-    primitive(FLOAT_DIVIDE, "F/");
     primitive(GREATER, ">");
     primitive(GREATER_EQUAL, ">=");
     primitive(LOWER, "<");

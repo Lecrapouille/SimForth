@@ -349,7 +349,7 @@ protected:
     //! \brief Top Of Stack. Temporary integer variable #0.
     Int            TOSi;
     //! \brief Top Of Stack. Temporary float variable #0.
-    Float          TOSf;
+    Real           TOSr;
     //! \brief Top Of Stack. Temporary token variable #0.
     Token          TOSt;
     //! \brief Loop iterator (word I).

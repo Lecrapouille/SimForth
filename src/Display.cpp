@@ -289,7 +289,7 @@ static void display(Token const *nfa, Dictionary const& dictionary,
                 {
                     DISP_ILITERAL(std::cout, ptr);
                 }
-                else if (skip == (sizeof(Int) / size::token) - 1)
+                else if (size_t(skip + 1) == (sizeof(Int) / size::token))
                 {
                     iliteral = false;
                 }
@@ -301,7 +301,7 @@ static void display(Token const *nfa, Dictionary const& dictionary,
                 {
                     DISP_FLITERAL(std::cout, ptr);
                 }
-                else if (skip == (sizeof(Real) / size::token) - 1)
+                else if (size_t(skip + 1) == (sizeof(Real) / size::token))
                 {
                     fliteral = false;
                 }

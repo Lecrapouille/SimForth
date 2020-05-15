@@ -26,14 +26,12 @@
 //! -- the first uses a classic switch(token) { case XXX: ... }
 //! -- the second uses computed goto with is 25% faster than switch
 //------------------------------------------------------------------------------
-
+//#define USE_COMPUTED_GOTO
 #  ifdef USE_COMPUTED_GOTO
-#    define LABELIZE(xt)   [TOK_##a] = &&L_##xt
-#    define DISPATCH(xt)   goto *c_primitives[xt];
+#    define LABELIZE(xt)   [forth::Primitives::xt] = &&L_##xt
+#    define DISPATCH(xt)   goto *dispatch_table[primitive];
 #    define CODE(xt)       L_##xt:
-#    define NEXT           return
-  //if (*m_ip < FORTH_MAX_PRIMITIVES) goto *c_primitives[*m_ip++];
-  //else THROW ForthException("unknown token");
+#    define NEXT           goto *dispatch_table[primitive]
 #    define UNKNOWN        L_UNKNOWN:
 #  else // !USE_COMPUTED_GOTO
 #    define DISPATCH(xt)   switch (xt)

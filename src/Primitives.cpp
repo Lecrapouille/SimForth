@@ -108,6 +108,36 @@ void Interpreter::skipComment()
 // addr: address ie HERE or CFA.
 void Interpreter::executePrimitive(Token const xt)
 {
+#ifdef USE_COMPUTED_GOTO
+    static void* dispatch_table[] = { &&L_NOP,
+       &&L_BYE, &&L_SEE, &&L_WORDS, &&L_ABORT, &&L_PABORT_MSG, &&L_ABORT_MSG, &&L_SET_BASE, &&L_GET_BASE,
+       &&L_SOURCE, &&L_KEY, &&L_TERMINAL_COLOR, &&L_WORD, &&L_TYPE, &&L_TO_IN,
+       &&L_EVALUATE, &&L_TRACES_ON, &&L_TRACES_OFF,
+       &&L_EMIT, &&L_CR, &&L_DOT_DSTACK, &&L_DOT, &&L_DOT_STRING,
+       &&L_STORE_STRING, &&L_SSTRING,
+       &&L_CLIB_BEGIN, &&L_CLIB_END, &&L_CLIB_ADD_LIB, &&L_CLIB_C_FUN, &&L_CLIB_C_CODE, &&L_CLIB_EXEC,
+       &&L_INCLUDE, &&L_BRANCH, &&L_ZERO_BRANCH, &&L_QI, &&L_I, &&L_QJ, &&L_J,
+       &&L_COMPILE_ONLY, &&L_STATE, &&L_NONAME, &&L_COLON, &&L_SEMI_COLON, &&L_EXIT,
+       &&L_RETURN,
+       &&L_RECURSE, &&L_PSLITERAL, &&L_PFLITERAL, &&L_PILITERAL, &&L_PLITERAL, &&L_LITERAL,
+       &&L_PCREATE, &&L_CREATE, &&L_BUILDS, &&L_PDOES, &&L_DOES, &&L_IMMEDIATE, &&L_HIDE, &&L_TICK, &&L_COMPILE,
+       &&L_ICOMPILE, &&L_POSTPONE, &&L_EXECUTE, &&L_LEFT_BRACKET, &&L_RIGHT_BRACKET,
+       &&L_TOKEN, &&L_CELL, &&L_HERE, &&L_LATEST, &&L_TO_CFA, &&L_FIND, &&L_FILL, &&L_CELLS_MOVE,
+       &&L_BYTE_FETCH, &&L_BYTE_STORE,
+       &&L_TOKEN_COMMA, &&L_TOKEN_FETCH, &&L_TOKEN_STORE,
+       &&L_CELL_COMMA, &&L_ALLOT, &&L_FLOAT_FETCH, &&L_CELL_FETCH, &&L_CELL_STORE,
+       &&L_TWOTO_ASTACK, &&L_TWOFROM_ASTACK, &&L_TO_ASTACK, &&L_FROM_ASTACK, &&L_DUP_ASTACK,
+       &&L_DROP_ASTACK, &&L_TWO_DROP_ASTACK, &&L_PLOOP,
+       &&L_FLOOR, &&L_ROUND, &&L_CEIL, &&L_SQRT, &&L_EXP, &&L_LN, &&L_LOG, &&L_ASIN, &&L_ACOS, &&L_ATAN, &&L_SIN, &&L_COS, &&L_TAN,
+       &&L_TO_INT, &&L_TO_FLOAT,
+       &&L_DEPTH, &&L_PLUS_ONE, &&L_MINUS_ONE, &&L_LSHIFT, &&L_RSHIFT, &&L_XOR, &&L_OR, &&L_AND, &&L_ADD, &&L_MINUS,
+       &&L_TIMES, &&L_DIVIDE, &&L_GREATER, &&L_GREATER_EQUAL, &&L_LOWER, &&L_LOWER_EQUAL, &&L_EQUAL, &&L_NOT_EQUAL,
+       &&L_TWO_SWAP, &&L_TWO_OVER, &&L_TWO_DROP, &&L_TWO_DUP, &&L_NIP, &&L_ROLL, &&L_PICK, &&L_SWAP, &&L_OVER, &&L_ROT, &&L_DROP,
+       &&L_DUP, &&L_QDUP,
+       &&L_LPARENT, &&L_RPARENT, &&L_COMMENT, &&L_COMMENT_EOF, &&L_MAX_PRIMITIVES_, &&L_UNKNOWN
+    };
+#endif
+
     //LOGW("executePrimitive %u %s", xt, dictionary.token2name(xt).c_str());
     Primitives const primitive = static_cast<Primitives>(xt);
     DISPATCH(primitive)

@@ -166,6 +166,7 @@ bool Forth::boot()
     immediate(SSTRING, "S\"");
 
     // Interfaces with C libraries
+    primitive(TO_C_PTR, ">C-PTR");
     primitive(CLIB_BEGIN, "C-LIB");
     primitive(CLIB_END, "END-C-LIB");
     primitive(CLIB_ADD_LIB, "ADD-LIB");

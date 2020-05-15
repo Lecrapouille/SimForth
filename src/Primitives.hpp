@@ -62,7 +62,7 @@ namespace forth
        STORE_STRING, SSTRING,
 
        // Interfaces with C libraries
-       CLIB_BEGIN, CLIB_END, CLIB_ADD_LIB, CLIB_C_FUN, CLIB_C_CODE, CLIB_EXEC,
+       TO_C_PTR, CLIB_BEGIN, CLIB_END, CLIB_ADD_LIB, CLIB_C_FUN, CLIB_C_CODE, CLIB_EXEC,
 
        // Branching
        INCLUDE, BRANCH, ZERO_BRANCH, QI, I, QJ, J,

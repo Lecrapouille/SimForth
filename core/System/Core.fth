@@ -121,6 +121,7 @@
    R> >LFA                                \ Convert HERE to LFA
    TOKEN!                          \ Store relative jump at LFA
 ;
+\ TODO MODULE <name> -> call CREATE to avoid crapping dictionary
 
 \ -------------------------------------------------------------
 \ Dictionary
@@ -446,10 +447,90 @@
 : F?  ( addr -- )   FLOAT@ . ;
 
 \ -------------------------------------------------------------
+\ Array
+\ Creation: 10 ARRAY table
+\ Store value 42 at index 5: 42 6 table !
+\ Read the value of the index 5: 6 table @
+\ -------------------------------------------------------------
+: CHEK-INDEX ( val index array -- )
+   DUP >R                         \ Backup the array address
+   @ OVER <= IF ABORT" Index out of range" ENDIF
+   DUP 0< IF ABORT" Negative index!" ENDIF
+   R>
+;
+
+: ARRAY
+   <BUILDS
+      DEPTH 0= IF ABORT" No array size supplied!" ENDIF
+      DUP 0< IF ABORT" Negative array size!" ENDIF
+      DUP TOKEN,                  \ Store the size of the array
+      CELLS ALLOT          \ Create the N elements of the array
+   DOES> ( val index array -- val array+index )
+      CHEK-INDEX
+      SWAP 1+ CELLS +
+;
+
+HIDE CHEK-INDEX
+
+\ -------------------------------------------------------------
+\ Structure (TODO WIP !!!!!)
+\
+\ Example:
+\ STRUCT
+\   CELL FIELD .real
+\   CELL FIELD .img
+\ END-STRUCT complex
+\
+\ complex nb
+\
+\ 65535 nb .real !
+\ 65534 nb .img !
+\ -------------------------------------------------------------
+VARIABLE TOTAL.TOKENS       1 TOTAL.TOKENS !
+VARIABLE CURRENT.RECORD     0 CURRENT.RECORD !
+VARIABLE BIND.NOW       FALSE BIND.NOW !
+
+: FIELD
+   <BUILDS
+      TOTAL.TOKENS @ ,
+      TOTAL.TOKENS +!
+      IMMEDIATE
+   DOES>
+      CURRENT.RECORD @ ?DUP
+      IF SWAP ENDIF
+      @ +
+      STATE BIND.NOW @ AND
+      IF [COMPILE] LITERAL ENDIF
+      FALSE BIND.NOW !
+;
+
+: MAKE.INSTANCE .s
+   DUP ,
+   DUP ." ALLOCATE " . CR
+   CREATE ALLOT IMMEDIATE
+;
+
+: STRUCT ;
+
+: END-STRUCT
+   <BUILDS
+      TOTAL.TOKENS @ ,
+      1 TOTAL.TOKENS !
+   DOES>
+      @ MAKE.INSTANCE
+;
+
+: BIND TRUE BIND.NOW ! ; IMMEDIATE
+
+\ : USE ' >CFA @ ;
+
+HIDE TOTAL.TOKENS
+HIDE CURRENT.RECORD
+HIDE BIND.NOW
+HIDE MAKE.INSTANCE
+
+\ -------------------------------------------------------------
 \ Hide definitions that the user should not use
 \ -------------------------------------------------------------
 
-( HIDE >MARK
-HIDE T!
-HIDE T@
-HIDE T, )
+HIDE >MARK

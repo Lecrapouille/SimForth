@@ -414,6 +414,12 @@ void Interpreter::executePrimitive(Token const xt)
         NEXT;
 
         // ---------------------------------------------------------------------
+        //
+        CODE(TO_C_PTR) // ( addr -- c-addr )
+          DPUSHI(reinterpret_cast<Int>(&dictionary[DPOPI()]));
+        NEXT;
+
+        // ---------------------------------------------------------------------
         // Start defining a new C library that will be linked against SimForth.
         CODE(CLIB_BEGIN) // ( -- )
           if (!m_clibs.begin(STREAM))
@@ -644,7 +650,7 @@ void Interpreter::executePrimitive(Token const xt)
         NEXT;
 
         // ---------------------------------------------------------------------
-        // Reserve a bulk of memory inside the dictionary
+        // Reserve n dictionary slots (n tokens or 2n bytes).
         CODE(ALLOT) // ( n -- )
           DDEEP(1);
           dictionary.allot(DPOPi());

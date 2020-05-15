@@ -30,6 +30,9 @@
 #  include <cstddef>
 #  include <memory>
 
+using Clock = std::chrono::steady_clock;
+using TimePoint = std::chrono::time_point<Clock>;
+
 // *****************************************************************************
 //! \brief Allows to create literal values of type std::size_t In the same way
 //! than U, LL or UL macros.

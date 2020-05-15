@@ -135,10 +135,13 @@ bool Interpreter::toNumber(std::string const& word, Cell& number)
 //----------------------------------------------------------------------------
 Result Interpreter::interpret()
 {
+    using namespace std::chrono;
+
     Cell number;
     Token xt;
     bool immediate;
 
+    auto startTime = Clock::now();
     try
     {
         while (STREAM.split() || (m_interactive && (m_state == State::Compile)))
@@ -217,7 +220,12 @@ Result Interpreter::interpret()
         {
             if (m_state != State::Interprete)
                 return { false, "Unfinished state while reached EOF" };
-            return { true, "    ok" };
+
+            auto endTime = Clock::now();
+            auto duration = duration_cast<milliseconds>(endTime - startTime).count();
+            if (m_interactive)
+                return { true, "    ok" };
+            return { true, "    ok (" + std::to_string(duration) + " ms)" };
         }
         return { false, STREAM.error() };
     }
@@ -580,6 +588,7 @@ void Interpreter::popStream()
 void Interpreter::included() // TODO: to be cleaned
 {
     Result result = interpret();
+
     if (result.res) // Success
     {
         if (options.traces) // Display more debug info

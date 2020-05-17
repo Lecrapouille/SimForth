@@ -317,19 +317,25 @@ static void display(Token const *nfa, Dictionary const& dictionary,
                 // Do not apply color for smudged definition
                 if (!smudge)
                 {
-                    // Ok use shadowed variables needed for the macro.
+                    // Ok use shadowed variables are needed for *_COLOR macros.
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wshadow"
                     bool smudge = isSmudge(word);
                     bool immediate = isImmediate(word);
 #  pragma GCC diagnostic pop
-                    if (ptr != IP)
+
+                    // FIXME: Force reseting color since I dunno why underlined color
+                    // is still applied with the next style.
+                    std::cout << DEFAULT_COLOR;
+
+                    // Select underline color or no style color
+                    if (ptr == IP)
                     {
-                        SELECT_COLOR();
+                        SELECT_UNDERLINE_COLOR();
                     }
                     else
                     {
-                        SELECT_UNDERLINE_COLOR();
+                        SELECT_COLOR();
                     }
                 }
 

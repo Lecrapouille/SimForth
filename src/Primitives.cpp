@@ -1011,15 +1011,17 @@ void Interpreter::executePrimitive(Token const xt)
         // ---------------------------------------------------------------------
         // Excute the token placed on the data stack
         CODE(EXECUTE)
+        {
           DDEEP(1);
-          if (!options.traces)
-          {
-              executeToken(static_cast<Token>(DPOPI()));
-          }
+          Token xt = static_cast<Token>(DPOPI());
+          if (isPrimitive(xt))
+              executePrimitive(xt);
           else
           {
-              verboseExecuteToken(static_cast<Token>(DPOPI()));
+              RS.push(IP);
+              IP = xt;
           }
+        }
         NEXT;
 
         // ---------------------------------------------------------------------

@@ -28,6 +28,13 @@
 namespace forth
 {
 
+#define ADDRESS_SIZE                                                  \
+    int(size::token * 2u)
+
+#define DISP_TOKEN(xt)                                                     \
+    EXEC_TOKEN_COLOR << std::setfill('0') << std::setw(ADDRESS_SIZE)  \
+    << std::hex << xt << std::dec << DEFAULT_COLOR
+
 //----------------------------------------------------------------------------
 // FIXME Token = short but when doing short + short they are cast to int
 #  pragma GCC diagnostic push
@@ -506,7 +513,10 @@ void Interpreter::executePrimitive(Token const xt)
           if (options.traces)
           {
               indent();
-              std::cout << "IP jumps to " << std::hex << IP << "\n";
+              std::cout << "IP jumps to " << DISP_TOKEN(IP+1) << " word: "
+                        << (isPrimitive(dictionary[IP+1]) ? PRIMITIVE_WORD_COLOR : SECONDARY_WORD_COLOR)
+                        << dictionary.token2name(dictionary[IP+1])
+                        << DEFAULT_COLOR << "\n";
           }
         NEXT;
 
@@ -519,7 +529,10 @@ void Interpreter::executePrimitive(Token const xt)
           if (options.traces)
           {
               indent();
-              std::cout << "IP jumps to " << std::dec << IP << "\n";
+              std::cout << "IP jumps to " << DISP_TOKEN(IP+1) << " word: "
+                        << (isPrimitive(dictionary[IP+1]) ? PRIMITIVE_WORD_COLOR : SECONDARY_WORD_COLOR)
+                        << dictionary.token2name(dictionary[IP+1])
+                        << DEFAULT_COLOR << "\n";
           }
         NEXT;
 
@@ -594,8 +607,13 @@ void Interpreter::executePrimitive(Token const xt)
         CODE(FIND) // ( -- xt n )
         {
             THROW_IF_NO_NEXT_WORD();
+            if (options.traces)
+            {
+                indent();
+                std::cout << "Looking for " << STREAM.word() << std::endl;
+            }
             Token nfa;
-            int res = dictionary.find(STREAM.word(), nfa);
+            int res = dictionary.find(toUpper(STREAM.word()), nfa);
             DPUSHI(nfa);
             DPUSHI(res);
         }
@@ -781,8 +799,11 @@ void Interpreter::executePrimitive(Token const xt)
           if (options.traces)
           {
               indent();
-              std::cout << "RPOP: IP=" << std::hex << IP << " "
-                        << dictionary.token2name(dictionary[IP]) << "\n";
+              std::cout << "Pop " << RS.name() << "-Stack: IP="
+                        << DISP_TOKEN(IP) << " word: "
+                        << (isPrimitive(dictionary[IP]) ? PRIMITIVE_WORD_COLOR : SECONDARY_WORD_COLOR)
+                        << dictionary.token2name(dictionary[IP])
+                        << DEFAULT_COLOR << "\n";
           }
         NEXT;
 
@@ -894,8 +915,11 @@ void Interpreter::executePrimitive(Token const xt)
           if (options.traces)
           {
               indent();
-              std::cout << "RPOP: IP=" << std::hex << IP << " "
-                        << dictionary.token2name(dictionary[IP]) << "\n";
+              std::cout << "Pop " << RS.name() << "-Stack: IP="
+                        << DISP_TOKEN(IP) << " word: "
+                        << (isPrimitive(dictionary[IP]) ? PRIMITIVE_WORD_COLOR : SECONDARY_WORD_COLOR)
+                        << dictionary.token2name(dictionary[IP])
+                        << DEFAULT_COLOR << "\n";
           }
         NEXT;
 
@@ -988,7 +1012,14 @@ void Interpreter::executePrimitive(Token const xt)
         // Excute the token placed on the data stack
         CODE(EXECUTE)
           DDEEP(1);
-          executeToken(static_cast<Token>(DPOPI()));
+          if (!options.traces)
+          {
+              executeToken(static_cast<Token>(DPOPI()));
+          }
+          else
+          {
+              verboseExecuteToken(static_cast<Token>(DPOPI()));
+          }
         NEXT;
 
         // ---------------------------------------------------------------------

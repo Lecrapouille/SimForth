@@ -217,12 +217,6 @@ private:
 
     //--------------------------------------------------------------------------
     //! \brief Main algorithm executing the code of primitive or secondary word
-    //! in silent mode.
-    //--------------------------------------------------------------------------
-    void quietExecuteToken(Token const xt);
-
-    //--------------------------------------------------------------------------
-    //! \brief Main algorithm executing the code of primitive or secondary word
     //! in verbose mode.
     //--------------------------------------------------------------------------
     void verboseExecuteToken(Token const xt);

@@ -381,7 +381,7 @@ TEST(CheckInterpreter, Verbose)
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("Word \x1B[1;34m+\x1B[0;38m is a primitive"));
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("Word \x1B[1;34m-\x1B[0;38m is a primitive"));
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("Word \x1B[1;34mEXIT\x1B[0;38m is a primitive"));
-    EXPECT_THAT(buffer.str().c_str(), HasSubstr("Word \x1B[1;31mFOO\x1B[0;38m is not a primitive"));
+    EXPECT_THAT(buffer.str().c_str(), HasSubstr("Word \x1B[1;31mFOO\x1B[0;38m is a secondary word"));
 
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("Execute word :"));
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("Execute immediate word ;"));

@@ -151,7 +151,8 @@ Result Interpreter::interpret()
 
             if (options.traces)
             {
-                std::cout << "\nNext stream word is " << word << std::endl;
+                std::cout << LITERAL_COLOR << "\nNext stream word is "
+                          << word  << DEFAULT_COLOR << std::endl;
             }
             //TODO if (!State::Comment && word.size() > 32) THROW error;
             //TODO if (stream.hasErrored()) return { false, stream.error() };
@@ -171,7 +172,14 @@ Result Interpreter::interpret()
                 }
                 else if (dictionary.findWord(upper_word, xt, immediate))
                 {
-                    executeToken(xt);
+                    if (!options.traces)
+                    {
+                        executeToken(xt);
+                    }
+                    else
+                    {
+                        verboseExecuteToken(xt);
+                    }
                 }
                 else
                 {
@@ -198,7 +206,14 @@ Result Interpreter::interpret()
                     {
                         if (options.traces)
                             std::cout << "Execute immediate word " << word << "\n";
-                        executeToken(xt);
+                        if (!options.traces)
+                        {
+                            executeToken(xt);
+                        }
+                        else
+                        {
+                            verboseExecuteToken(xt);
+                        }
                     }
                     else
                     {
@@ -279,19 +294,6 @@ bool Interpreter::interactive()
 //----------------------------------------------------------------------------
 void Interpreter::executeToken(Token xt)
 {
-    if (!options.traces)
-    {
-        quietExecuteToken(xt);
-    }
-    else
-    {
-        verboseExecuteToken(xt);
-    }
-}
-
-//----------------------------------------------------------------------------
-void Interpreter::quietExecuteToken(Token xt)
-{
     IP = 65535u;
 
     do
@@ -320,8 +322,6 @@ void Interpreter::quietExecuteToken(Token xt)
         }
     }
     while (RS.depth() > 0);
-
-    CHECK_OVERFLOW(DS, xt);
 }
 
 //----------------------------------------------------------------------------
@@ -337,22 +337,12 @@ void Interpreter::indent()
 #define KEY_CONTINUE   'c'
 #define KEY_ABORT      'a'
 
-static char question()
-{
-    Int k;
+#define ADDRESS_SIZE                                                  \
+    int(size::token * 2u)
 
-    std::cout << "\n";
-    do {
-        std::cout << LITERAL_COLOR
-                << "c: Continue? s: Skip? a: Abort?"
-                << DEFAULT_COLOR << std::endl;
-        k = key(false).integer();
-        std::cout << "\n";
-    } while ((k != KEY_CONTINUE) && (k != KEY_SKIP) && (k != KEY_ABORT));
-    std::cout << "\n";
-
-    return char(k);
-}
+#define DISP_TOKEN(xt)                                                     \
+    EXEC_TOKEN_COLOR << std::setfill('0') << std::setw(ADDRESS_SIZE)  \
+    << std::hex << xt << std::dec << DEFAULT_COLOR
 
 //----------------------------------------------------------------------------
 void Interpreter::verboseExecuteToken(Token xt)
@@ -363,7 +353,7 @@ void Interpreter::verboseExecuteToken(Token xt)
 
     std::cout << "\n================================\n"
               << "Execute word " << dictionary.token2name(xt) << "   "
-              << "(xt: " << std::hex << xt << std::dec << ")\n"
+              << "(xt: " << DISP_TOKEN(xt) << ")\n"
               << "Initial Stacks:\n"
               << "  "; DS.display(std::cout, m_base);
     std::cout << "  "; AS.display(std::cout, m_base);
@@ -381,7 +371,7 @@ void Interpreter::verboseExecuteToken(Token xt)
                 indent();
                 std::cout << "Word " << SECONDARY_WORD_COLOR
                           << name << DEFAULT_COLOR
-                          << " is not a primitive:\n";
+                          << " is a secondary word:\n\n";
                 dictionary.display(&dictionary[xt], m_base, Token(dictionary[xt] + 1u));
             }
 
@@ -391,22 +381,37 @@ void Interpreter::verboseExecuteToken(Token xt)
                 if ((key_pressed == KEY_SKIP) && (IP == skip))
                     key_pressed = KEY_UNPRESSED;
 
-                std::cout << "\n";
+                // Question the user to step inside or skip the definition
                 if (key_pressed == KEY_UNPRESSED)
                 {
+                    l_key_selection:
                     std::cout << LITERAL_COLOR
-                              << "\nStep inside " << name
-                              << " or skip it for the next word: "
-                              << dictionary.token2name(dictionary[Token(IP + 1u)])
-                              << " (IP=" << std::hex << IP + 1u
-                              << std::dec << ") ?";
-
-                    key_pressed = question();
-                    if (key_pressed == KEY_SKIP)
+                              << "\nPress the desired key:\n"
+                              << "  a: Abort?\n"
+                              << "  c or CR: Continue / Step inside the definition ?\n";
+                    if (IP != 65535u)
                     {
+                        Token t = dictionary[Token(IP + 1u)];
+                        std::cout << "  s or BL: Skip definition / Halt to next word "
+                                  << (isPrimitive(t) ? PRIMITIVE_WORD_COLOR : SECONDARY_WORD_COLOR)
+                                  << dictionary.token2name(t) << DEFAULT_COLOR
+                                  << " (IP=" << DISP_TOKEN(IP+1) << ")"
+                                  << LITERAL_COLOR << " ?";
+                    }
+                    else
+                    {
+                        std::cout << "  s or BL: Skip to the end";
+                    }
+                    std::cout << DEFAULT_COLOR << std::endl << std::endl;
+                    key_pressed = char(key(false).integer());
+
+                    // Action to key pressed
+                    if ((key_pressed == KEY_SKIP) || (key_pressed == ' '))
+                    {
+                        key_pressed = KEY_SKIP;
                         skip = Token(IP + 1u);
                     }
-                    else if (key_pressed == KEY_CONTINUE)
+                    else if ((key_pressed == KEY_CONTINUE) || (key_pressed == 13))
                     {
                         key_pressed = KEY_UNPRESSED;
                     }
@@ -416,22 +421,26 @@ void Interpreter::verboseExecuteToken(Token xt)
                         abort();
                         return ;
                     }
+                    else
+                    {
+                        std::cout << "Unknown command!\n";
+                        goto l_key_selection;
+                    }
                 }
-                else
+                else // key_pressed != KEY_UNPRESSED
                 {
                     indent();
-                    std::cout << std::dec  // FIXME std::dec
-                              << "Skip secondary " << SECONDARY_WORD_COLOR
+                    std::cout << "Skip secondary " << SECONDARY_WORD_COLOR
                               << name << DEFAULT_COLOR << std::endl;
                 }
-            }
+            } // m_interactive
 
+            ++m_level;
             RS.push(IP);
             if (key_pressed != KEY_SKIP)
             {
-                indent(); std::cout << "Push IP=" << std::hex << IP
-                                    << std::dec << " in " << RS.name()
-                                    << "-Stack\n";
+                indent(); std::cout << "Push IP=" << DISP_TOKEN(IP) << " in "
+                                    << RS.name() << "-Stack:\n";
                 indent(); RS.display(std::cout, 16); std::cout << "\n";
             }
             CHECK_OVERFLOW(RS, xt);
@@ -442,34 +451,33 @@ void Interpreter::verboseExecuteToken(Token xt)
             {
                 THROW("Tried to execute a token outside the last definition");
             }
-            ++m_level;
-            //if (key_pressed != KEY_SKIP)
-            {
-                indent(); std::cout << "At IP " << std::hex << IP
-                                    << std::dec
-                                    << " current token is: "
-                                    << dictionary.token2name(xt) << "\n";
-            }
-        }
+
+            indent(); std::cout << "Next token at IP=" << DISP_TOKEN(IP)
+                                << " is " << DISP_TOKEN(xt) << "\n";
+        } // End of Secondary words management
 
         if (m_interactive)
         {
             if ((key_pressed == KEY_SKIP) && (IP == skip))
             {
-                std::cout << "End of skipping. IP="
-                          << std::hex << IP << std::dec << "\n";
+                std::cout << LITERAL_COLOR << "Done skipping!"
+                          << DEFAULT_COLOR << " IP="
+                          << DISP_TOKEN(IP) << "\n\n";
                 dictionary.display(&dictionary[IP], m_base, IP);
                 key_pressed = KEY_UNPRESSED;
             }
         }
 
-        // if (key_pressed != KEY_SKIP)
+        indent(); std::cout << "Word " << PRIMITIVE_WORD_COLOR
+                            << dictionary.token2name(xt) << DEFAULT_COLOR
+                            << " is a primitive\n";
+
+        if ((xt != Primitives::EXIT) && (key_pressed != KEY_SKIP))
         {
-            indent();
-            std::cout << std::dec // FIXME std::dec
-                      << "Word " << PRIMITIVE_WORD_COLOR
-                      << dictionary.token2name(xt) << DEFAULT_COLOR
-                      << " is a primitive";
+            indent(); std::cout << "Stacks before execution:\n";
+            indent(); std::cout << "  "; DS.display(std::cout, m_base);
+            indent(); std::cout << "  "; AS.display(std::cout, m_base);
+            indent(); std::cout << "  "; RS.display(std::cout, 16);
         }
 
         if (m_interactive)
@@ -477,23 +485,35 @@ void Interpreter::verboseExecuteToken(Token xt)
             if (key_pressed != KEY_SKIP)
             {
                 std::cout << LITERAL_COLOR
-                          << "\n\nPress any key to execute it\n"
+                          << "\nPress any key to execute it!\n\n"
                           << DEFAULT_COLOR;
                 key(false);
             }
         }
         else
         {
-            std::cout << " execute it\n";
+            std::cout << " execute it!\n";
         }
 
         executePrimitive(xt);
-        if (key_pressed != KEY_SKIP)
+
+        if (xt != Primitives::EXIT)
         {
-            std::cout << "\n"; indent(); std::cout << "Stacks:\n";
+            indent(); std::cout << "Stacks after execution:\n";
             indent(); std::cout << "  "; DS.display(std::cout, m_base);
             indent(); std::cout << "  "; AS.display(std::cout, m_base);
-            indent(); std::cout << "  "; RS.display(std::cout, 16);
+        }
+        indent(); std::cout << "  "; RS.display(std::cout, 16);
+
+        if (m_interactive)
+        {
+            if (key_pressed != KEY_SKIP)
+            {
+                std::cout << LITERAL_COLOR
+                          << "\nPress any key to continue!\n\n"
+                          << DEFAULT_COLOR;
+                key(false);
+            }
         }
 
         if (IP != 65535U)
@@ -519,10 +539,12 @@ void Interpreter::verboseExecuteToken(Token xt)
                 }
 
                 std::cout << "\nDefinition continues with IP="
-                          << std::hex << nextIP << std::dec << " "
-                          << dictionary.token2name(dictionary[nextIP]) << ":\n";
+                          << DISP_TOKEN(nextIP) << " with word "
+                          << (isPrimitive(dictionary[nextIP]) ?
+                              PRIMITIVE_WORD_COLOR : SECONDARY_WORD_COLOR)
+                          << dictionary.token2name(dictionary[nextIP])
+                          << DEFAULT_COLOR << "\n\n";
                 dictionary.display(&dictionary[nextIP], m_base, nextIP);
-                std::cout << "\n";
             }
         }
 
@@ -547,8 +569,6 @@ void Interpreter::verboseExecuteToken(Token xt)
     std::cout << "  "; DS.display(std::cout, m_base);
     std::cout << "  "; AS.display(std::cout, m_base);
     std::cout << "  "; RS.display(std::cout, 16);
-
-    CHECK_OVERFLOW(DS, xt);
 }
 
 //----------------------------------------------------------------------------

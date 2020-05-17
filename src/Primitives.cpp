@@ -950,13 +950,21 @@ void Interpreter::executePrimitive(Token const xt)
         CODE(TICK)
           {
               THROW_IF_NO_NEXT_WORD();
+              if (options.traces)
+              {
+                  indent();
+                  std::cout << "Tick " << STREAM.word() << std::endl;
+              }
               std::string const word = toUpper(STREAM.word());
               Token token;
               bool immediate;
               if (!dictionary.findWord(word, token, immediate))
               {
-                  token = 0;
                   THROW("Unkown word " + word);
+              }
+              if (immediate)
+              {
+                  THROW("Tick compile-only word " + word + " is forbidden!");
               }
               DPUSHI(token);
           }

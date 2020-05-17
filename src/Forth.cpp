@@ -204,7 +204,7 @@ bool Forth::boot()
     primitive(DOES, "DOES>");
     primitive(IMMEDIATE, "IMMEDIATE");
     primitive(HIDE, "HIDE");
-    immediate(TICK, "'");
+    primitive(TICK, "'");
     primitive(COMPILE, "COMPILE");
     immediate(ICOMPILE, "[COMPILE]");
     immediate(POSTPONE, "POSTPONE");

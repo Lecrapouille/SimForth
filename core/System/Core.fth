@@ -59,7 +59,7 @@
 
 \ Compile time tick
 : [']   ( <name> -- xt )
-  ?COMP ' POSTPONE LITERAL
+   ?COMP ' POSTPONE LITERAL
 ; IMMEDIATE
 
 \ Terminal style enums

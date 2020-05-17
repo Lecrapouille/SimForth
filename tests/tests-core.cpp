@@ -143,6 +143,15 @@ TEST(CheckForth, CheckExec)
     ASSERT_EQ(forth.interpretString("' FOO EXECUTE"), true);
     ASSERT_EQ(forth.dataStack().depth(), 1);
     ASSERT_EQ(forth.dataStack().pick(0).integer(), 42);
+
+    // Check cannot tick compile-only word
+    ASSERT_EQ(forth.interpretString(": FOO ' + ; IMMEDIATE"), true);
+    std::stringstream buffer;
+    std::streambuf* old = std::cerr.rdbuf(buffer.rdbuf());
+    ASSERT_EQ(forth.interpretString(": BAR FOO ;"), false);
+    std::cerr.rdbuf(old);
+    EXPECT_THAT(buffer.str().c_str(), HasSubstr("[ERROR]"));
+    EXPECT_THAT(buffer.str().c_str(), HasSubstr("ick compile-only word ; is forbidden"));
 }
 
 // Execute plenty of words that at final cancel each others
@@ -558,6 +567,35 @@ TEST(CheckForth, DetectUnsecureCode)
     std::cerr.rdbuf(old);
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("ERROR"));
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("ried to execute a token outside the last definition"));
+}
+
+//
+TEST(CheckForth, ImmediateCompile)
+{
+    Forth forth;
+    QUIET(forth.interpreter);
+    ASSERT_EQ(forth.boot(), true);
+
+    ASSERT_EQ(forth.interpretString(
+                  "variable meal\n"
+                  ": 7am CR .\" BREAKFAST\" ;\n"
+                  ": 12pm CR .\" LUNCH\" ;\n"
+                  ": 6pm CR .\" SUPPER\" ;\n"
+                  ": MORNING ['] 7am meal ! ;\n"
+                  ": NOON ['] 12pm meal ! ;\n"
+                  ": NIGHT ['] 6pm meal ! ;\n"
+                  ": SERVE MEAL @ EXECUTE ;\n"), true);
+
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+    ASSERT_EQ(forth.interpretString(
+                  "MORNING SERVE\n"
+                  "NOON SERVE\n"
+                  "NIGHT SERVE\n"), true);
+    std::cout.rdbuf(old);
+    EXPECT_THAT(buffer.str().c_str(), HasSubstr("BREAKFAST"));
+    EXPECT_THAT(buffer.str().c_str(), HasSubstr("LUNCH"));
+    EXPECT_THAT(buffer.str().c_str(), HasSubstr("SUPPER"));
 }
 
 // TODO 0 0 !

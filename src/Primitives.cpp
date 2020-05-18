@@ -1108,6 +1108,38 @@ void Interpreter::executePrimitive(Token const xt)
 
         // ---------------------------------------------------------------------
         //
+        CODE(EQ_ZERO)
+          DDEEP(1);
+          TOSi = DTOS().integer();
+          DTOS() = Cell::integer((TOSi == 0) ? -1 : 0);
+        NEXT;
+
+        // ---------------------------------------------------------------------
+        //
+        CODE(NE_ZERO)
+          DDEEP(1);
+          TOSi = DTOS().integer();
+          DTOS() = Cell::integer((TOSi != 0) ? -1 : 0);
+        NEXT;
+
+        // ---------------------------------------------------------------------
+        //
+        CODE(GREATER_ZERO)
+          DDEEP(1);
+          TOSi = DTOS().integer();
+          DTOS() = Cell::integer((TOSi > 0) ? -1 : 0);
+        NEXT;
+
+        // ---------------------------------------------------------------------
+        //
+        CODE(LOWER_ZERO)
+          DDEEP(1);
+          TOSi = DTOS().integer();
+          DTOS() = Cell::integer((TOSi < 0) ? -1 : 0);
+        NEXT;
+
+        // ---------------------------------------------------------------------
+        //
         CODE(FLOOR)
           DDEEP(1);
           DPUSHR(::floor(DPOPR()));

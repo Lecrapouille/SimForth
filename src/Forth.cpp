@@ -250,7 +250,13 @@ bool Forth::boot()
     // TODO DUP>R 2DUP>R et RDROP et 2RDROP
     primitive(PLOOP, "(LOOP?)");
 
-    // FLOATing operations
+    // Zeros
+    primitive(EQ_ZERO, "0=");
+    primitive(NE_ZERO, "0<>");
+    primitive(GREATER_ZERO, "0>");
+    primitive(LOWER_ZERO, "0<");
+
+    // Floating operations
     primitive(FLOOR, "FLOOR");
     primitive(ROUND, "ROUND");
     primitive(CEIL, "CEIL");

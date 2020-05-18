@@ -87,6 +87,9 @@ namespace forth
        // Floating point operations
        FLOOR, ROUND, CEIL, SQRT, EXP, LN, LOG, ASIN, ACOS, ATAN, SIN, COS, TAN,
 
+       // Zero
+       EQ_ZERO, NE_ZERO, GREATER_ZERO, LOWER_ZERO,
+
        // Data stack manipulation
        TO_INT, TO_FLOAT,
        DEPTH, PLUS_ONE, MINUS_ONE, LSHIFT, RSHIFT, XOR, OR, AND, ADD, MINUS,

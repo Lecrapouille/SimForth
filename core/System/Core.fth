@@ -324,16 +324,16 @@
 : ONE     1 ;
 
 \ flag is true if and only if n is equal to zero.
-: 0=    ( n -- flag )   ZERO == ;
+: ZERO=    ( n -- flag )   ZERO == ;
 
 \ flag is true if and only if n is not equal to zero.
-: 0<>   ( n -- flag )   ZERO <> ;
+: ZERO<>   ( n -- flag )   ZERO <> ;
 
 \ flag is true if and only if n is greater than zero.
-: 0>    ( n -- flag )   ZERO > ;
+: ZERO>    ( n -- flag )   ZERO > ;
 
 \ flag is true if and only if n is less than zero.
-: 0<    ( n -- flag )   ZERO < ;
+: ZERO<    ( n -- flag )   ZERO < ;
 
 \ logical negation
 : NOT   ( n -- !n )   ZERO == ;

@@ -261,6 +261,86 @@ TEST(CheckForth, Variables)
     ASSERT_EQ(forth.dataStack().pop().integer(), -42);
 }
 
+// Check Values
+TEST(CheckForth, Values)
+{
+    Forth forth;
+    QUIET(forth.interpreter);
+    ASSERT_EQ(forth.boot(), true);
+
+    ASSERT_EQ(forth.interpretString("-20 VALUE TOTO"), true);
+    ASSERT_EQ(forth.dataStack().depth(), 0);
+
+    ASSERT_EQ(forth.interpretString("TOTO"), true);
+    ASSERT_EQ(forth.dataStack().depth(), 1);
+    ASSERT_EQ(forth.dataStack().pop().integer(), -20);
+
+    ASSERT_EQ(forth.interpretString("30 TO TOTO"), true);
+    ASSERT_EQ(forth.dataStack().depth(), 0);
+
+    ASSERT_EQ(forth.interpretString("TOTO"), true);
+    ASSERT_EQ(forth.dataStack().depth(), 1);
+    ASSERT_EQ(forth.dataStack().pop().integer(), 30);
+
+    ASSERT_EQ(forth.interpretString("-3.14 TO TOTO"), true);
+    ASSERT_EQ(forth.dataStack().depth(), 0);
+
+#if 0 // TODO
+    ASSERT_EQ(forth.interpretString("TOTO"), true);
+    ASSERT_EQ(forth.dataStack().depth(), 1);
+    ASSERT_EQ(forth.dataStack().pop().real(), -3.14);
+#endif
+
+    // Check correct behavior of TO when compiled
+    ASSERT_EQ(forth.interpretString("12 VALUE VAL"), true); // VAL := 12
+    ASSERT_EQ(forth.interpretString("VAL"), true);  // Check value of VAL
+    ASSERT_EQ(forth.dataStack().depth(), 1);
+    ASSERT_EQ(forth.dataStack().pop().integer(), 12);
+    ASSERT_EQ(forth.interpretString(": SET TO VAL ;"), true); // Compile TO
+    ASSERT_EQ(forth.dataStack().depth(), 0);
+    ASSERT_EQ(forth.interpretString("42 SET"), true); // VAL := 42
+    ASSERT_EQ(forth.dataStack().depth(), 0);
+    ASSERT_EQ(forth.interpretString("VAL"), true); // Check value of VAL
+    ASSERT_EQ(forth.dataStack().depth(), 1);
+    ASSERT_EQ(forth.dataStack().pop().integer(), 42);
+}
+
+// Check Defer
+TEST(CheckForth, Defer)
+{
+    Forth forth;
+    QUIET(forth.interpreter);
+    ASSERT_EQ(forth.boot(), true);
+
+    // Interpretation mode
+    ASSERT_EQ(forth.interpretString("DEFER xt"), true);
+    ASSERT_EQ(forth.dataStack().depth(), 0);
+
+#if 0 // TODO
+    std::stringstream buffer;
+    std::streambuf* old = std::cerr.rdbuf(buffer.rdbuf());
+    ASSERT_EQ(forth.interpretString("xt"), false);
+    std::cerr.rdbuf(old);
+    EXPECT_THAT(buffer.str().c_str(), HasSubstr("[ERROR]"));
+    EXPECT_THAT(buffer.str().c_str(), HasSubstr("deferred word execute is uninitialized"));
+#endif
+
+    ASSERT_EQ(forth.interpretString("' + IS xt"), true);
+    ASSERT_EQ(forth.dataStack().depth(), 0);
+    ASSERT_EQ(forth.interpretString("4 5 xt"), true);
+    ASSERT_EQ(forth.dataStack().depth(), 1);
+    ASSERT_EQ(forth.dataStack().pop().integer(), 9);
+
+    // Compilation mode
+    ASSERT_EQ(forth.interpretString(": SET IS xt ;"), true);
+    ASSERT_EQ(forth.dataStack().depth(), 0);
+    ASSERT_EQ(forth.interpretString("' + SET"), true);
+    ASSERT_EQ(forth.dataStack().depth(), 0);
+    ASSERT_EQ(forth.interpretString("4 5 xt"), true);
+    ASSERT_EQ(forth.dataStack().depth(), 1);
+    ASSERT_EQ(forth.dataStack().pop().integer(), 9);
+}
+
 // Check includes
 TEST(CheckForth, Includes)
 {

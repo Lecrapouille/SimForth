@@ -195,7 +195,7 @@ bool Forth::boot()
     hidden(PSLITERAL, "(STRING)");
     hidden(PFLITERAL, "(FLOAT)");
     hidden(PILITERAL, "(INTEGER)");
-    hidden(PLITERAL, "(TOKEN)");
+    primitive(PLITERAL, "(TOKEN)");
     immediate(LITERAL, "LITERAL");
     hidden(PCREATE, "(CREATE)");
     primitive(CREATE, "CREATE");

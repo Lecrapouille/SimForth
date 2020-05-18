@@ -410,22 +410,41 @@
 \ -------------------------------------------------------------
 
 \ Variable:
-\   VARIABLE foo              \ Create a variable uninitialized
-\   12 foo !                           \ Affect it the value 12
-\   foo ?                                   \ Show the value 12
+\   VARIABLE foo               \ Create a variable with value 0
+\   12 foo !                              \ Affect the value 12
+\   foo @                                    \ Return its value
+\   foo ?                                      \ Show its value
 : VARIABLE CREATE CELL ALLOT ;
 
-\ Value: shorter code for creating + initializing a variable
-\   12 VALUE foo
-\   foo ?
-: VALUE    CREATE HERE ! CELL ALLOT ;
+\ Value is a variable with the syntax for constants. The code
+\ is shorter:
+\   12 VALUE foo             \ Create a value with the value 12
+\   foo .                                      \ Show its value
+\   42 TO foo                             \ Affect the value 42
+: VALUE      <BUILDS HERE ! CELL ALLOT DOES> CELL@ ;
+: FVALUE      <BUILDS HERE ! CELL ALLOT DOES> FLOAT@ ; \ FIXME
+
+\ In compilation mode creates a pointer to the value instead of
+\ searching the value which is more time consuming.
+: TO
+   FIND 0= IF ABORT" Unknown word" ENDIF \ From next word in TIB
+   >CFA 4 TOKENS +                          \ ... get its CFA+4
+   STATE IF                                  \ Compilation mode
+      ['] (TOKEN) TOKEN,                        \ Compile (TOKEN)
+      TOKEN,                 \ Compile the address of the value
+      ['] CELL! TOKEN,                                \ Compile !
+   ELSE
+      CELL!		               \ Update it straightaway
+   THEN
+; IMMEDIATE
 
 \ Constant:
 \   12 CONSTANT foo
 \   foo .
 : CONSTANT   <BUILDS CELL ALLOT DOES> CELL@ ;
+: FCONSTANT   <BUILDS CELL ALLOT DOES> FLOAT@ ; \ FIXME
 
-\ TODO http://amforth.sourceforge.net/TG/recipes/Builds.html
+\ http://amforth.sourceforge.net/TG/recipes/Builds.html
 \ <BUILDS is the older sibling of create. Unlike create it does
 \ not add an execution token. Thus the word list entry created
 \ is unfinished and calling it will crash the system.
@@ -435,7 +454,25 @@
 : ?  ( addr -- )     CELL@ . ;
 
 \ Fetches the float at an address and prints it.
-: F?  ( addr -- )   FLOAT@ . ;
+: F?  ( addr -- )   FLOAT@ . ; \ FIXME
+
+\ -------------------------------------------------------------
+\ Defer is a value but holding an execution token
+\ DEFER xt
+\ ' + IS xt
+\ -------------------------------------------------------------
+: DEFER    <BUILDS TOKEN ALLOT DOES> TOKEN@ EXECUTE ;
+: IS
+   FIND 0= IF ABORT" Unknown word" ENDIF \ From next word in TIB
+   >CFA 4 TOKENS +                          \ ... get its CFA+4
+   STATE IF                                  \ Compilation mode
+      ['] (TOKEN) TOKEN,                        \ Compile (TOKEN)
+      TOKEN,                 \ Compile the address of the value
+      ['] TOKEN! TOKEN,                               \ Compile !
+   ELSE
+      TOKEN!		               \ Update it straightaway
+   THEN
+; IMMEDIATE
 
 \ -------------------------------------------------------------
 \ Array
@@ -525,3 +562,5 @@ HIDE MAKE.INSTANCE
 \ -------------------------------------------------------------
 
 HIDE >MARK
+HIDE (TOKEN)
+HIDE (LOOP?)

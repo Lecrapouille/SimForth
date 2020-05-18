@@ -480,7 +480,7 @@
 \ Store value 42 at index 5: 42 6 table !
 \ Read the value of the index 5: 6 table @
 \ -------------------------------------------------------------
-: CHEK-INDEX ( val index array -- )
+: CHECK.INDEX ( val index array -- )
    DUP >R                         \ Backup the array address
    @ OVER <= IF ABORT" Index out of range" ENDIF
    DUP 0< IF ABORT" Negative index!" ENDIF
@@ -494,11 +494,11 @@
       DUP TOKEN,                  \ Store the size of the array
       CELLS ALLOT          \ Create the N elements of the array
    DOES> ( val index array -- val array+index )
-      CHEK-INDEX
+      CHECK.INDEX
       SWAP 1+ CELLS +
 ;
 
-HIDE CHEK-INDEX
+HIDE CHECK.INDEX
 
 \ -------------------------------------------------------------
 \ Structure (TODO WIP !!!!!)

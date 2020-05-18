@@ -185,8 +185,8 @@ TEST(CheckForth, DivByZero)
     std::stringstream buffer;
     std::streambuf* old = std::cerr.rdbuf(buffer.rdbuf());
     ASSERT_EQ(forth.interpretString("1 0 /"), false);
-    EXPECT_THAT(buffer.str().c_str(), HasSubstr("[ERROR]"));
     std::cerr.rdbuf(old);
+    EXPECT_THAT(buffer.str().c_str(), HasSubstr("[ERROR]"));
 }
 
 // Check Variables

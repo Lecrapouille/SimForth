@@ -678,6 +678,44 @@ TEST(CheckForth, ImmediateCompile)
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("SUPPER"));
 }
 
+TEST(CheckForth, BinaryTree)
+{
+    Forth forth;
+    QUIET(forth.interpreter);
+    ASSERT_EQ(forth.boot(), true);
+    ASSERT_EQ(forth.interpretFile("BinaryTree.fth"), true);
+    ASSERT_EQ(forth.interpretString("7 LEAF 0      4 NODE\n"
+                                    "5 LEAF 2 NODE\n"
+                                    "8 LEAF 9 LEAF 6 NODE\n"
+                                    "0      3 NODE 1 NODE VALUE TREE\n"), true);
+
+    // FIXME remove the @ of TREE @
+
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+    ASSERT_EQ(forth.interpretString("' . TREE PREORDER"), true);
+    std::cout.rdbuf(old);
+    ASSERT_STREQ(buffer.str().c_str(), "1 2 4 7 5 3 6 8 9 ");
+
+    buffer.str(std::string());
+    old = std::cout.rdbuf(buffer.rdbuf());
+    ASSERT_EQ(forth.interpretString("' . TREE INORDER"), true);
+    ASSERT_STREQ(buffer.str().c_str(), "7 4 2 5 1 8 6 9 3 ");
+    std::cout.rdbuf(old);
+
+    buffer.str(std::string());
+    old = std::cout.rdbuf(buffer.rdbuf());
+    ASSERT_EQ(forth.interpretString("' . TREE POSTORDER"), true);
+    ASSERT_STREQ(buffer.str().c_str(), "7 4 5 2 8 9 6 3 1 ");
+    std::cout.rdbuf(old);
+
+    buffer.str(std::string());
+    old = std::cout.rdbuf(buffer.rdbuf());
+    ASSERT_EQ(forth.interpretString("TREE MAX-DEPTH ."), true);
+    ASSERT_STREQ(buffer.str().c_str(), "4 ");
+    std::cout.rdbuf(old);
+}
+
 // TODO 0 0 !
 
 // Launch self tests written in Forth

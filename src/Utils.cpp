@@ -22,6 +22,7 @@
 #include <termios.h> // used by key()
 #include <unistd.h>  // used by key()
 #include <climits>   // used by toInteger()
+#include <regex.h>
 
 namespace forth
 {
@@ -240,6 +241,44 @@ Cell key(bool const echo)
     }
 
     return Cell::integer(0);
+}
+
+//----------------------------------------------------------------------------
+int match(char *pattern, char **subject)
+{
+    int r = 1; regmatch_t pmatch;
+    regex_t re;
+
+    if (pattern && subject && *subject &&
+        (0 == ::regcomp(&re, pattern, REG_EXTENDED)))
+    {
+        r = ::regexec(&re, *subject, 1, &pmatch, 0) == 0 ?-1:0;
+        *subject += r ? pmatch.rm_so: strlen(*subject);
+    }
+    return r == 0 ? -1 : 0;
+}
+
+//----------------------------------------------------------------------------
+int split(char *pattern, char **subject)
+{
+    int r = 1; regmatch_t pmatch;
+    regex_t re;
+
+    if (pattern && subject && *subject &&
+        (0 == ::regcomp(&re, pattern, REG_EXTENDED)))
+    {
+        r = ::regexec(&re, *subject, 1, &pmatch, 0) == 0 ?-1:0;
+        if (r)
+        {
+            memset(*subject + pmatch.rm_so, 0, pmatch.rm_eo - pmatch.rm_so);
+            *subject += pmatch.rm_eo;
+        }
+        else
+        {
+            *subject += strlen(*subject);
+        }
+    }
+    return r == 0 ? -1 : 0;
 }
 
 } // namespace forth

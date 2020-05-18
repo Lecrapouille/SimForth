@@ -62,6 +62,9 @@ namespace forth
        // Interfaces with C libraries
        TO_C_PTR, CLIB_BEGIN, CLIB_END, CLIB_ADD_LIB, CLIB_C_FUN, CLIB_C_CODE, CLIB_EXEC,
 
+       //
+       FORK, SELF, SYSTEM, MATCH, SPLIT,
+
        // Branching
        INCLUDE, BRANCH, ZERO_BRANCH, QI, I, QJ, J,
 

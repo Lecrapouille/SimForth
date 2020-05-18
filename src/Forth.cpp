@@ -174,6 +174,13 @@ bool Forth::boot()
     primitive(CLIB_C_CODE, "\\C");
     hidden(CLIB_EXEC, "(EXEC-C)");
 
+    // Processus
+    primitive(FORK, "FORK");
+    primitive(SELF, "SELF");
+    primitive(SYSTEM, "SYSTEM");
+    primitive(MATCH, "MATCH");
+    primitive(SPLIT, "SPLIT");
+
     // Branching
     primitive(INCLUDE, "INCLUDE");
     primitive(BRANCH, "BRANCH");

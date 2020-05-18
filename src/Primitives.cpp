@@ -24,6 +24,10 @@
 #include "Utils.hpp"
 #include <cstring> // memmove
 #include <cmath>
+#include <cstdlib> // system
+#include <signal.h>
+#include <sys/types.h> // waitpid
+#include <sys/wait.h> // waitpid
 
 namespace forth
 {
@@ -77,6 +81,13 @@ namespace forth
 #define THROW_IF_NO_DELIMITER(delimiter)                                     \
     if (!STREAM.split(delimiter))                                            \
         THROW("Unterminated script. Missing terminaison word");
+
+//----------------------------------------------------------------------------
+void catch_fork_exit(int /*sig*/)
+{
+    while (0 < waitpid(-1, NULL, WNOHANG))
+        ;
+}
 
 //----------------------------------------------------------------------------
 void Interpreter::skipComment()
@@ -492,6 +503,81 @@ void Interpreter::executePrimitive(Token const xt)
         // Run the C function refered by TOSc
         CODE(CLIB_EXEC) // ( -- )
           m_clibs.exec(DPOPI(), DS);
+        NEXT;
+
+        // ---------------------------------------------------------------------
+        //
+        CODE(FORK)
+          signal(SIGCHLD, catch_fork_exit);
+          DPUSH(Cell::integer(fork()));
+        NEXT;
+
+        // ---------------------------------------------------------------------
+        //
+        CODE(SELF) // ( -- pid )
+          DPUSH(Cell::integer(getpid()));
+        NEXT;
+
+        // ---------------------------------------------------------------------
+        //
+        CODE(SYSTEM)
+          DDEEP(2);
+          DDROP();
+          TOSi = system(reinterpret_cast<char*>(&dictionary[DPOPI() + 1]));
+          DPUSHI(TOSi);
+        NEXT;
+
+        // ---------------------------------------------------------------------
+        //
+        CODE(MATCH) // ( subject pattern -- subject' f )
+        {
+            DDEEP(4);
+
+            DDROP();
+            char* pattern = reinterpret_cast<char*>(&dictionary[DPOPI() + 1]);
+            std::cout << "Pattern: '" << pattern << "'" << std::endl;
+
+            DDROP();
+            Token reg = DPOPI();
+            char* subject = reinterpret_cast<char*>(&dictionary[reg + 1]);
+            std::cout << "Subject: '" << subject << "'" << std::endl;
+            std::cout << "Reg: " << reg << std::endl;
+
+            TOSi = match(pattern, &subject);
+            dictionary[reg] = strlen(subject);
+            std::cout << "Res: '" << subject << "'  s:" << dictionary[reg] << std::endl;
+
+
+            DPUSHI(reg);
+            DPUSHI(dictionary[reg]);
+            DPUSHI(TOSi);
+        }
+        NEXT;
+
+        // ---------------------------------------------------------------------
+        //
+        CODE(SPLIT) // ( subject pattern -- subject' f )
+        {
+            DDEEP(4);
+
+            DDROP();
+            char* pattern = reinterpret_cast<char*>(&dictionary[DPOPI() + 1]);
+            std::cout << "Pattern: '" << pattern << "'" << std::endl;
+
+            DDROP();
+            Token reg = DPOPI();
+            char* subject = reinterpret_cast<char*>(&dictionary[reg + 1]);
+            std::cout << "Subject: '" << subject << "'" << std::endl;
+            std::cout << "Reg: " << reg << std::endl;
+
+            TOSi = split(pattern, &subject);
+            dictionary[reg] = strlen(subject);
+            std::cout << "Res: '" << subject << "'  s:" << dictionary[reg] << std::endl;
+
+            DPUSHI(reg);
+            DPUSHI(dictionary[reg]);
+            DPUSHI(TOSi);
+        }
         NEXT;
 
         // ---------------------------------------------------------------------

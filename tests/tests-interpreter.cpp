@@ -433,7 +433,7 @@ TEST(CheckInterpreter, RedefineInteger)
 
     ASSERT_EQ(forth.interpretString(": 42 66 ; 42"), true);
     ASSERT_EQ(forth.dataStack().depth(), 1);
-    ASSERT_EQ(forth.dataStack().pick(0).integer(), 42);
+    ASSERT_EQ(forth.dataStack().pick(0).integer(), 66);
 }
 
 // Huge number are converted to float

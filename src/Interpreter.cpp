@@ -159,18 +159,7 @@ Result Interpreter::interpret()
 
             if (m_state == State::Interprete)
             {
-                if (toNumber(word, number))
-                {
-                    if (options.traces)
-                    {
-                        std::cout << "\n================================\n"
-                                  << DS.name() << "-Stack push "
-                                  << ((number.isInteger()) ? "integer " : "float ")
-                                  << number << "\n";
-                    }
-                    DPUSH(number);
-                }
-                else if (dictionary.findWord(upper_word, xt, immediate))
+                if (dictionary.findWord(upper_word, xt, immediate))
                 {
                     if (!options.traces)
                     {
@@ -181,6 +170,17 @@ Result Interpreter::interpret()
                         verboseExecuteToken(xt);
                     }
                 }
+                else if (toNumber(word, number))
+                {
+                    if (options.traces)
+                    {
+                        std::cout << "\n================================\n"
+                                  << DS.name() << "-Stack push "
+                                  << ((number.isInteger()) ? "integer " : "float ")
+                                  << number << "\n";
+                    }
+                    DPUSH(number);
+                }
                 else
                 {
                     std::string msg("Unknown word '" + escapeString(word) + "'");
@@ -190,17 +190,7 @@ Result Interpreter::interpret()
             else
             {
                 assert(m_state == State::Compile);
-                if (toNumber(word, number))
-                {
-                    if (options.traces)
-                    {
-                        std::cout << "Compile "
-                                  << ((number.isInteger()) ? "integer " : "float ")
-                                  << number << "\n";
-                    }
-                    dictionary.compile(number);
-                }
-                else if (dictionary.findWord(upper_word, xt, immediate))
+                if (dictionary.findWord(upper_word, xt, immediate))
                 {
                     if (immediate)
                     {
@@ -221,6 +211,16 @@ Result Interpreter::interpret()
                             std::cout << "Compile word " << word << "\n";
                         dictionary.append(xt);
                     }
+                }
+                else if (toNumber(word, number))
+                {
+                    if (options.traces)
+                    {
+                        std::cout << "Compile "
+                                  << ((number.isInteger()) ? "integer " : "float ")
+                                  << number << "\n";
+                    }
+                    dictionary.compile(number);
                 }
                 else
                 {

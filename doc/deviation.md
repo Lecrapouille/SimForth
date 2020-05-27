@@ -69,13 +69,6 @@ to integer you will have to use words `>INT` and `>FLOAT`.
 64-bits allows to hold pointers to C functions that may be used when interfacing
 external C functions in SimForth.
 
-### Numbers are not words
-
-In ANSI forth you can replace a number by a word. This is not possible in
-SimForth for security reasons.  Look: `: 42 66 ; 42` in ANSI-Forth will produce
-`66` while in SimForth will still produce `42` because numbers are checked
-before words. Note: no warnings are produced in SimForth for the moment.
-
 ### No User Variables
 
 In the goal to reduce crash, no `user variables` are used but directly C++ class

@@ -26,7 +26,7 @@
 
 // Set interpreter quiet
 #  define QUIET(interpreter) \
-     Options opt; \
+     forth::Options opt; \
      opt.show_stack = false; \
      opt.quiet = true; \
      interpreter.setOptions(opt);

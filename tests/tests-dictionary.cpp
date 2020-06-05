@@ -26,10 +26,10 @@
 #define protected public
 #define private public
 #  include "Dictionary.hpp"
+#  include "SimForth/SimForth.hpp"
 #undef protected
 #undef private
 
-#include "SimForth/SimForth.hpp"
 #include "Interpreter.hpp"
 #include "Primitives.hpp"
 #include "Streams.hpp"

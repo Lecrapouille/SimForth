@@ -295,7 +295,7 @@ TEST(CheckInterpreter, UnknowWordInterpret)
     ASSERT_EQ(forth.interpretString("1 2 +"), false);
     std::cerr.rdbuf(old);
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("[ERROR]"));
-    EXPECT_THAT(buffer.str().c_str(), HasSubstr("Unknown word '+'"));
+    EXPECT_THAT(buffer.str().c_str(), HasSubstr("Unknown word +"));
 }
 
 // Try to compile an undefined word
@@ -309,7 +309,7 @@ TEST(CheckInterpreter, UnknowWordCompil)
     std::streambuf* old = std::cerr.rdbuf(buffer.rdbuf());
     ASSERT_EQ(forth.interpretString(": FOO POUET ;"), false);
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("[ERROR]"));
-    EXPECT_THAT(buffer.str().c_str(), HasSubstr("Unknown word 'POUET'"));
+    EXPECT_THAT(buffer.str().c_str(), HasSubstr("Unknown word POUET"));
     std::cerr.rdbuf(old);
     ASSERT_EQ(forth.dictionary.has("FOO"), false);
 }
@@ -416,7 +416,7 @@ TEST(CheckInterpreter, DoubleEntry)
     ASSERT_EQ(forth.interpretString(": foo 55 ; foo"), true);
     std::cerr.rdbuf(old);
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("[WARNING]"));
-    EXPECT_THAT(buffer.str().c_str(), HasSubstr("Redefining 'FOO'"));
+    EXPECT_THAT(buffer.str().c_str(), HasSubstr("Redefining FOO"));
     ASSERT_EQ(forth.dataStack().depth(), 1);
     ASSERT_EQ(forth.dataStack().pick(0).integer(), 55);
 }

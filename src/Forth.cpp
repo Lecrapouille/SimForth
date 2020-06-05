@@ -50,21 +50,45 @@ Forth::Forth()
 {}
 
 //------------------------------------------------------------------------------
-bool Forth::load(char const* filename, const bool replace)
+bool Forth::loadDictionary(char const* filename, const bool replace)
 {
     return dictionary.load(filename, replace);
 }
 
 //------------------------------------------------------------------------------
-bool Forth::save(char const* filename)
+bool Forth::saveDictionary(char const* filename)
 {
     return dictionary.save(filename);
 }
 
 //------------------------------------------------------------------------------
-void Forth::showDictionary(int const base = 10) const
+void Forth::showDictionary(int const base) const
 {
     dictionary.display(base);
+}
+
+//------------------------------------------------------------------------------
+bool Forth::find(std::string const& word, Token& xt, bool& immediate) const
+{
+    return dictionary.findWord(word, xt, immediate);
+}
+
+//--------------------------------------------------------------------------
+bool Forth::has(std::string const& word) const
+{
+    return dictionary.has(word);
+}
+
+//--------------------------------------------------------------------------
+const char* Forth::autocomplete(std::string const& word, Token& start) const
+{
+    return dictionary.autocomplete(word, start);
+}
+
+//--------------------------------------------------------------------------
+int Forth::base() const
+{
+    return interpreter.base();
 }
 
 //------------------------------------------------------------------------------
@@ -77,6 +101,15 @@ bool Forth::interpretFile(char const* filepath)
 bool Forth::interpretString(char const* script)
 {
     return interpreter.interpretString(script);
+}
+
+//------------------------------------------------------------------------------
+bool Forth::debugString(char const* script)
+{
+    interpreter.interpretString("TRACES.ON");
+    bool ret = interpreter.interpretString(script);
+    interpreter.interpretString("TRACES.OFF");
+    return ret;
 }
 
 //------------------------------------------------------------------------------
@@ -107,6 +140,12 @@ Path& Forth::path()
 Path const& Forth::path() const
 {
     return interpreter.path();
+}
+
+//------------------------------------------------------------------------------
+Options& Forth::options()
+{
+    return interpreter.options;
 }
 
 //------------------------------------------------------------------------------

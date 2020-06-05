@@ -106,6 +106,9 @@
     os << (smudge ? SMUDGED_WORD_COLOR : LITERAL_COLOR)               \
     << std::setbase(base) << *ptr_int16 << ' ' << std::dec << color
 
+#define DISP_DATA(os, ptr)                                            \
+    os << LITERAL_COLOR << std::hex << *ptr << ' ' << std::dec << color
+
 #define DISP_ILITERAL(os, ptr)                                        \
     ptr_int = reinterpret_cast<Int const*>(ptr);                      \
     os << (smudge ? SMUDGED_WORD_COLOR : LITERAL_COLOR)               \
@@ -243,7 +246,7 @@ static void display(Token const *nfa, Dictionary const& dictionary,
             // are displayed in hexa.
             if (end)
             {
-                DISP_LITERAL(std::cout, ptr);
+                DISP_DATA(std::cout, ptr);
             }
             else if (sliteral) // string literal
             {

@@ -26,6 +26,7 @@
 #  include "SimForth/SimForth.hpp"
 #undef protected
 #undef private
+#  include "SimForth/Options.hpp"
 
 static forth::Token const* dico = nullptr;
 
@@ -372,12 +373,9 @@ TEST(Utils, CheckBigNumber)
 TEST(Utils, ChecktoNumberRealWord)
 {
     forth::Forth forth;
-    forth::Options opt;
-    opt.show_stack = false;
-    opt.quiet = true;
-    forth.interpreter.setOptions(opt);
-
+    QUIET(forth.interpreter);
     ASSERT_EQ(forth.boot(), true);
+
     ASSERT_EQ(forth.interpretString("-$7B"), true);
     ASSERT_EQ(forth.interpreter.DS.depth(), 1);
     ASSERT_EQ(forth.interpreter.DS.pick(0).isInteger(), true);

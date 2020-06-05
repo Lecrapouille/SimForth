@@ -39,7 +39,7 @@ namespace forth
 typedef void (*forth_c_func)(Cell**);
 
 // *****************************************************************************
-//! \brief Structure holding a pointer on C function and additional information
+//! \brief Structure holding a pointer on C function and additional informations.
 // *****************************************************************************
 struct CFunHolder
 {

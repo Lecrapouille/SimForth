@@ -120,7 +120,7 @@ TEST(CheckForth, CheckSmudge)
     ASSERT_EQ(forth.dataStack().depth(), 1);
     ASSERT_EQ(forth.dataStack().pick(0).integer(), 55);
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("[WARNING]"));
-    EXPECT_THAT(buffer.str().c_str(), HasSubstr("Redefining 'FOO'"));
+    EXPECT_THAT(buffer.str().c_str(), HasSubstr("Redefining FOO"));
 
     // Smudge the second definition. Check the first definition is executed
     ASSERT_EQ(forth.interpretString("DROP HIDE FOO  FOO"), true);
@@ -386,7 +386,7 @@ TEST(CheckForth, Immediate)
     ASSERT_EQ(forth.interpretString("POUET"), false);
     std::cerr.rdbuf(old);
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("[ERROR]"));
-    EXPECT_THAT(buffer.str().c_str(), HasSubstr("Unknown word 'POUET'"));
+    EXPECT_THAT(buffer.str().c_str(), HasSubstr("Unknown word POUET"));
     ASSERT_EQ(forth.dictionary.has("FOO"), true);
     ASSERT_EQ(here, forth.dictionary.here());
     ASSERT_EQ(last, forth.dictionary.last());
@@ -398,7 +398,7 @@ TEST(CheckForth, Immediate)
     ASSERT_EQ(forth.dataStack().depth(), 1);
     ASSERT_EQ(forth.dataStack().pop().integer(), 84);
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("[WARNING]"));
-    EXPECT_THAT(buffer.str().c_str(), HasSubstr("Redefining 'FOO'"));
+    EXPECT_THAT(buffer.str().c_str(), HasSubstr("Redefining FOO"));
     ASSERT_EQ(forth.dictionary.has("BAR"), true);
 
     //

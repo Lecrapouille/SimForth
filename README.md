@@ -39,7 +39,7 @@ present in this repo.
 
 ## Installation
 
-See file [doc/install.md](doc/install.md)
+See [here](doc/install.md) for downloading code source, compiling them and installing binaries.
 
 ## Features
 

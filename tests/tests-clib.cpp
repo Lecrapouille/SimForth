@@ -262,7 +262,7 @@ END-C-LIB)FORTH";
     std::cerr.rdbuf(old);
     ASSERT_EQ(forth.dataStack().depth(), 0);
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("[ERROR]"));
-    EXPECT_THAT(buffer.str().c_str(), HasSubstr("Unknown word 'BAD'"));
+    EXPECT_THAT(buffer.str().c_str(), HasSubstr("Unknown word BAD"));
 }
 
 // Try to compile a C code but look for the wrong symbol
@@ -298,5 +298,5 @@ END-C-LIB)FORTH";
     std::cerr.rdbuf(old);
     ASSERT_EQ(forth.dataStack().depth(), 0);
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("[ERROR]"));
-    EXPECT_THAT(buffer.str().c_str(), HasSubstr("Unknown word 'HELLO'"));
+    EXPECT_THAT(buffer.str().c_str(), HasSubstr("Unknown word HELLO"));
 }

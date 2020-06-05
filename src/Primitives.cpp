@@ -852,7 +852,7 @@ void Interpreter::executePrimitive(Token const xt)
                         << STREAM.name() << ':'
                         << std::to_string(p.first) << ':'
                         << std::to_string(p.second)
-                        << ": Redefining '" << m_memo.name << "'"
+                        << ": Redefining " << m_memo.name
                         << DEFAULT_COLOR << std::endl;
           }
           else if (options.traces)
@@ -1025,8 +1025,8 @@ void Interpreter::executePrimitive(Token const xt)
               if (!dictionary.smudge(STREAM.word()))
               {
                   std::cerr << FORTH_WARNING_COLOR
-                            << "[WARNING] Cannot hide unknown word '"
-                            << STREAM.word() << "'. Ignored !"
+                            << "[WARNING] Cannot hide unknown word "
+                            << STREAM.word() << " Ignored !"
                             << DEFAULT_COLOR << std::endl;
               }
           }

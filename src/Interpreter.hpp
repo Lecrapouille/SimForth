@@ -31,12 +31,13 @@ namespace forth
 {
 
 //******************************************************************************
-//! \brief Auxiliary Stack. Simply a second data satck to discharge the parameter
-// stack.
+//! \brief Auxiliary Stack: a second data stack allowing to discharge parameters
+//! of the principal data stack.
 //******************************************************************************
 class AuxiliaryStack: public Stack<Cell>
 {
 public:
+
     AuxiliaryStack()
         : Stack<Cell>("Auxiliary")
     {}
@@ -49,6 +50,7 @@ public:
 class ReturnStack: public Stack<Token>
 {
 public:
+
     ReturnStack()
         : Stack<Token>("Return")
     {}
@@ -62,6 +64,7 @@ using StreamPtr = std::unique_ptr<InputStream>;
 class StreamStack: public Stack<StreamPtr>
 {
 public:
+
     StreamStack()
         : Stack<StreamPtr>("Streams")
     {}
@@ -111,7 +114,7 @@ public:
     //! code.
     //! \param[inout] streams a stack for memorizing streams when executing the
     //! word INCLUDE (reading a new file).
-
+    //! \param[in] options TODO to be defined. Define behavior of the interperter
     //--------------------------------------------------------------------------
     Interpreter(Dictionary& dico, StreamStack& streams,
                 Options const& options = Options());
@@ -128,7 +131,7 @@ public:
     void abort();
 
     //--------------------------------------------------------------------------
-    //! \brief
+    //! \brief TODO to be defined
     //--------------------------------------------------------------------------
     void setOptions(Options const& options);
 
@@ -186,6 +189,15 @@ public:
         return m_path;
     }
 
+    //--------------------------------------------------------------------------
+    //! \brief Return the current base (decimal, hexadecimal, octal ...).
+    //! \note the Forth word BASE! changes the base.
+    //--------------------------------------------------------------------------
+    inline int base() const
+    {
+        return m_base;
+    }
+
 private:
 
     //--------------------------------------------------------------------------
@@ -235,7 +247,7 @@ private:
     //--------------------------------------------------------------------------
     //! \brief Convert a string to a cell (integer or float)
     //! \param[in] word the string to convert.
-    //! \param[ou] number the converted number. Undefined value if this method
+    //! \param[out] number the converted number. Undefined value if this method
     //! returns false.
     //! \return true if the string was a number else return false.
     //--------------------------------------------------------------------------
@@ -322,7 +334,7 @@ protected:
     //! \brief Forth dictionary holding word entried and byte code (compiled
     //! words).
     Dictionary& dictionary;
-    //! \breif the path manager for searching files in the same idea than Unix
+    //! \brief the path manager for searching files in the same idea than Unix
     //! path $PATH.
     Path m_path;
     //! \brief Current state of the interpreter.

@@ -288,7 +288,7 @@ static inline Token const* NFA2LFA(Token const* nfa)
 //------------------------------------------------------------------------------
 //! \brief From its Name Field Address get the index of its Code Field Address.
 //! \param dictionary address of the begining of the memory of the dictionary.
-//! \param irter Name Field Address of the Forth word (= &dictionary[iter]).
+//! \param iter Name Field Address of the Forth word (= &dictionary[iter]).
 //! \return the dictionnary index of the CFA of the word.
 //------------------------------------------------------------------------------
 static inline Token NFA2indexCFA(Token const* dictionary, Token const iter)
@@ -378,7 +378,7 @@ std::string escapeString(std::string const msg);
 
 // ***************************************************************************
 //! \brief Try converting a string into a integer value.
-//! \fixme To be reworked
+//! \todo To be reworked
 //! \param word (in) the number to convert.
 //! \param base (in) the current base.
 //! \param number (out) the result of the conversion if the function

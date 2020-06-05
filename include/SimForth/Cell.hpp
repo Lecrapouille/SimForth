@@ -37,25 +37,63 @@ using Real = double;
 #define INLINE __attribute__((always_inline))
 
 //******************************************************************************
-//! \brief A cell holds a numerical signed value. Forth use a stack of cells for
-//! managing function parameters. In classic Forth a cell is 2 bytes but
+//! \brief In Forth a cell holds a numerical signed value. Forth uses a stack of
+//! cells for passing parameters to words (aka functions). In classic Forth a
+//! cell size is 16 bits but in SimForth a Cell is an union between an integer
+//! and a real value. The integer is enough large to hold a C++ pointer.
 //******************************************************************************
 struct Cell // TODO routines for endian
 {
 public:
 
+    //--------------------------------------------------------------------------
+    //! \brief Static method for creating a new integer value.
+    //--------------------------------------------------------------------------
     static INLINE Cell integer(Int i) { return Cell(i); }
+
+    //--------------------------------------------------------------------------
+    //! \brief Static method for creating a new floatiing pointer value.
+    //--------------------------------------------------------------------------
     static INLINE Cell real(Real d) { return Cell(d); }
 
+    //--------------------------------------------------------------------------
+    //! \brief Constructor. Initialize integer value set to 0.
+    //--------------------------------------------------------------------------
     INLINE Cell()
         : i(0), tag(Cell::INTEGER)
     {}
 
+    //--------------------------------------------------------------------------
+    //! \brief Check if the cell is an integer value.
+    //--------------------------------------------------------------------------
     INLINE bool isInteger() const { return tag == Cell::INTEGER; }
+
+    //--------------------------------------------------------------------------
+    //! \brief Check if the cell is an floating point value.
+    //--------------------------------------------------------------------------
     INLINE bool isReal() const { return tag == Cell::REAL; }
+
+    //--------------------------------------------------------------------------
+    //! \brief Return the integer value. If the cell was a floating point value
+    //! then return the nearest integer.
+    //--------------------------------------------------------------------------
     INLINE Int integer() const { return isInteger() ? i : nearest(r); }
+
+    //--------------------------------------------------------------------------
+    //! \brief Return the floating point value.
+    //--------------------------------------------------------------------------
     INLINE Real real() const { return isReal() ? r : Real(i); }
-    INLINE char byte(int const i) { return b[i]; }
+
+    //--------------------------------------------------------------------------
+    //! \brief Return nth byte of the value.
+    //--------------------------------------------------------------------------
+    INLINE char byte(int const nth) { return b[nth]; }
+
+    //--------------------------------------------------------------------------
+    //! Self operators because of Forth words such as ADD will do on the data
+    //! stack: push(pop() + pop()) it will be faster to do: cell = pop(); tos()
+    //! += cell; where tos() means top of stack.
+    //--------------------------------------------------------------------------
 
     Cell& operator+=(Cell const& n2) { doOp(n2, Plus()); return *this; }
     Cell& operator-=(Cell const& n2) { doOp(n2, Minus()); return *this; }
@@ -75,13 +113,23 @@ public:
 
 private:
 
+    //--------------------------------------------------------------------------
+    //! \brief Private constructor. Use insteal integer(Int).
+    //--------------------------------------------------------------------------
     INLINE explicit Cell(Int i_)
         : i(i_), tag(Cell::INTEGER)
     {}
 
+    //--------------------------------------------------------------------------
+    //! \brief Private constructor. Use insteal real(r).
+    //--------------------------------------------------------------------------
     INLINE explicit Cell(Real r_)
         : r(r_), tag(Cell::REAL)
     {}
+
+    //--------------------------------------------------------------------------
+    // Template helper
+    //--------------------------------------------------------------------------
 
     struct Plus { template<typename T> T exec(T const& a, T const& b) { return a + b; } };
     struct Minus { template<typename T> T exec(T const& a, T const& b) { return a - b; } };
@@ -97,6 +145,7 @@ private:
     struct Eq
     {
         bool exec(Int const& a, Int const& b) const { return a == b; }
+        // FIXME Use ULPS for real
         bool exec(Real const& a, Real const& b) const { return fabs(a - b) < 0.00001; }
     };
     struct Ne
@@ -105,6 +154,9 @@ private:
         bool exec(Real const& a, Real const& b) const { return fabs(a - b) >= 0.00001; }
     };
 
+    //--------------------------------------------------------------------------
+    //! \brief Convert a floatting point value to the nearest integer value.
+    //--------------------------------------------------------------------------
     template<typename R>
     INLINE Int nearest(R const r) const
     {
@@ -146,6 +198,9 @@ private:
         return op.exec(real(), n2.real());
     }
 
+    //--------------------------------------------------------------------------
+    //! \brief Print a cell.
+    //--------------------------------------------------------------------------
     friend std::ostream& operator<<(std::ostream& os, const Cell& c)
     {
         if (c.isInteger())
@@ -168,8 +223,10 @@ private:
 namespace size
 {
 
+//--------------------------------------------------------------------------
 //! \brief Number of bytes needed for encoding a Forth Cell inside the
 //! dictionary. Note we do not take into account the size of tag.
+//--------------------------------------------------------------------------
 constexpr size_t cell = sizeof(Int); // bytes
 }
 

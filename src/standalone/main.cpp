@@ -77,7 +77,6 @@ int main(int argc,char *argv[])
     {
         std::cerr << "Forth failed booting. Reason 'todo'" << std::endl;
     }
-//forth.load("/home/qq/MyGitHub/SimForth/dico", true);
 
     // No option
     if (1 == argc)
@@ -99,7 +98,7 @@ int main(int argc,char *argv[])
                 // Load a dictionary
             case 'a':
             case 'l':
-                if (forth.load(optarg, ('l' == opt)))
+                if (forth.loadDictionary(optarg, ('l' == opt)))
                 {
                     std::cout << "Dictionary successfully loaded from file '"
                               << optarg << "'" << std::endl;
@@ -112,7 +111,7 @@ int main(int argc,char *argv[])
 
                 // Save a dictionary
             case 's':
-                if (forth.save(optarg))
+                if (forth.saveDictionary(optarg))
                 {
                     std::cout << "Dictionary successfully dumped in file '"
                               << optarg << "'" << std::endl;

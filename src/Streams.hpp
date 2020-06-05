@@ -85,7 +85,7 @@ public:
     //--------------------------------------------------------------------------
     bool split(std::string const& delimiters);
     bool split();
-    void skip(int const nb);
+    void skip(int const offset);
 
     //--------------------------------------------------------------------------
     //! \brief Return the current position in the stram.

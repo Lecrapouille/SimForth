@@ -128,8 +128,8 @@ public:
     // -------------------------------------------------------------------------
     //! \brief Load a spreadsheet file.
     //! The file format is:
-    //!  #columns #rows
-    //!  one formula per line and per cell
+    //!  - number-of-columns number-of-rows
+    //!  - one formula per line and per cell
     // -------------------------------------------------------------------------
     bool load(std::string const& filename);
 

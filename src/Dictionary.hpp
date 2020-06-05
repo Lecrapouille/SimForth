@@ -40,14 +40,14 @@ namespace size
 
 //! \brief Minimal size needed in the dictionary for storing a word entry.  A
 //! Forth entry holds information on the stored word (flags, name, address of
-//! the previous stored word) == padding_of(<flags/length> + <CFA> + <LFA>).
+//! the previous stored word) == padding_of(flags-length + CFA + LFA).
 //! \note The value does not take into account the (aligned) size of the word
 //! because of it is only possible to know it dynamically.
 constexpr size_t entry = 4_z * size::token; // bytes (FIXME or nb of tokens ?)
 
 //! \brief Dictionary max size. Tokens act as addresses and shall address the
 //! whole dictionary region. Example: 2^16 bytes if token are 16-bits.
-//! \fixme TODO Min dic size = size::entry + size::word)
+//! \todo TODO Min dic size = size::entry + size::word)
 constexpr size_t dictionary = 1_z << (8_z * size::token); // bytes
 
 //! \brief Size for the Terminal Input Buffer
@@ -121,8 +121,8 @@ public:
     //--------------------------------------------------------------------------
     //! \brief Store a token at the end of the dictionary.
     //! HERE is updated.
-    //! \fixme TODO check bounds
-    //! \param[in] xt the token to store.
+    //! \todo TODO check bounds
+    //! \param[in] token the token to store.
     //--------------------------------------------------------------------------
     void append(Token const token)
     {
@@ -131,22 +131,23 @@ public:
 
     //--------------------------------------------------------------------------
     //! \brief Compile a cell. HERE is updated.
-    //! \fixme TODO check bounds
+    //! \todo TODO check bounds
     //! \param[in] cell the cell to store.
     //--------------------------------------------------------------------------
     void compile(Cell const cell);
 
     //--------------------------------------------------------------------------
     //! \brief Append a cell in the dictionary. HERE is updated.
-    //! \fixme TODO check bounds
+    //! \todo TODO check bounds
     //! \param[in] cell the cell to store.
     //--------------------------------------------------------------------------
     void append(Cell const cell);
 
     //--------------------------------------------------------------------------
     //! \brief Append a count string in the dictionary. HERE is updated.
-    //! \fixme TODO check bounds
-    //! \param[in] cell the cell to store.
+    //! \todo TODO check bounds
+    //! \param[in] s the string to store.
+    //! \param[in] here the location in the dictionary.
     //--------------------------------------------------------------------------
     void append(std::string& s, Token& here);
 
@@ -155,7 +156,7 @@ public:
     //! \param[in] source source address inside the dictionary.
     //! \param[in] destination address inside the dictionary.
     //! \param[in] nbCells number of cells to move.
-    //! \fixme TODO check bounds
+    //! \todo TODO check bounds
     //--------------------------------------------------------------------------
     void move(Token const source, Token const destination, Token const nbCells);
 
@@ -164,7 +165,7 @@ public:
     //!
     //! \param[in] nbCells if > 0 number of cells to reserve. if < 0 number of cells
     //! to restore. Else do nothing.
-    //! \fixme TODO check bounds
+    //! \todo TODO check bounds
     //--------------------------------------------------------------------------
     void allot(int const nbCells);
 
@@ -190,10 +191,10 @@ public:
     //!
     //! Called by the Forth word ':'
     //!
-    //! \param[in] word the name of the Forth word. The maximal number of char
+    //! \param[in] name the name of the Forth word. The maximal number of char
     //! shall be respected (the number of chars shall be < size::word including
     //! '\0').
-    //! \fixme TODO check bounds
+    //! \todo TODO check bounds
     //--------------------------------------------------------------------------
     Token createEntry(std::string const& name);
 
@@ -205,8 +206,6 @@ public:
     //! \param[in] token primitive id
     //! \param[in] name Forth name (the number of chars shall be < 32 including
     //! '\0').
-    //! \param[in] length the number of chars (including '\0') in the Forth
-    //! name.
     //! \param[in] immediate set to true when the primitive shall be called
     //! during the compilation of the word.
     //! \param[in] visible set to true to make the word visible during its
@@ -269,16 +268,16 @@ public:
 
     //--------------------------------------------------------------------------
     //! \brief Pretty print the dictionary on the console.
-    //! \param base the current base (decimal, hexa ...) for displaying literals.
+    //! \param[in] base the current base (decimal, hexa ...) for displaying literals.
     //--------------------------------------------------------------------------
     void display(int const base) const;
 
     //--------------------------------------------------------------------------
     //! \brief Pretty print the word definition refered by the NFA of one of its
     //! words. The word refered by IP is displayed as underline.
-    //! \param nfa the NFA of one of its elements
-    //! \param base the current base (decimal, hexa ...) for displaying literals.
-    //! \param IP the interpreter pointer
+    //! \param[in] nfa the NFA of one of its elements
+    //! \param[in] base the current base (decimal, hexa ...) for displaying literals.
+    //! \param[in] IP the interpreter pointer
     //--------------------------------------------------------------------------
     void display(Token const *nfa, int base, Token const IP);
 
@@ -390,7 +389,9 @@ private:
     //! function fun() for each of them (with given optional parameters args).
     //! Start the iteration with iter the latest defined word.
     //!
-    //! \param[in] Fn the function to call on each forth words in the
+    //! \tparam Fn Functor.
+    //! \tparam Args extra parameters to pass to the functor.
+    //! \param[in] fun the functor to call on each forth words in the
     //!   dictionary. This function shall return false for iterating on the
     //!   next Forth word. This function shall return true to halt the iteration.
     //! \param[in] Args optional extra parameters to the function.

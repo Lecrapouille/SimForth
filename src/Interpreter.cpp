@@ -125,8 +125,8 @@ bool Interpreter::toNumber(std::string const& word, Cell& number)
                       << ":" << STREAM.cursor().second << std::endl
                       << "          ";
         }
-        std::cerr << "Limited range of integer type '"
-                  << word << "' will be convert to float value"
+        std::cerr << "Limited range of integer type "
+                  << word << " will be convert to float value"
                   << DEFAULT_COLOR << std::endl;
         return toReal(word, number);
     }
@@ -183,7 +183,7 @@ Result Interpreter::interpret()
                 }
                 else
                 {
-                    std::string msg("Unknown word '" + escapeString(word) + "'");
+                    std::string msg("Unknown word " + escapeString(word));
                     THROW(msg);
                 }
             }
@@ -224,7 +224,7 @@ Result Interpreter::interpret()
                 }
                 else
                 {
-                    std::string msg("Unknown word '" + escapeString(word) + "'");
+                    std::string msg("Unknown word " + escapeString(word));
                     THROW(msg);
                 }
             }

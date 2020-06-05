@@ -1,6 +1,6 @@
 #!/bin/bash
 
-### This script will git clone some needed libraries to the project.
+### This script will git clone some needed libraries for the project.
 
 ### $1 is given by ../Makefile and refers to the current architecture.
 if [ "$1" == "" ]; then

@@ -9,8 +9,8 @@
 |master     |[![Build Status](https://travis-ci.org/Lecrapouille/SimForth.svg?branch=master)](https://travis-ci.org/Lecrapouille/SimForth)|[![Build status](https://ci.appveyor.com/api/projects/status/github/lecrapouille/SimForth?svg=true)](https://ci.appveyor.com/project/Lecrapouille/SimForth)|
 |development|[![Build Status](https://travis-ci.org/Lecrapouille/SimForth.svg?branch=dev-refacto)](https://travis-ci.org/Lecrapouille/SimForth)||
 
-SimForth is a personal [Forth](https://www.forth.com/starting-forth/)
-interpreter originally used in my work-in-progress project named
+SimForth is a personal [Forth interpreter](https://www.forth.com/starting-forth/)
+originally used in my work-in-progress project named
 [SimTaDyn](https://github.com/Lecrapouille/SimTaDyn) which is a Geographic
 Information System (GIS) in which maps can be manipulated as a spreadsheet and
 where Forth replaces the Excel's Visual Basic, the scripting language for formulas
@@ -32,9 +32,9 @@ As a Forth beginner, SimForth has its own personal touch concerning the
 implemention of the interpreter, dictionary, input buffer, and some features have been discarded (source
 editor, user variable, vocabulary). The core of SimForth is for the moment not complete and
 some words are currently in development. As consequence, SimForth is not 100% compliant to
-ANSI-Forth 2012.
+[ANSI-Forth 2012](https://forth-standard.org/standard/words).
 
-Note that in SimTaDyn, a Forth editor made in GTKmm is present but is not yet
+Note that in SimTaDyn, a Forth editor made in GTKmm (GTK+ wrapper for C++) is present but is not yet
 present in this repo.
 
 ## Installation
@@ -47,27 +47,38 @@ I am a beginner in Forth and SimForth is, at this stage, a basic Forth
 interpreter, does not have a complete library of words and does not follow
 completely the Forth 2012 standard. See [deviations](doc/deviation.md).
 
-Implemented (see [doc](doc/standalone.md) for more information):
-- Standalone Forth.
-- Basic GTK+ spreadsheet standalone calling SimForth.
+Implemented:
+- Standalone Forth. See [here](src/standalone/).
+- Basic GTK+ spreadsheet standalone using SimForth instead of Visual Basic. See [here](src/spreadsheet/).
 - Shared library for your C++ project desiring to embed a Forth interpreter.
 - Interactive mode, interpret files and C++ strings.
 - Auto-completion of words in the interactive mode.
 - History of commands in the interactive mode.
-- Minimal Forth system (CREATE, <BUILDS, DOES>, INCLUDE, .", ABORT ...).
+- Minimal Forth system (IF ELSE THEN, LOOP, CREATE, <BUILDS, DOES>, INCLUDE, .", ABORT, VALUE, ARRAY ...). See [here](core/System/Core.fth).
+- [Glossary](doc/glossary.md).
+- Basic self-tests made in Forth. See [here](core/SelfTests/tests-core.fth).
+- Can execute basic Legacy OpenGL code. See [here](core/OpenGL/OpenGL.fth).
 - Data-Stack mixing integer and float values (no separated floating point stack).
 - No Return-Stack manipulation but Auxiliary-Stack manipulation).
 - Can import C code and interface C functions from external libraries.
 - Display colorful and human-friendly error messages (more than gforth).
-- Display colorful dictionary.
-- Basic colorful debugger.
+- Display colorful dictionary. See [here](img/Dictionary.png).
+- Basic colorful debugger. See [here](img/Debugger.png).
 - Save and load dump dictionary.
 - Unit tests and continuous integration scripts.
 
 To be done:
-- Missing words (in gestation): locals, structures, throw, catch, multi-tasking ...
+- Missing words (in gestation): locals, throw, catch, multi-tasking ...
+- Forth structures not compatible with C structure.
 - Little/Big endian compatibility when dictionary is saved. For the moment only
 AMD64-style architecture is managed.
+
+Known issues:
+- Disastrous dictionary byte manipulation.
+- Save/load dictionnary content having C functions loaded from sahred libraries.
+
+Work in progress:
+- See [here](https://github.com/Lecrapouille/SimForth/issues/1)
 
 ## Why SimForth?
 
@@ -77,11 +88,11 @@ AMD64-style architecture is managed.
 * Why not using Lua or Python or Julia? Because Forth has no syntax (thanks to
   the Reverse Polish notation) and therefore, a Forth script is enough
   minimalist to be embedded in cells of spreadsheets in the same way of Excels'
-  Basic. Minimalist does not mean no functionalities! Forth is coming from
-  embedded systems in 70's and used in astronomy, it has a very tiny footprint memory: up to 64
-  KiB for classic Forth and this size includes the virtual machine, holding byte
-  codes, and the interpreter. This reduced size is possible mainly because the
-  interpreter does not have to manage complex syntax. In addition, this language
+  Basic. Minimalist does not mean weak functionalities! Forth is coming from
+  embedded systems in 70's and has been used in astronomy, it has a very tiny
+  footprint memory: up to 64 KiB for classic Forth. This size includes the interpreter
+  and the virtual machine holding the byte code. This reduced size is possible mainly because the
+  interpreter does not have to manage complex language syntax. In addition, this language
   can self-evolving its syntax, living in a multi-tasking virtual machine that
   can easily be dumped in a file and shared. Lua or Python or Julia are a size
   more complex while offering a more friendly syntax and powerful libraries.

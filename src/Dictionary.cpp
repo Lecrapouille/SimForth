@@ -266,7 +266,7 @@ void Dictionary::append(Cell const cell)
 }
 
 //----------------------------------------------------------------------------
-void Dictionary::append(std::string const& s, Token& here)
+void Dictionary::append(std::string& s, Token& here)
 {
     // Store number of char of the string (aligned ?)
     m_memory[here++] = s.size();
@@ -274,6 +274,12 @@ void Dictionary::append(std::string const& s, Token& here)
     // Store characters 2 bytes by two bytes
     size_t size = NEXT_MULTIPLE_OF_2(s.size() + 1u);
     size_t tokens = size / 2u;
+
+    // Add extra '\0' chars
+    size_t padding = size - s.size();
+    while (padding--)
+        s.push_back('\0');
+
     Token* dst = m_memory + here;
     Token const* src = reinterpret_cast<Token const*>(s.data());
     while (tokens--)

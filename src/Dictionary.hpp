@@ -148,7 +148,7 @@ public:
     //! \fixme TODO check bounds
     //! \param[in] cell the cell to store.
     //--------------------------------------------------------------------------
-    void append(std::string const& s, Token& here);
+    void append(std::string& s, Token& here);
 
     //--------------------------------------------------------------------------
     //! \brief Move a bulk of data inside the dictionary.

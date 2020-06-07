@@ -881,6 +881,7 @@ void Interpreter::executePrimitive(Token const xt)
         //TODO THROW_COMPILE_ONLY();
         CODE(EXIT) // ( -- )
         CODE(RETURN) // FIXME to avoid complex logic when displaying the dictionary
+          RDEEP(1);
           IP = RPOP();
           if (options.traces)
           {

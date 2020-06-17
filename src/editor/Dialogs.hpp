@@ -25,7 +25,22 @@
 #  include "MyLogger/Logger.hpp"
 #  include "Exception/Exception.hpp"
 #  include "PathManager.hpp"
-#  include "config.hpp"
+
+namespace config
+{
+//! \brief Project compiled in release or debug mode ?
+extern const bool debug;
+//! \brief Used for logs and GUI.
+extern const std::string project_name;
+//! \brief Major version of project
+extern const uint32_t major_version;
+//! \brief Minor version of project
+extern const uint32_t minor_version;
+//! \brief Save the git SHA1
+extern const std::string git_sha1;
+//! \brief Save the git branch
+extern const std::string git_branch;
+}
 
 // *****************************************************************************
 //! \brief Facade class for Gtk::AboutDialog.
@@ -36,9 +51,14 @@ public:
 
     AboutDialog()
     {
+        std::stringstream ss;
+        ss << config::major_version << '.' << config::minor_version << ' '
+           << (config::debug ? "debug" : "release")
+           << "\nGit SHA1: " << config::git_sha1
+           << "\nGit branch: " << config::git_branch;
+
         set_program_name(config::project_name);
-        set_version(std::to_string(config::major_version) + '.' +
-                    std::to_string(config::minor_version));
+        set_version(ss.str());
         set_copyright("Copyright Quentin Quadrat");
         set_comments("Basic IDE for SimForth");
         set_license_type(Gtk::LICENSE_GPL_3_0);

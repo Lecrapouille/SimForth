@@ -23,7 +23,11 @@
 #include <ctype.h>
 #include <fstream>
 #include <iostream>
-#include "config.hpp"
+
+namespace config
+{
+extern const std::string data_path;
+}
 
 // -------------------------------------------------------------------------
 CloseLabel::CloseLabel(std::string const& title)

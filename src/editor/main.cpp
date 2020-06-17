@@ -20,6 +20,7 @@
 
 #include "Application.hpp"
 #include "ForthWindow.hpp"
+#include "config.hpp"
 
 int main()
 {

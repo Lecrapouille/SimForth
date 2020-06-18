@@ -32,7 +32,7 @@ class ForthWindow : public BaseWindow
 {
 public:
 
-    ForthWindow(forth::Forth& simforth);
+    ForthWindow(std::stringstream& buffer_cout, std::stringstream& buffer_cerr, forth::Forth& simforth);
 
     //--------------------------------------------------------------------------
     //! \brief Add a GTKmm button executing a Forth script.
@@ -78,6 +78,8 @@ private:
 
 private:
 
+    std::stringstream&      m_buffer_cout;
+    std::stringstream&      m_buffer_cerr;
     //! \brief Forth interpreter
     forth::Forth&           m_forth;
     //! \brief Text editor specialized for Forth scripts

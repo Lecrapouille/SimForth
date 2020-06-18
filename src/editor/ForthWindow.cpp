@@ -21,10 +21,12 @@
 #include "ForthWindow.hpp"
 #include "Application.hpp"
 
-ForthWindow::ForthWindow(forth::Forth& simforth)
+ForthWindow::ForthWindow(std::stringstream& buffer_cout, std::stringstream& buffer_cerr, forth::Forth& simforth)
     : BaseWindow(Application::application()),
+      m_buffer_cout(buffer_cout),
+      m_buffer_cerr(buffer_cerr),
       m_forth(simforth),
-      m_forth_editor(simforth)
+      m_forth_editor(buffer_cout, buffer_cerr, simforth)
 {
     populatePopovMenu();
     populateToolBar();
@@ -119,7 +121,7 @@ void ForthWindow::onOpenFileClicked()
 void ForthWindow::onRecentFilesClicked()
 {
     // FIXME: temporary: this is not the good button
-    Application::create<ForthWindow>(m_forth);
+    Application::create<ForthWindow>(m_buffer_cout, m_buffer_cerr, m_forth);
 }
 
 //------------------------------------------------------------------

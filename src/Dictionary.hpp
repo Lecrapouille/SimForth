@@ -382,7 +382,7 @@ public:
         return m_memory[addr];
     }
 
-private:
+    //private:
 
     //--------------------------------------------------------------------------
     //! \brief Iterate on Forth words stored in the dictionary and call the

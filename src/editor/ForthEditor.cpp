@@ -145,7 +145,6 @@ void ForthDocument::onInsertText(const Gtk::TextBuffer::iterator& pos1,
     // FIXME: enlever les tags
     // New char inserted
     std::string c = text_inserted.raw();
-    std::cout << "c: '" <<  text_inserted.raw() << "'" << std::endl;
 
     if (isspace(c[0])) // Pas bon !! il faut faire une boucle text_inserted peut etre un gros morceau de code
     {
@@ -154,7 +153,6 @@ void ForthDocument::onInsertText(const Gtk::TextBuffer::iterator& pos1,
         Gtk::TextBuffer::iterator start(pos);
         skipBackwardWord(start);
         std::string partial_word = m_buffer->get_text(start, pos).raw();
-        std::cout << "WORD '" << partial_word << "'" << std::endl;
 
         // TODO: not in a comment
         {
@@ -162,17 +160,17 @@ void ForthDocument::onInsertText(const Gtk::TextBuffer::iterator& pos1,
             forth::Token token;
             bool immediate;
             if (m_forth.find(partial_word, token, immediate))
-            {std::cout << "found" << std::endl;
+            {
                 if (immediate)
                 {
                     m_buffer->apply_tag(m_tag_immediate_word, start, pos);
                 }
             }
             else
-            {std::cout << "not found " << m_forth.base() << std::endl;
+            {
                 forth::Cell val;
                 if (!toInteger(partial_word, m_forth.base(), val))
-                {std::cout << "not a number" << std::endl;
+                {
                     // Check if not a definition
                     Gtk::TextBuffer::iterator p1(start);
                     skipBackwardSpaces(p1);
@@ -183,10 +181,6 @@ void ForthDocument::onInsertText(const Gtk::TextBuffer::iterator& pos1,
                     {
                         m_buffer->apply_tag(m_tag_unknown_word, start, pos);
                     }
-                }
-                else
-                {std::cout << "number" << std::endl;
-
                 }
             }
         }
@@ -202,12 +196,12 @@ void ForthDocument::onInsertText(const Gtk::TextBuffer::iterator& pos1,
 // *****************************************************************************
 //
 // *****************************************************************************
-ForthEditor::ForthEditor(forth::Forth& forth)
-    : m_forth(forth),
+ForthEditor::ForthEditor(std::stringstream& buffer_cout, std::stringstream& buffer_cerr, forth::Forth& forth)
+    : m_buffer_cout(buffer_cout),
+      m_buffer_cerr(buffer_cerr),
+      m_forth(forth),
       m_dico_inspector(forth),
-      m_stack_inspector(forth)/*,
-      m_cout(std::cout, m_results.get_buffer()),
-      m_cerr(std::cerr, m_messages.get_buffer())*/
+      m_stack_inspector(forth)
 {
     LOGI("%s", "Creating ForthEditor");
     m_hbox.pack_start(m_toolbars[FORTH_TOOLBAR_PLUGINS], Gtk::PACK_SHRINK);
@@ -224,6 +218,12 @@ ForthEditor::ForthEditor(forth::Forth& forth)
     addNoteBookPage(ForthStackTab, m_stack_inspector.widget(), "Data _Stack");
 
     populateToolBars();
+
+    // Flush the std::cout in the textview
+    Glib::RefPtr<Gtk::TextBuffer> buf = m_results.get_buffer();
+    buf->insert(buf->end(), m_buffer_cout.str());
+    buf = m_messages.get_buffer();
+    buf->insert(buf->end(), m_buffer_cerr.str());
 }
 
 void ForthEditor::populateToolBars()
@@ -495,8 +495,10 @@ bool ForthEditor::interpreteScript(std::string const& script, std::string const&
     auto t1 = Time::now();
 
     // Flush the std::cout in the textview
-    //m_cout.flush();
-    //m_cerr.flush();
+    buf = m_results.get_buffer();
+    buf->insert(buf->end(), m_buffer_cout.str());
+    buf = m_messages.get_buffer();
+    buf->insert(buf->end(), m_buffer_cerr.str());
 
     if (res)
     {

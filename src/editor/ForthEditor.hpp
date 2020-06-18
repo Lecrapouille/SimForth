@@ -24,7 +24,6 @@
 #  include "TextEditor.hpp"
 #  include "ForthInspector.hpp"
 #  include <SimForth/SimForth.hpp>
-//#  include "Redirection.hpp"
 #  include <chrono>
 
 // *****************************************************************************
@@ -90,7 +89,7 @@ public:
     //--------------------------------------------------------------------------
     //! \brief Constructor: create all GTKmm widgets.
     //--------------------------------------------------------------------------
-    ForthEditor(forth::Forth& forth);
+    ForthEditor(std::stringstream& buffer_cout, std::stringstream& buffer_cerr, forth::Forth& forth);
 
     //--------------------------------------------------------------------------
     //! \brief Destructor: Check for unsaved document when destroying the GTKmm
@@ -203,6 +202,8 @@ private:
 
 private:
 
+    std::stringstream&     m_buffer_cout;
+    std::stringstream&     m_buffer_cerr;
     forth::Forth&          m_forth;
     Gtk::VPaned            m_vpaned;
     Gtk::HBox              m_hbox;
@@ -218,8 +219,6 @@ private:
     ForthDicoInspector     m_dico_inspector;
     ForthStackInspector    m_stack_inspector;
     std::chrono::nanoseconds m_elapsed_time;
-    //streamgui m_cout; // std::cout redirected inside the GUI
-    //streamgui m_cerr; // std::cerr redirected inside the GUI
 };
 
 #endif // GTKMM_FORTH_EDITOR_HPP

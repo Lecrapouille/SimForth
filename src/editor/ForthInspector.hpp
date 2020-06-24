@@ -234,7 +234,7 @@ private:
                     ss_tokens << std::setfill('0') << std::setw(4)
                               << std::hex << xt << std::dec << ' ';
 
-                    // Concant words grouped 4-by-4
+                    // Concat words grouped 4-by-4
                     forth::Token const* word = nullptr;
                     if (!simforth.dictionary.findToken(xt, word))
                     {
@@ -246,6 +246,7 @@ private:
                         std::string name = getName(word);
                         ss_words << name << ' ';
 
+#if 0
                         if (xt == Primitives::PSLITERAL)
                         {
                             compile = (*(ptr - 1) == Primitives::COMPILE);
@@ -289,6 +290,7 @@ private:
                                 skip = 0;
                             }
                         }
+#endif
                     }
                 }
             }

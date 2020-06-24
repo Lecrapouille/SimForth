@@ -83,6 +83,9 @@ public:
     }
 };
 
+// TODO QuestionDialog Yes/No/Cancel -> 2 lambdas yes/No
+// TODO InfoDialog
+
 // *****************************************************************************
 //! \brief Facade class for informing to the user an exception has occured.
 // *****************************************************************************

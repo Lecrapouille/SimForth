@@ -119,6 +119,9 @@ protected:
     //! \brief
     Gtk::MenuButton                m_menu_button;
 
+public: //FIXME
+    Glib::RefPtr<Gio::Menu> m_menu;
+
 private:
 
     Gtk::HeaderBar  m_header_bar;

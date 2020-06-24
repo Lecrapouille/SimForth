@@ -19,245 +19,12 @@
 //==============================================================================
 
 #include "TextEditor.hpp"
-#include <gtkmm/cssprovider.h>
 #include <ctype.h>
-#include <fstream>
 #include <iostream>
 
 namespace config
 {
 extern const std::string data_path;
-}
-
-// -------------------------------------------------------------------------
-CloseLabel::CloseLabel(std::string const& title)
-    : Box(Gtk::ORIENTATION_HORIZONTAL),
-      m_label(title),
-      m_button(),
-      m_image(Gtk::Stock::CLOSE, Gtk::ICON_SIZE_MENU),
-      m_editor(nullptr),
-      m_document(nullptr),
-      m_asterisk(false)
-{
-    set_can_focus(false);
-    m_label.set_can_focus(false);
-    // m_button.set_image_from_icon_name("window-close-symbolic");
-    m_button.add(m_image);
-    m_button.set_can_focus(false);
-    m_button.set_relief(Gtk::ReliefStyle::RELIEF_NONE);
-    m_button.signal_clicked().connect(sigc::mem_fun(*this, &CloseLabel::onClicked));
-    m_button.signal_button_press_event().connect(sigc::mem_fun(*this, &CloseLabel::onButtonPressEvent));
-
-    pack_start(m_label, Gtk::PACK_SHRINK);
-    pack_end(m_button, Gtk::PACK_SHRINK);
-    show_all();
-}
-
-// -----------------------------------------------------------------------------
-void CloseLabel::asterisk(const bool asterisk)
-{
-    if (m_asterisk != asterisk)
-    {
-        m_asterisk = asterisk;
-        if (m_asterisk)
-        {
-            m_label.set_text("** " + m_title);
-        }
-        else
-        {
-            m_label.set_text(m_title);
-        }
-    }
-}
-
-// -----------------------------------------------------------------------------
-void CloseLabel::close()
-{
-    if ((nullptr == m_editor) || (nullptr == m_document))
-        return ;
-
-    if (m_asterisk)
-    {
-        int page = m_editor->page_num(*m_document);
-        Gtk::Widget *widget = m_editor->get_nth_page(page);
-        if (NULL != widget)
-        {
-            if (!m_save_callback())
-                return ;
-        }
-    }
-    m_editor->remove_page(*m_document);
-}
-
-// -----------------------------------------------------------------------------
-TextDocument::TextDocument(Glib::RefPtr<Gsv::Language> language)
-    : Gtk::ScrolledWindow(),
-      m_button(""), // FIXME a passer en param
-      m_filename("")
-{
-    Gtk::ScrolledWindow::add(m_textview);
-    Gtk::ScrolledWindow::set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
-    // Create the text buffer with syntax coloration
-    m_buffer = Gsv::Buffer::create(language);
-    m_buffer->set_highlight_syntax(true);
-    m_textview.set_source_buffer(m_buffer);
-    // Fonts size
-    m_textview.override_font(Pango::FontDescription("mono 12"));
-    // Behavior/Display of the text view
-    gtk_source_view_set_background_pattern(m_textview.gobj(), GTK_SOURCE_BACKGROUND_PATTERN_TYPE_GRID);
-    m_textview.set_show_line_numbers(true);
-    m_textview.set_show_right_margin(true);
-    m_textview.set_highlight_current_line(true);
-    m_textview.set_tab_width(1U);
-    m_textview.set_indent_width(1U);
-    m_textview.set_insert_spaces_instead_of_tabs(true);
-    m_textview.set_auto_indent(true);
-    m_buffer->signal_changed().connect(sigc::mem_fun(this, &TextDocument::onChanged));
-}
-
-// -----------------------------------------------------------------------------
-void TextDocument::clear()
-{
-    m_buffer->erase(m_buffer->begin(), m_buffer->end());
-}
-
-// -----------------------------------------------------------------------------
-// Return if the document has been changed and need to be saved
-// -----------------------------------------------------------------------------
-bool TextDocument::isModified() const
-{
-    return m_buffer->get_modified();
-}
-
-// -----------------------------------------------------------------------------
-// Slot.
-// -----------------------------------------------------------------------------
-void TextDocument::onChanged()
-{
-    // FIXM: if (!read_only)
-    m_button.asterisk(true);
-}
-
-// -----------------------------------------------------------------------------
-/*void TextDocument::cursorAt(const uint32_t line, const uint32_t index)
-  {
-  int l = std::min((int) line, m_buffer->get_line_count() - 1);
-  Gtk::TextIter iter = m_textview.get_iter_at_line_end(l);
-  index = std::min(index, iter.get_line_index());
-  m_buffer->place_cursor(m_buffer->get_iter_at_line_index(l, index));
-  }*/
-
-// -----------------------------------------------------------------------------
-// Save the document defined by the private field m_filename
-// Return a bool if the document has been correctly saved.
-// -----------------------------------------------------------------------------
-bool TextDocument::save()
-{
-    bool res = true;
-
-    if (TextDocument::isModified())
-    {
-        std::ofstream outfile;
-
-        // FIXME BUG si  m_filename == ""
-        outfile.open(m_filename, std::fstream::out);
-        if (outfile)
-        {
-            outfile << m_buffer->get_text();
-            outfile.close();
-            modified(false);
-            m_button.set_tooltip_text(m_filename);
-        }
-        else
-        {
-            std::string why = strerror(errno);
-            //LOGF("could not save the file '%s' reason was '%s'",
-            //     m_filename.c_str(), why.c_str());
-            Gtk::MessageDialog dialog((Gtk::Window&) (*m_textview.get_toplevel()),
-                                      "Could not save '" + m_filename + "'",
-                                      false, Gtk::MESSAGE_WARNING);
-            dialog.set_secondary_text("Reason was: " + why);
-            dialog.run();
-            res = false;
-        }
-    }
-    return res;
-}
-
-// -----------------------------------------------------------------------------
-// Save as. Same idea than save but use the filename given as param as new file
-// -----------------------------------------------------------------------------
-bool TextDocument::saveAs(std::string const& filename)
-{
-    std::string title = filename.substr(filename.find_last_of("/") + 1);
-    m_button.title(title);
-    m_filename = filename;
-    return TextDocument::save();
-}
-
-// -----------------------------------------------------------------------------
-bool TextDocument::close()
-{
-    bool res = true;
-
-    if (isModified())
-    {
-        res = save();
-    }
-    if (res)
-    {
-        m_button.close();
-    }
-    return res;
-}
-
-// -----------------------------------------------------------------------------
-// Open a filename and get its content. If append is false, replace the old content by the content
-// of the file. Note: we do not popup a dialog to ask if needed saving (TBD: bool save_before_otrunc)
-// -----------------------------------------------------------------------------
-bool TextDocument::load(std::string const& filename, bool clear)
-{
-    std::ifstream infile;
-    std::string line, base_name;
-
-    if (clear)
-    {
-        TextDocument::clear();
-        m_filename = filename;
-        std::string title = filename.substr(filename.find_last_of("/") + 1);
-        m_button.title(title);
-        m_button.set_tooltip_text(filename);
-    }
-
-    infile.open(filename, std::fstream::in);
-    if (!infile)
-    {
-        std::string why = strerror(errno);
-        //LOGF("could not open the file '%s' reason was '%s'",
-        //     filename.c_str(), why.c_str());
-        Gtk::MessageDialog dialog((Gtk::Window&) (*m_textview.get_toplevel()),
-                                  "Could not load '" + filename + "'",
-                                  false, Gtk::MESSAGE_WARNING);
-        dialog.set_secondary_text("Reason was: " + why);
-        dialog.run();
-        return false;
-    }
-
-    while (std::getline(infile, line))
-    {
-        line = line + '\n';
-        m_buffer->begin_not_undoable_action();
-        m_buffer->insert(m_buffer->end(), line);
-        m_buffer->end_not_undoable_action();
-    }
-    infile.close();
-
-    if (clear)
-    {
-        modified(false);
-    }
-
-    return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -267,48 +34,17 @@ TextEditor::TextEditor()
       m_gotolinewindow(nullptr),
       m_nb_nonames(0)
 {
-#if 0
-    // TODO A remplacer par populatePopoverMenu()
-
-    // Menus '_Documents'
-    {
-        m_menuitem[simtadyn::TextMenu].set_label("Text _Editor");
-        m_menuitem[simtadyn::TextMenu].set_use_underline(true);
-        m_menuitem[simtadyn::TextMenu].set_submenu(m_menu[simtadyn::TextMenu]);
-
-        //
-        m_submenu[6].set_label("Find");
-        m_image[6].set_from_icon_name("edit-find", Gtk::ICON_SIZE_MENU);
-        m_submenu[6].set_image(m_image[6]);
-        m_submenu[6].signal_activate().connect(sigc::mem_fun(*this, &TextEditor::find));
-        m_menu[simtadyn::TextMenu].append(m_submenu[6]);
-
-        //
-        m_submenu[7].set_label("Replace");
-        m_image[7].set_from_icon_name("edit-find-replace", Gtk::ICON_SIZE_MENU);
-        m_submenu[7].set_image(m_image[7]);
-        m_submenu[7].signal_activate().connect(sigc::mem_fun(*this, &TextEditor::replace));
-        m_menu[simtadyn::TextMenu].append(m_submenu[7]);
-
-        //
-        m_submenu[8].set_label("Go to Line");
-        m_image[8].set_from_icon_name("go-bottom", Gtk::ICON_SIZE_MENU);
-        m_submenu[8].set_image(m_image[8]);
-        m_submenu[8].signal_activate().connect(sigc::mem_fun(*this, &TextEditor::gotoLine));
-        m_menu[simtadyn::TextMenu].append(m_submenu[8]);
-    }
-#endif
-
     set_scrollable();
     signal_switch_page().connect(sigc::mem_fun(*this, &TextEditor::onPageSwitched));
 
-    // Default Syntax coloration is Forth
+    // FIXME Default Syntax coloration is Forth
     m_language_manager = Gsv::LanguageManager::get_default();
     m_language = m_language_manager->get_language("forth");
     if (!m_language)
     {
         std::cerr << "[WARNING] TextEditor::TextEditor: No syntax highlighted found for Forth" << std::endl;
     }
+    // FIXME to be moved
 
     // Change the look. Inspiration from juCi++ project (https://github.com/cppit/jucipp)
     auto provider = Gtk::CssProvider::create();
@@ -326,6 +62,21 @@ TextEditor::TextEditor()
 TextEditor::~TextEditor()
 {
     TextEditor::closeAll();
+}
+
+// -----------------------------------------------------------------------------
+void TextEditor::populatePopovMenu(BaseWindow& win)//Gtk::ApplicationWindow& win, Glib::RefPtr<Gio::Menu> menu)
+{
+    m_submenu_text_editor = Gio::Menu::create();
+    win.m_menu->append_submenu("Text Editor", m_submenu_text_editor);
+
+    m_submenu_text_editor->append("Find", "win.find-text");
+    m_submenu_text_editor->append("Replace", "win.replace-text");
+    m_submenu_text_editor->append("Go to line", "win.goto-line");
+
+    win.add_action("find-text", sigc::mem_fun(*this, &TextEditor::find));
+    win.add_action("replace-text", sigc::mem_fun(*this, &TextEditor::replace));
+    win.add_action("goto-line", sigc::mem_fun(*this, &TextEditor::gotoLine));
 }
 
 // -----------------------------------------------------------------------------
@@ -430,7 +181,7 @@ bool TextEditor::dialogSave(TextDocument *doc, const bool closing)
     {
         if (closing)
         {
-            doc->modified(false);
+            doc->setModified(false);
             return true;
         }
         return !doc->isModified();
@@ -450,22 +201,16 @@ bool TextEditor::saveAs(TextDocument *doc)
     dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
     dialog.add_button(Gtk::Stock::SAVE_AS, Gtk::RESPONSE_OK);
 
-    // FIXME to be moved to ForthEditor.cpp
-    // Add filters, so that only certain file types can be selected:
-    auto filter_forth = Gtk::FileFilter::create();
-    filter_forth->set_name("Forth files");
-    filter_forth->add_pattern("*.fs");
-    filter_forth->add_pattern("*.fth");
-    filter_forth->add_pattern("*.4th");
-    filter_forth->add_pattern("*.forth");
-    dialog.add_filter(filter_forth);
-    // end of FIXME
+    // Specialized files defined in derived class
+    addFileFilters(dialog);
 
+    // ASCII files
     auto filter_text = Gtk::FileFilter::create();
     filter_text->set_name("Text files");
     filter_text->add_mime_type("text/plain");
     dialog.add_filter(filter_text);
 
+    // Other files
     auto filter_any = Gtk::FileFilter::create();
     filter_any->set_name("Any files");
     filter_any->add_pattern("*");
@@ -497,20 +242,16 @@ bool TextEditor::open()
     dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
     dialog.add_button(Gtk::Stock::OPEN, Gtk::RESPONSE_OK);
 
+    // Specialized files
+    addFileFilters(dialog);
+
     // Add filters, so that only certain file types can be selected:
     auto filter_text = Gtk::FileFilter::create();
     filter_text->set_name("Text files");
     filter_text->add_mime_type("text/plain");
     dialog.add_filter(filter_text);
 
-    auto filter_forth = Gtk::FileFilter::create();
-    filter_forth->set_name("Forth files");
-    filter_forth->add_pattern("*.fs");
-    filter_forth->add_pattern("*.fth");
-    filter_forth->add_pattern("*.4th");
-    filter_forth->add_pattern("*.forth");
-    dialog.add_filter(filter_forth);
-
+    // Other files
     auto filter_any = Gtk::FileFilter::create();
     filter_any->set_name("Any files");
     filter_any->add_pattern("*");
@@ -628,7 +369,7 @@ bool TextEditor::load(std::string const& filename)
 // -----------------------------------------------------------------------------
 void TextEditor::save()
 {
-    TextDocument* doc = createDocument();
+    TextDocument* doc = document();
 
     if (nullptr != doc)
     {

@@ -22,186 +22,8 @@
 #  define GTKMM_TEXT_EDITOR_HPP
 
 #  include "TextTools.hpp"
-
-// *****************************************************************************
-//! \brief A notebook has tabs but Gtkmm does not offer tab with a closing
-//! button.  This class implement this missing feature.
-// *****************************************************************************
-class CloseLabel : public Gtk::Box
-{
-public:
-
-    // -------------------------------------------------------------------------
-    //! \brief Notebook tab with a title
-    // -------------------------------------------------------------------------
-    CloseLabel(std::string const& title);
-
-    ~CloseLabel()
-    {
-        close();
-    }
-
-    // -------------------------------------------------------------------------
-    //! \brief Bind the tab to a text document and its text editor and the
-    //! callback to call when closing an unsaved document.
-    //! \tparam F the functor/callback to call.
-    // -------------------------------------------------------------------------
-    template<typename F>
-    inline void bind(Gtk::Notebook& editor, Gtk::Widget& document, F saveFct)
-    {
-        m_editor = &editor;
-        m_document = &document;
-        //FIXME m_save_callback = saveFct;
-    }
-
-    // -------------------------------------------------------------------------
-    //! \brief Return the text of the button (here the filename of the document).
-    // -------------------------------------------------------------------------
-    inline const std::string& title() const
-    {
-        return m_title;
-    }
-
-    // -------------------------------------------------------------------------
-    //! \brief Change the text of the button.
-    // -------------------------------------------------------------------------
-    inline void title(std::string const& title)
-    {
-        m_title = title;
-        if (m_asterisk)
-        {
-            m_label.set_text("** " + m_title);
-        }
-        else
-        {
-            m_label.set_text(m_title);
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    //! \brief Add a '*' to the title to indicate the document has been modified.
-    // -------------------------------------------------------------------------
-    void asterisk(const bool asterisk);
-
-    // -------------------------------------------------------------------------
-    //! \brief Is a '*' has been tagged to the title ?
-    // -------------------------------------------------------------------------
-    inline bool asterisk() const
-    {
-        return m_asterisk;
-    }
-
-    // -------------------------------------------------------------------------
-    //! \brief Close the notebook tab. A check is made to be sure the document
-    //! will be saved.
-    // -------------------------------------------------------------------------
-    void close();
-
-protected:
-
-    // -------------------------------------------------------------------------
-    //! \brief
-    // -------------------------------------------------------------------------
-    inline void onClicked()
-    {
-        close();
-    }
-
-    // -------------------------------------------------------------------------
-    //! \brief Use the middle button to close the document
-    // -------------------------------------------------------------------------
-    bool onButtonPressEvent(GdkEventButton* event)
-    {
-        bool res = (GDK_BUTTON_MIDDLE == event->button);
-        if (res) onClicked();
-        return res;
-    }
-
-private:
-
-    Gtk::Label m_label;
-    Gtk::Button m_button;
-    Gtk::Image m_image;
-    Gtk::Notebook *m_editor;
-    Gtk::Widget *m_document;
-    bool (*m_save_callback)();
-    bool m_asterisk;
-    std::string m_title;
-};
-
-// *****************************************************************************
-//! \brief Class holding
-// TBD: undo/redo
-// *****************************************************************************
-class TextDocument : public Gtk::ScrolledWindow
-{
-    friend class TextEditor;
-
-public:
-
-    TextDocument(Glib::RefPtr<Gsv::Language> language);
-
-    // -------------------------------------------------------------------------
-    //! \brief Erase all text in the document
-    // -------------------------------------------------------------------------
-    void clear();
-    bool isModified() const;
-    void onChanged();
-    bool save();
-    bool saveAs(std::string const& filename);
-    bool load(std::string const& filename, bool clear = true);
-    void cursorAt(const uint32_t line, const uint32_t index);
-    bool close();
-
-    inline Glib::RefPtr<Gsv::Buffer> buffer()
-    {
-        return m_buffer;
-    }
-    inline void title(std::string const& text)
-    {
-        m_button.title(text);
-    }
-    inline Glib::ustring title() const
-    {
-        return m_button.title();
-    }
-    inline void filename(std::string const& filename)
-    {
-        m_filename = filename;
-    }
-    inline const std::string& filename() const
-    {
-        return m_filename;
-    }
-    inline std::string text() const
-    {
-        return m_buffer->get_text().raw();
-    }
-    inline Glib::ustring utext() const
-    {
-        return m_buffer->get_text();
-    }
-    inline void appendText(Glib::ustring const& text)
-    {
-        m_buffer->insert(m_buffer->end(), text);
-    }
-    inline void appendText(std::string const& text)
-    {
-        m_buffer->insert(m_buffer->end(), text);
-    }
-    inline void modified(const bool b)
-    {
-        m_buffer->set_modified(b);
-        m_button.asterisk(b);
-    }
-
-protected:
-
-    Gsv::View m_textview;
-    Glib::RefPtr<Gsv::Buffer> m_buffer;
-    CloseLabel m_button;
-    std::string m_filename;
-};
+#  include "TextDocument.hpp"
+#  include "BaseWindow.hpp"
 
 // *****************************************************************************
 //! \brief Minimal Text editor in the same way than Gedit. Documents are hold in
@@ -222,7 +44,10 @@ public:
     //! \brief Destructor. Ask the user if he wants to save unsaved documents
     //! before closing.
     //--------------------------------------------------------------------------
-    ~TextEditor();
+    virtual ~TextEditor();
+
+    void populatePopovMenu(BaseWindow& win);
+//Gtk::ApplicationWindow& win, Glib::RefPtr<Gio::Menu> menu);
 
     //--------------------------------------------------------------------------
     //! \brief Open a GTKmm dialog window for choosing the text file to open.
@@ -341,6 +166,13 @@ public:
 protected:
 
     //--------------------------------------------------------------------------
+    //! \brief When opening GTK dialog for loading/saving files, you can add
+    //! filters
+    //--------------------------------------------------------------------------
+    // TODO Gtk::FileFilter* addFileFilters(filter_name, file_extensions[])
+    virtual void addFileFilters(Gtk::FileChooserDialog& /*dialog*/) {}
+
+    //--------------------------------------------------------------------------
     //! \brief Create a new document (FIXME: RAII by GTKmm ?)
     //--------------------------------------------------------------------------
     inline virtual TextDocument* createDocument()
@@ -392,6 +224,7 @@ protected:
     int m_nb_nonames;
     Glib::RefPtr<Gsv::LanguageManager> m_language_manager;
     Glib::RefPtr<Gsv::Language> m_language;
+    Glib::RefPtr<Gio::Menu> m_submenu_text_editor;
 };
 
 #endif // GTKMM_TEXT_EDITOR_HPP

@@ -89,7 +89,8 @@ public:
     //--------------------------------------------------------------------------
     //! \brief Constructor: create all GTKmm widgets.
     //--------------------------------------------------------------------------
-    ForthEditor(std::stringstream& buffer_cout, std::stringstream& buffer_cerr, forth::Forth& forth);
+    ForthEditor(std::stringstream& buffer_cout, std::stringstream& buffer_cerr,
+                forth::Forth& forth);
 
     //--------------------------------------------------------------------------
     //! \brief Destructor: Check for unsaved document when destroying the GTKmm
@@ -100,7 +101,8 @@ public:
     //--------------------------------------------------------------------------
     //! \brief
     //--------------------------------------------------------------------------
-    Glib::RefPtr<Gio::Menu> populatePopovMenu(Gtk::ApplicationWindow& win);
+    //void populatePopovMenu(Glib::RefPtr<Gio::Menu> menu);
+void populatePopovMenu(BaseWindow& win);//Gtk::ApplicationWindow& win);
 
     //--------------------------------------------------------------------------
     //! \brief Return the GTKmm HBox holding all widgets needed for the Forth
@@ -170,6 +172,10 @@ public:
     //--------------------------------------------------------------------------
     void completeForthName(const bool reset_state);
 
+protected:
+
+    virtual void addFileFilters(Gtk::FileChooserDialog& dialog) override;
+
 private:
 
     //--------------------------------------------------------------------------
@@ -206,10 +212,13 @@ private:
     std::stringstream&     m_buffer_cout;
     std::stringstream&     m_buffer_cerr;
     forth::Forth&          m_forth;
+    Gtk::VPaned            m_vpaned;
     Gtk::HPaned            m_hpaned;
     Gtk::HBox              m_hbox;
     Gtk::VBox              m_vbox;
-    Gtk::Notebook          m_notebook[2];
+    Gtk::VBox              m_vbox2;
+    Gtk::HBox              m_hbox2;
+    Gtk::Notebook          m_notebook[3];
     Gtk::Toolbar           m_toolbars[2];
     Gtk::Statusbar         m_statusbar;
     Gtk::SeparatorToolItem m_separator[2];
@@ -220,6 +229,7 @@ private:
     ForthDicoInspector     m_dico_inspector;
     ForthStackInspector    m_stack_inspector;
     std::chrono::nanoseconds m_elapsed_time;
+    Glib::RefPtr<Gio::Menu> m_submenu_forth_editor;
 };
 
 #endif // GTKMM_FORTH_EDITOR_HPP

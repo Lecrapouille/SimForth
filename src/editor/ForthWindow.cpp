@@ -97,17 +97,26 @@ Gtk::ToolButton& ForthWindow::addForthButton(Gtk::BuiltinStockID const icon,
 //------------------------------------------------------------------
 void ForthWindow::populatePopovMenu()
 {
-    Glib::RefPtr<Gio::Menu> menu = m_forth_editor.populatePopovMenu(*this);
-    m_submenu_forth_plugins = Gio::Menu::create();
-    menu->append_submenu("Forth Plugins", m_submenu_forth_plugins);
+    m_menu = Gio::Menu::create();
 
-    menu->append("About", "win.about");
+    // Text Editor submenu
+    reinterpret_cast<TextEditor*>(&m_forth_editor)->populatePopovMenu(*this/*m_menu*/);
+
+    // Forth Editor submenu
+    m_forth_editor.populatePopovMenu(*this/*m_menu*/);
+
+    // Forth plugins submenu
+    m_submenu_forth_plugins = Gio::Menu::create();
+    m_menu->append_submenu("Forth Plugins", m_submenu_forth_plugins);
+    addForthActionMenu("a", "jjhj", "broken", "help"); // FIXME
+
+    // About submenu
+    m_menu->append("About", "win.about"); // TODO separator
     add_action("about", sigc::mem_fun(m_about, &AboutDialog::show));
 
-    addForthActionMenu("a", "jjhj", "broken", "help");
-
+    //
     m_menu_button.set_popover(m_menu_popov);
-    m_menu_button.set_menu_model(menu);
+    m_menu_button.set_menu_model(m_menu);
     m_menu_popov.set_size_request(-1, -1);
 }
 

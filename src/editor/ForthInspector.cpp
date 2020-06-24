@@ -19,35 +19,3 @@
 //=====================================================================
 
 #include "ForthInspector.hpp"
-#include "Primitives.hpp"
-
-static bool policy_inspect(forth::Token const *nfa,
-                           forth::Dictionary const& dictionary,
-                           ListStorePtr dicoModel,
-                           ForthDicoInspector::ModelColumns& columns,
-                           uint32_t const max_primitives)
-{
-    dicoModel->clear();
-    auto row = *(dicoModel->append());
-    row[columns.address] = nfa - dictionary();
-    row[columns.name] = forth::NFA2Name(nfa);
-    row[columns.immediate] = forth::isImmediate(nfa);
-    row[columns.smudge] = forth::isSmudge(nfa);
-    forth::Token code = *forth::NFA2CFA(nfa);
-    row[columns.token] = code;
-    if (code < max_primitives)
-    {
-        row[columns.definition] = "primitive";
-    }
-    else
-    {
-        row[columns.definition] = "todo";
-    }
-    return false;
-}
-
-void ForthDicoInspector::inspect(forth::Dictionary const& dictionary, uint32_t const max_primitives)
-{
-    forth::Token iter = dictionary.last();
-    dictionary.iterate(policy_inspect, iter, 0, dictionary, m_dico_model, m_columns, max_primitives);
-}

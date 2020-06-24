@@ -178,9 +178,10 @@ private:
     void populateToolBars();
 
     //--------------------------------------------------------------------------
-    //! \brief
+    //! \brief Add a widget in the nth page of the nth notebook.
     //--------------------------------------------------------------------------
-    void addNoteBookPage(uint32_t const nth, Gtk::Widget& widget, const char* label);
+    void addNoteBookPage(uint32_t const nth_notebook, uint32_t const nth_page,
+                         Gtk::Widget& widget, const char* label);
 
     //--------------------------------------------------------------------------
     //! \brief
@@ -205,10 +206,10 @@ private:
     std::stringstream&     m_buffer_cout;
     std::stringstream&     m_buffer_cerr;
     forth::Forth&          m_forth;
-    Gtk::VPaned            m_vpaned;
+    Gtk::HPaned            m_hpaned;
     Gtk::HBox              m_hbox;
     Gtk::VBox              m_vbox;
-    Gtk::Notebook          m_notebook;
+    Gtk::Notebook          m_notebook[2];
     Gtk::Toolbar           m_toolbars[2];
     Gtk::Statusbar         m_statusbar;
     Gtk::SeparatorToolItem m_separator[2];

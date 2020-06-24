@@ -172,6 +172,22 @@ public:
     }
 
     //--------------------------------------------------------------------------
+    //! \brief Return the const reference of the auxiliary stack.
+    //--------------------------------------------------------------------------
+    inline forth::AuxiliaryStack const& auxStack() const
+    {
+        return AS;
+    }
+
+    //--------------------------------------------------------------------------
+    //! \brief Return the const reference of the return stack.
+    //--------------------------------------------------------------------------
+    inline forth::ReturnStack const& returnStack() const
+    {
+        return RS;
+    }
+
+    //--------------------------------------------------------------------------
     //! \brief Return the path manager doing the same goal than Unix environement
     //! varaible $PATH but in this case for searching files holding Forth code.
     //--------------------------------------------------------------------------
@@ -197,6 +213,11 @@ public:
     {
         return m_base;
     }
+
+    //--------------------------------------------------------------------------
+    //! \brief Is token xt a primitive or secondary word ?
+    //--------------------------------------------------------------------------
+    bool isPrimitive(Token const xt) const;
 
 private:
 
@@ -240,9 +261,12 @@ private:
     void executeToken(Token const xt);
 
     //--------------------------------------------------------------------------
-    //! \brief Is token xt a primitive or secondary word ?
+    //! \brief Return the number of Forth primitives
     //--------------------------------------------------------------------------
-    bool isPrimitive(Token const xt);
+    //virtual Token nbPrimitives()
+    //{
+    //    return Primitives::MAX_PRIMITIVES_;
+    //}
 
     //--------------------------------------------------------------------------
     //! \brief Convert a string to a cell (integer or float)

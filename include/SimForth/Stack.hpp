@@ -96,9 +96,10 @@ public:
     INLINE T& tos() { return *(sp - 1); }
 
     //--------------------------------------------------------------------------
-    //! \brief Consum the Nth element of stack from its top
+    //! \brief Consum the Nth element of stack from its top.
+    //! 0th is the top of the stack.
     //--------------------------------------------------------------------------
-    INLINE T const& pick(int const n) const { return *(sp - n - 1); }
+    INLINE T const& pick(int const nth) const { return *(sp - nth - 1); }
 
     //--------------------------------------------------------------------------
     //! \brief Check if the stack is enough deep.
@@ -152,6 +153,20 @@ public:
         }
         os << std::dec;
         return os;
+    }
+
+    //--------------------------------------------------------------------------
+    //! \brief
+    //! Example: stack.for_each([](forth::Cell c) { std::cout << c << std::endl; });
+    //--------------------------------------------------------------------------
+    template<class Fn, typename... Args>
+    void for_each(Fn fun, Args&&... args) const
+    {
+        T* s = sp0;
+        while (s != sp)
+        {
+            fun(*s++, std::forward<Args>(args)...);
+        }
     }
 
     inline T*& top()

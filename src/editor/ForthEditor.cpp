@@ -193,31 +193,38 @@ void ForthDocument::onInsertText(const Gtk::TextBuffer::iterator& pos1,
 #define FORTH_TOOLBAR_PLUGINS 0
 #define FORTH_TOOLBAR_CMDS 1
 
+#define NTB_LEFT 0
+#define NTB_RIGHT 1
+
 // *****************************************************************************
 //
 // *****************************************************************************
 ForthEditor::ForthEditor(std::stringstream& buffer_cout, std::stringstream& buffer_cerr, forth::Forth& forth)
     : m_buffer_cout(buffer_cout),
       m_buffer_cerr(buffer_cerr),
-      m_forth(forth),
-      m_dico_inspector(forth),
-      m_stack_inspector(forth)
+      m_forth(forth)
 {
     LOGI("%s", "Creating ForthEditor");
-    m_hbox.pack_start(m_toolbars[FORTH_TOOLBAR_PLUGINS], Gtk::PACK_SHRINK);
+    // m_hbox.pack_start(m_stack_inspector.widget());//, Gtk::PACK_SHRINK);
     m_hbox.pack_start(m_vbox);
+        m_hbox.pack_start(m_toolbars[FORTH_TOOLBAR_PLUGINS], Gtk::PACK_SHRINK);
     m_vbox.pack_start(*this, Gtk::PACK_EXPAND_WIDGET);
     m_vbox.pack_start(m_toolbars[FORTH_TOOLBAR_CMDS], Gtk::PACK_SHRINK);
     m_vbox.pack_start(m_statusbar, Gtk::PACK_SHRINK);
-    m_vbox.pack_start(m_notebook, Gtk::PACK_EXPAND_WIDGET);
+    m_vbox.pack_start(m_hpaned);//, Gtk::PACK_SHRINK);
+    m_hpaned.add1(m_notebook[NTB_LEFT]);
+    m_hpaned.add2(m_notebook[NTB_RIGHT]);
 
-    addNoteBookPage(ForthResTab, m_results, "_Result");
-    addNoteBookPage(ForthHistoryTab, m_history, "H_istory");
-    addNoteBookPage(ForthMsgTab, m_messages, "_Messages");
-    addNoteBookPage(ForthDicoTab, m_dico_inspector.widget(), "_Dico");
-    addNoteBookPage(ForthStackTab, m_stack_inspector.widget(), "Data _Stack");
+    addNoteBookPage(NTB_LEFT, ForthResTab, m_results, "_Result");
+    addNoteBookPage(NTB_LEFT, ForthHistoryTab, m_history, "H_istory");
+    addNoteBookPage(NTB_LEFT, ForthMsgTab, m_messages, "_Messages");
+    addNoteBookPage(NTB_RIGHT, ForthDicoTab, m_dico_inspector.widget(), "_Dico");
+    addNoteBookPage(NTB_RIGHT, ForthStackTab, m_stack_inspector.widget(), "Data _Stack");
 
     populateToolBars();
+
+    // Show the dictionary
+    m_dico_inspector.inspect(m_forth);
 
     // Flush the std::cout in the textview
     Glib::RefPtr<Gtk::TextBuffer> buf = m_results.get_buffer();
@@ -292,12 +299,13 @@ Glib::RefPtr<Gio::Menu> ForthEditor::populatePopovMenu(Gtk::ApplicationWindow& w
     return menu;
 }
 
-void ForthEditor::addNoteBookPage(uint32_t const nth, Gtk::Widget& widget, const char* label)
+void ForthEditor::addNoteBookPage(uint32_t const nth_notebook, uint32_t const nth_page,
+                                  Gtk::Widget& widget, const char* label)
 {
-    m_scrolled[nth].add(widget);
-    m_scrolled[nth].set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
-    m_notebook.append_page(m_scrolled[nth], label, true);
-    m_notebook.set_tab_detachable(m_scrolled[nth], true);
+    m_scrolled[nth_page].add(widget);
+    m_scrolled[nth_page].set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+    m_notebook[nth_notebook].append_page(m_scrolled[nth_page], label, true);
+    m_notebook[nth_notebook].set_tab_detachable(m_scrolled[nth_page], true);
 }
 
 // *****************************************************************************
@@ -355,7 +363,7 @@ void ForthEditor::dumpDictionary()
 {
     Gtk::FileChooserDialog dialog("Choose a binary file to save Forth dictionary",
                                   Gtk::FILE_CHOOSER_ACTION_SAVE);
-    dialog.set_transient_for((Gtk::Window&) (*m_notebook.get_toplevel()));
+    dialog.set_transient_for((Gtk::Window&) (*m_notebook[NTB_RIGHT].get_toplevel()));
 
     // Set to the SimTaDyn path while no longer the GTK team strategy.
     dialog.set_current_folder(config::data_path);
@@ -390,7 +398,7 @@ void ForthEditor::loadDictionary()
 {
     Gtk::FileChooserDialog dialog("Choose a binary file to save Forth dictionary",
                                   Gtk::FILE_CHOOSER_ACTION_OPEN);
-    dialog.set_transient_for((Gtk::Window&) (*m_notebook.get_toplevel()));
+    dialog.set_transient_for((Gtk::Window&) (*m_notebook[NTB_RIGHT].get_toplevel()));
 
     // Set to the SimTaDyn path while no longer the GTK team strategy.
     dialog.set_current_folder(config::data_path);
@@ -475,6 +483,15 @@ bool ForthEditor::interpreteCurrentDocument()
         // FIXME: Clear the text editor if and only if we are in an interactive mode
         doc->clear();
     }
+    m_stack_inspector.inspect(m_forth);
+    m_dico_inspector.inspect(m_forth);
+
+    // Flush the std::cout in the textview
+    Glib::RefPtr<Gtk::TextBuffer> buf = m_results.get_buffer();
+    buf->insert(buf->end(), m_buffer_cout.str());
+    buf = m_messages.get_buffer();
+    buf->insert(buf->end(), m_buffer_cerr.str());
+
     return res;
 }
 
@@ -493,12 +510,6 @@ bool ForthEditor::interpreteScript(std::string const& script, std::string const&
     auto t0 = Time::now();
     bool res = m_forth.interpretString(script.c_str());
     auto t1 = Time::now();
-
-    // Flush the std::cout in the textview
-    buf = m_results.get_buffer();
-    buf->insert(buf->end(), m_buffer_cout.str());
-    buf = m_messages.get_buffer();
-    buf->insert(buf->end(), m_buffer_cerr.str());
 
     if (res)
     {
@@ -548,7 +559,7 @@ void ForthEditor::onForthButtonClicked(Gtk::ToolButton& button)
     TextDocument *doc = tab(name);
     if ((nullptr != doc) && (doc->isModified()))
     {
-        Gtk::MessageDialog dialog((Gtk::Window&) (*m_notebook.get_toplevel()),
+        Gtk::MessageDialog dialog((Gtk::Window&) (*m_notebook[NTB_RIGHT].get_toplevel()),
                                   "The document '" + doc->title() +
                                   "' has been modified. Do you want to save it now before running its script ?",
                                   false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO);

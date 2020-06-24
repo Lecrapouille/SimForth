@@ -25,6 +25,7 @@
 #  include <cstdint> // int32_t ...
 #  include <cstddef> // size_t
 #  include <ostream> // operator<<
+#  include <sstream> // forth::to_string()
 #  include <iomanip> // setprecision
 #  include <math.h>
 
@@ -88,6 +89,21 @@ public:
     //! \brief Return nth byte of the value.
     //--------------------------------------------------------------------------
     INLINE char byte(int const nth) { return b[nth]; }
+
+    //--------------------------------------------------------------------------
+    //! \brief Return the string of the value
+    //--------------------------------------------------------------------------
+    std::string to_string()
+    {
+        std::ostringstream ss;
+
+        if (isInteger())
+            ss << i;
+        else
+            ss << r;
+
+        return ss.str();
+    }
 
     //--------------------------------------------------------------------------
     //! Self operators because of Forth words such as ADD will do on the data

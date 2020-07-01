@@ -21,173 +21,6 @@
 #include "ForthEditor.hpp"
 #include "Utils.hpp"
 
-// *****************************************************************************
-//
-// *****************************************************************************
-ForthDocument::ForthDocument(forth::Forth& forth, Glib::RefPtr<Gsv::Language> language)
-    : TextDocument(language),
-      m_forth(forth),
-      m_tab_sm(ForthAutoCompletSMBegin)
-{
-    // Tag for Forth word not in dictionary
-    m_tag_unknown_word = m_buffer->create_tag("error");
-    m_tag_unknown_word->property_underline() = Pango::UNDERLINE_ERROR;
-    m_tag_unknown_word->property_style() = Pango::STYLE_ITALIC;
-
-    // Tag for immediate Forth words
-    m_tag_immediate_word = m_buffer->create_tag("immediate");
-    m_tag_immediate_word->property_foreground() = "#FFA000";
-    m_tag_immediate_word->property_weight() = Pango::WEIGHT_BOLD;
-
-    // Signal for highlighting unknown Forth words and immediate words.
-    m_buffer->signal_insert().connect(sigc::mem_fun(this, &ForthDocument::onInsertText));
-}
-
-// *****************************************************************************
-void ForthDocument::completeForthName(const bool reset_state)
-{
-    // User did not press the tabulator: restart the state machine
-    if (reset_state)
-    {
-        m_tab_sm = ForthAutoCompletSMBegin;
-        return ;
-    }
-
-    // Get the iterator from the position of the cursor
-    Gtk::TextBuffer::iterator cursor = m_buffer->get_iter_at_mark(m_buffer->get_insert());
-    Gtk::TextBuffer::iterator start(cursor);
-
-    // Remove the space/tabulator inserted during the state ForthAutoCompletSMBegin
-    if (ForthAutoCompletSMEnd == m_tab_sm)
-    {
-        skipBackwardSpaces(start);
-    }
-
-    // The tabulator has not yet been inserted so no need to skip spaces
-    skipBackwardWord(start);
-    if (ForthAutoCompletSMBegin == m_tab_sm)
-    {
-        // Several space between the previous word: no completion allowed
-        if (start == cursor)
-        {
-            // but remove the space because it (keyval) will be inserted
-            m_buffer->erase(--start, cursor);
-            return ;
-        }
-        // Extract the word to be auto-completed
-        m_partial_word = m_buffer->get_text(start, cursor).raw();
-        // Next step
-        m_tab_sm = ForthAutoCompletSMEnd;
-    }
-
-#if 0
-    forth::Token
-    const char* completed_word = m_forth.dictionary.autocomplete(m_partial_word);
-    if (NULL != completed_word)
-    {
-        // A Forth word has been found in the dictionary;
-        // Replace the word by the found one.
-        m_buffer->erase(start, cursor);
-        cursor = m_buffer->get_iter_at_mark(m_buffer->get_insert());
-        m_buffer->insert(cursor, completed_word);
-    }
-    else
-    {
-        // No Forth word found: restart the state machine
-        m_tab_sm = ForthAutoCompletSMBegin;
-    }
-#endif
-}
-
-// *****************************************************************************
-//!
-// *****************************************************************************
-void ForthDocument::skipBackwardWord(Gtk::TextBuffer::iterator& iter)
-{
-    while (1)
-    {
-        if (!iter.backward_char())
-            return ;
-
-        if (g_unichar_isspace(iter.get_char()))
-        {
-            iter.forward_char();
-            return ;
-        }
-    }
-}
-
-// *****************************************************************************
-//!
-// *****************************************************************************
-void ForthDocument::skipBackwardSpaces(Gtk::TextBuffer::iterator& iter)
-{
-    while (1)
-    {
-        if (!iter.backward_char())
-            return ;
-
-        if (!g_unichar_isspace(iter.get_char()))
-        {
-            iter.forward_char();
-            return ;
-        }
-    }
-}
-
-// *****************************************************************************
-// Slot. FIXME: gerer les commentaires
-// *****************************************************************************
-void ForthDocument::onInsertText(const Gtk::TextBuffer::iterator& pos1,
-                                 const Glib::ustring& text_inserted,
-                                 __attribute__((unused)) int bytes)
-{
-    // FIXME: enlever les tags
-    // New char inserted
-    std::string c = text_inserted.raw();
-
-    if (isspace(c[0])) // Pas bon !! il faut faire une boucle text_inserted peut etre un gros morceau de code
-    {
-        Gtk::TextBuffer::iterator pos(pos1);
-        skipBackwardSpaces(pos);
-        Gtk::TextBuffer::iterator start(pos);
-        skipBackwardWord(start);
-        std::string partial_word = m_buffer->get_text(start, pos).raw();
-
-        // TODO: not in a comment
-        {
-            // Mark unknown word. FIXME underline IMMEDIATE words
-            forth::Token token;
-            bool immediate;
-            if (m_forth.find(partial_word, token, immediate))
-            {
-                if (immediate)
-                {
-                    m_buffer->apply_tag(m_tag_immediate_word, start, pos);
-                }
-            }
-            else
-            {
-                forth::Cell val;
-                if (!toInteger(partial_word, m_forth.base(), val))
-                {
-                    // Check if not a definition
-                    Gtk::TextBuffer::iterator p1(start);
-                    skipBackwardSpaces(p1);
-                    Gtk::TextBuffer::iterator p2(p1);
-                    skipBackwardWord(p1);
-                    partial_word = m_buffer->get_text(p1, p2).raw();
-                    if (0 != partial_word.compare(":"))
-                    {
-                        m_buffer->apply_tag(m_tag_unknown_word, start, pos);
-                    }
-                }
-            }
-        }
-    }
-
-    // FIXME: reset completion state
-}
 
 // FIXME: temporary
 #define FORTH_TOOLBAR_PLUGINS 0
@@ -207,7 +40,7 @@ ForthEditor::ForthEditor(std::stringstream& buffer_cout, std::stringstream& buff
     LOGI("%s", "Creating ForthEditor");
 
     m_hbox.pack_start(m_toolbars[FORTH_TOOLBAR_PLUGINS], Gtk::PACK_SHRINK);
-    m_hbox.pack_start(m_vpaned);
+    m_hbox.pack_start(m_vpaned, Gtk::PACK_EXPAND_WIDGET);
     m_vpaned.add1(m_vbox);
     m_vpaned.add2(m_hpaned);
 
@@ -215,11 +48,11 @@ ForthEditor::ForthEditor(std::stringstream& buffer_cout, std::stringstream& buff
     m_vbox.pack_start(m_toolbars[FORTH_TOOLBAR_CMDS], Gtk::PACK_SHRINK);
     m_hpaned.add1(m_notebook[NTB_LEFT]);
     m_hpaned.add2(m_vbox2);
-    m_vbox2.pack_start(m_hbox2);
+    m_vbox2.pack_start(m_hbox2, Gtk::PACK_EXPAND_WIDGET);
     m_vbox2.pack_start(m_statusbar, Gtk::PACK_SHRINK);
 
-    m_hbox2.pack_start(m_notebook[NTB_RIGHT2]);
-    m_hbox2.pack_start(m_notebook[NTB_RIGHT]);
+    m_hbox2.pack_start(m_stack_inspector.widget(), Gtk::PACK_EXPAND_WIDGET);//m_notebook[NTB_RIGHT2], Gtk::PACK_EXPAND_PADDING);//Gtk::PACK_EXPAND_WIDGET);
+    m_hbox2.pack_start(m_dico_inspector.widget(), Gtk::PACK_EXPAND_WIDGET);//m_notebook[NTB_RIGHT], Gtk::PACK_EXPAND_PADDING);
 
     addNoteBookPage(NTB_LEFT, ForthResTab, m_results, "_Result");
     addNoteBookPage(NTB_LEFT, ForthHistoryTab, m_history, "H_istory");
@@ -352,7 +185,7 @@ void ForthEditor::statusBarSays(std::string const& message)
 // *****************************************************************************
 //
 // *****************************************************************************
-void ForthEditor::completeForthName(const bool reset_state)
+void ForthEditor::completeForthName(int const key)
 {
     TextDocument* txt_doc = TextEditor::document();
     if (nullptr == txt_doc)
@@ -364,7 +197,7 @@ void ForthEditor::completeForthName(const bool reset_state)
         LOGES("%s", "Cannot cast TextDocument to ForthDocument");
         return ;
     }
-    doc->completeForthName(reset_state);
+    doc->completeForthName(key != GDK_KEY_Tab);
 }
 
 // *****************************************************************************

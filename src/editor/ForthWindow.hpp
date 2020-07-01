@@ -75,6 +75,7 @@ private:
     virtual bool onExit(GdkEventAny* event) override;
     void onForthActionMenuClicked(std::string const& script_code,
                                   std::string const& script_name);
+    void onKeyPressed(GdkEventKey* evenement);
 
 private:
 

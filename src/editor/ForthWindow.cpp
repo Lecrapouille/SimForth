@@ -31,9 +31,20 @@ ForthWindow::ForthWindow(std::stringstream& buffer_cout, std::stringstream& buff
     populatePopovMenu();
     populateToolBar();
 
+    add_events(Gdk::KEY_PRESS_MASK);
+    signal_key_press_event().connect_notify(sigc::mem_fun(*this, &ForthWindow::onKeyPressed));
+
     m_forth_editor.statusBarSays("Welcome to SimForth");
     add(m_forth_editor.widget());
     show_all();
+}
+
+// *****************************************************************************
+//
+// *****************************************************************************
+void ForthWindow::onKeyPressed(GdkEventKey* evenement)
+{
+    m_forth_editor.completeForthName(evenement->keyval);
 }
 
 //------------------------------------------------------------------

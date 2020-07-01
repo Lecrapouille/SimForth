@@ -23,43 +23,8 @@
 
 #  include "TextEditor.hpp"
 #  include "ForthInspector.hpp"
-#  include <SimForth/SimForth.hpp>
+#  include "ForthDocument.hpp"
 #  include <chrono>
-
-// *****************************************************************************
-//
-// *****************************************************************************
-class ForthDocument : public TextDocument
-{
-    friend class ForthEditor;
-
-public:
-
-    ForthDocument(forth::Forth& forth, Glib::RefPtr<Gsv::Language> language);
-
-private:
-
-    forth::Forth& m_forth;
-    // FIXME changer le nom de cette fonction
-    //! \brief Slot called when text has been inserted. Use it for checking unknown words
-    void onInsertText(const Gtk::TextBuffer::iterator& pos, const Glib::ustring& text_inserted, int bytes);
-    //! \brief Skip the previous word.
-    static void skipBackwardWord(Gtk::TextBuffer::iterator& iter);
-    //! \brief Skip previous spaces characters.
-    static void skipBackwardSpaces(Gtk::TextBuffer::iterator& iter);
-    //! \brief Complete a Forth word when the user type on the tabulator key.
-    void completeForthName(const bool reset_state);
-    //! Gtk tag in textbuffer for highlighting Forth words not present in the dictionary.
-    Glib::RefPtr<Gtk::TextTag> m_tag_unknown_word;
-    //! Gtk tag in textbuffer for highlighting immediate Forth words.
-    Glib::RefPtr<Gtk::TextTag> m_tag_immediate_word;
-    //! Extracted word at the first step of the auto-completion algorithm.
-    std::string m_partial_word;
-    //! States for the auto-completion state-machine algorithm.
-    enum ForthAutoCompletSM { ForthAutoCompletSMBegin, ForthAutoCompletSMEnd };
-    //! Current state for the auto-completion state-machine algorithm.
-    ForthAutoCompletSM m_tab_sm;
-};
 
 // *****************************************************************************
 //! \brief ForthEditor is a specialized text editor for Forth scripts.
@@ -170,7 +135,7 @@ void populatePopovMenu(BaseWindow& win);//Gtk::ApplicationWindow& win);
     //--------------------------------------------------------------------------
     //! \brief
     //--------------------------------------------------------------------------
-    void completeForthName(const bool reset_state);
+    void completeForthName(int const key);
 
 protected:
 

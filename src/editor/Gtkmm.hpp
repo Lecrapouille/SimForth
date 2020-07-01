@@ -27,16 +27,25 @@
 //! https://github.com/gnunn1/tilix
 //------------------------------------------------------------------------------
 
+#  ifdef __clang__
+#    pragma clang diagnostic push
+#      pragma clang diagnostic ignored "-Wunused-exception-parameter"
+#  endif
+
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wunused-const-variable"
 #  pragma GCC diagnostic ignored "-Wold-style-cast"
 #  pragma GCC diagnostic ignored "-Wsign-conversion"
 #  pragma GCC diagnostic ignored "-Wredundant-decls"
 #  pragma GCC diagnostic ignored "-Wdeprecated"
-#  pragma clang diagnostic ignored "-Wunused-exception-parameter"
 #    include <gtksourceviewmm.h>
 #    include <gtkmm.h>
 #  pragma GCC diagnostic pop
+
+#  ifdef __clang__
+#    pragma clang diagnostic pop
+#  endif
+
 #  include <cassert>
 
 namespace Gtk

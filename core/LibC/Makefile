@@ -73,15 +73,15 @@ all: $(OBJS)
 
 %.o: %.c
 ifeq ($(ARCHI),Darwin)
-	$(Q)$(CC) -c $(abspath $<) -o $(abspath $(BUILD)/$@)
-	$(Q)$(CC) -dynamiclib -undefined suppress -flat_namespace $(abspath $(BUILD)/$@) -o (patsubst %.o,%.dylib,$@) $(EXTLIBS)
+	$(Q)$(CC) -W -Wall -c $(abspath $<) -o $(abspath $(BUILD)/$@) `pkg-config $(PKGCONFIG) --cflags`
+	$(Q)$(CC) -dynamiclib -undefined suppress -flat_namespace $(abspath $(BUILD)/$@) -o (patsubst %.o,%.dylib,$@) $(EXTLIBS) `pkg-config $(PKGCONFIG) --libs`
 else ifeq ($(ARCHI),Linux)
 	@$(call print-to,"Compiling","$<","$(patsubst %.o,%.so,$(abspath $(BUILD)/$@))")
-	$(Q)$(CC) -c -fpic $(abspath $<) -o $(abspath $(BUILD)/$@)
-	$(Q)$(CC) -shared $(abspath $(BUILD)/$@) -o $(patsubst %.o,%.so,$(abspath $(BUILD)/$@)) $(EXTLIBS)
+	$(Q)$(CC) -W -Wall -c -fpic $(abspath $<) -o $(abspath $(BUILD)/$@) `pkg-config $(PKGCONFIG) --cflags`
+	$(Q)$(CC) -shared $(abspath $(BUILD)/$@) -o $(patsubst %.o,%.so,$(abspath $(BUILD)/$@)) $(EXTLIBS) `pkg-config $(PKGCONFIG) --libs`
 else ifeq ($(ARCHI),Windows)
-	$(Q)$(CC) -c -fpic $(abspath $<) -o $(abspath $(BUILD)/$@)
-	$(Q)$(CC) -shared (abspath $(BUILD)/$@) -o $(patsubst %.o,%.dll,$@) -Wl,--out-implib,$(patsubst %.o,%.a,$@) $(EXTLIBS)
+	$(Q)$(CC) -W -Wall -c -fpic $(abspath $<) -o $(abspath $(BUILD)/$@) `pkg-config $(PKGCONFIG) --cflags`
+	$(Q)$(CC) -shared (abspath $(BUILD)/$@) -o $(patsubst %.o,%.dll,$@) -Wl,--out-implib,$(patsubst %.o,%.a,$@) $(EXTLIBS) `pkg-config $(PKGCONFIG) --libs`
 else
 	error "I dunno how to compile dynamic lib with this architecture"
 endif

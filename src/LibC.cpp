@@ -86,7 +86,7 @@ bool CLib::begin(InputStream& stream)
 
     // Add an header in the file for including information such a Cell.
     m_file << "#include <stdint.h>\n\n";
-    m_file << "struct Cell { union { char* a; int64_t i; double f; }; enum { INT = 0, FLOAT } tag; };\n\n";
+    m_file << "struct Cell { union { void* a; int64_t i; double f; }; enum { INT = 0, FLOAT } tag; };\n\n";
     return true;
 }
 
@@ -236,6 +236,20 @@ bool CLib::extractFunParams(CFunHolder& holder, InputStream& stream)
 }
 
 //----------------------------------------------------------------------------
+bool CLib::pkgconfig(InputStream& stream)
+{
+    if (stream.split())
+    {
+        m_pkgConfig += " ";
+        m_pkgConfig += stream.word();
+        return true;
+    }
+
+    m_error = stream.error();
+    return false;
+}
+
+//----------------------------------------------------------------------------
 bool CLib::library(InputStream& stream)
 {
     if (stream.split())
@@ -311,8 +325,9 @@ bool CLib::compile()
                           + " BUILD=" + config::tmp_path
                           + " SRCS=" + m_libName + ".c"
                           + " EXTLIBS=\"" + m_extLibs + "\""
+                          + " PKGCONFIG=\"" + m_pkgConfig + "\""
                           //+ " CC=clang-7" // For changing of compiler
-                          //+ " VERBOSE=1"  // For verbose
+                          + " VERBOSE=1"  // For verbose
                           + " 2> " + config::tmp_path + "compilation.res";
 
     // Compile the C file

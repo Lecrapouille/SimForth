@@ -42,7 +42,9 @@ Work in progress. See https://forth-standard.org/standard/words for more details
 ### String
 
 * STORE_STRING
-* SSTRING
+* `s"` (token SSTRING)
+* `z"` (token ZSTRING) On interpration mode, create a zero-string compatible with C char* and return the C-compatible address. Beware, and contrary to `s"` which returns the string size and the indice of the dictionnary, `z"` return a
+C pointer which cannot be used by other Forth words.
 * MATCH
 * SPLIT
 

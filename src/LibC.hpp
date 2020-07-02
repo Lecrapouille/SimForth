@@ -76,6 +76,7 @@ public:
     bool begin(InputStream& stream);
     bool code(InputStream& stream);
     bool function(InputStream& stream);
+    bool pkgconfig(InputStream& stream);
     bool library(InputStream& stream);
     void saveToDictionary(Dictionary& dictionary);
     bool end();
@@ -111,6 +112,7 @@ private:
     std::string m_sourcePath;
     std::string m_libPath;
     std::string m_extLibs;
+    std::string m_pkgConfig;
     std::string m_error;
     void* m_handle = nullptr;
 };

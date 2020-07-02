@@ -33,6 +33,7 @@ namespace forth
 
 using Int = int64_t;
 using Real = double;
+// TODO: Int::string() => "int64_t" needed for Clib
 
 #define INLINE __attribute__((always_inline))
 
@@ -213,8 +214,9 @@ private:
 private:
 
     union {
-        Int  i; // integer
-        Real r; // real
+        Int   i; // integer
+        Real  r; // real
+        void* a; // pointer
         char b[sizeof(Real)]; // bytes
     };
     enum Tag { INTEGER, REAL } tag;

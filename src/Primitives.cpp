@@ -429,10 +429,32 @@ void Interpreter::executePrimitive(Token const xt)
           }
           else
           {
-              Token tib = size::dictionary - size::tib;
-              dictionary.append(STREAM.word(), tib);
-              DPUSHI(size::dictionary - size::tib);
+              Token ptr = size::dictionary - size::tib;
+              dictionary.append(STREAM.word(), ptr);
+              DPUSHI(size::dictionary - size::tib); // do not use ptr its value changed
               DPUSHI(dictionary[size::dictionary - size::tib]);
+          }
+        NEXT;
+
+        // ---------------------------------------------------------------------
+        // Literal string. In compilation mode store characters inside the word
+        // definition. In interpretation mode, store characters temporary in the
+        // TIB and return the C pointer as char* usuable by C functions.
+        CODE(ZSTRING)
+          THROW_IF_NO_DELIMITER("\"");
+          if (m_state == State::Compile)
+          {
+              if (STREAM.word().size() > size::tib)
+                  THROW("Max string chars reached");
+              dictionary.append(Primitives::PSLITERAL);
+              dictionary.append(STREAM.word(), dictionary.here());
+          }
+          else
+          {
+              Token ptr = size::dictionary - size::tib;
+              dictionary.append(STREAM.word(), ptr);
+              Int i = reinterpret_cast<Int>(&dictionary[size::dictionary - size::tib + 1]);
+              DPUSHI(i);
           }
         NEXT;
 
@@ -481,6 +503,13 @@ void Interpreter::executePrimitive(Token const xt)
         // Indicate the external C library needed by the generated C code
         CODE(CLIB_ADD_LIB) // ( -- )
           if (!m_clibs.library(STREAM))
+              THROW(m_clibs.error());
+        NEXT;
+
+        // ---------------------------------------------------------------------
+        //
+        CODE(CLIB_PKG_CONFIG)
+          if (!m_clibs.pkgconfig(STREAM))
               THROW(m_clibs.error());
         NEXT;
 

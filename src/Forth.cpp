@@ -203,12 +203,14 @@ bool Forth::boot()
     // Strings
     primitive(STORE_STRING, ",\"");
     immediate(SSTRING, "S\"");
+    immediate(ZSTRING, "Z\"");
 
     // Interfaces with C libraries
     primitive(TO_C_PTR, ">C-PTR");
     primitive(CLIB_BEGIN, "C-LIB");
     primitive(CLIB_END, "END-C-LIB");
     primitive(CLIB_ADD_LIB, "ADD-LIB");
+    primitive(CLIB_PKG_CONFIG, "PKG-CONFIG");
     primitive(CLIB_C_FUN, "C-FUNCTION");
     primitive(CLIB_C_CODE, "\\C");
     hidden(CLIB_EXEC, "(EXEC-C)");

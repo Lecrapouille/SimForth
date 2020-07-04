@@ -142,3 +142,23 @@ bool TextDocument::load(std::string const& filename, bool clear)
 
     return true;
 }
+
+// -----------------------------------------------------------------------------
+void TextDocument::redo()
+{
+    if (m_buffer->can_redo())
+    {
+        m_buffer->redo();
+        setModified(m_buffer->can_redo());
+    }
+}
+
+// -----------------------------------------------------------------------------
+void TextDocument::undo()
+{
+    if (m_buffer->can_undo())
+    {
+        m_buffer->undo();
+        setModified(m_buffer->can_undo());
+    }
+}

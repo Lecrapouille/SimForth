@@ -67,7 +67,7 @@ public:
     //! \brief
     //--------------------------------------------------------------------------
     //void populatePopovMenu(Glib::RefPtr<Gio::Menu> menu);
-void populatePopovMenu(BaseWindow& win);//Gtk::ApplicationWindow& win);
+    void populatePopovMenu(BaseWindow& win);//Gtk::ApplicationWindow& win);
 
     //--------------------------------------------------------------------------
     //! \brief Return the GTKmm HBox holding all widgets needed for the Forth

@@ -159,11 +159,13 @@ void ForthWindow::onVerticalSplitClicked()
 //------------------------------------------------------------------
 void ForthWindow::onUndoClicked()
 {
+    m_forth_editor.undo();
 }
 
 //------------------------------------------------------------------
 void ForthWindow::onRedoClicked()
 {
+    m_forth_editor.redo();
 }
 
 //------------------------------------------------------------------

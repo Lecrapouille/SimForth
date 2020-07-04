@@ -98,6 +98,26 @@ bool TextEditor::saveAll()
 }
 
 // -----------------------------------------------------------------------------
+void TextEditor::undo()
+{
+    TextDocument *doc = TextEditor::document();
+    if (nullptr != doc)
+    {
+        doc->undo();
+    }
+}
+
+// -----------------------------------------------------------------------------
+void TextEditor::redo()
+{
+    TextDocument *doc = TextEditor::document();
+    if (nullptr != doc)
+    {
+        doc->redo();
+    }
+}
+
+// -----------------------------------------------------------------------------
 bool TextEditor::close()
 {
     bool res = false;

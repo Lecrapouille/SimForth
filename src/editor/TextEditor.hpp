@@ -47,7 +47,7 @@ public:
     virtual ~TextEditor();
 
     void populatePopovMenu(BaseWindow& win);
-//Gtk::ApplicationWindow& win, Glib::RefPtr<Gio::Menu> menu);
+    //Gtk::ApplicationWindow& win, Glib::RefPtr<Gio::Menu> menu);
 
     //--------------------------------------------------------------------------
     //! \brief Open a GTKmm dialog window for choosing the text file to open.
@@ -112,6 +112,16 @@ public:
     //! \brief Open a window to allow you to find a text inside the current document.
     //--------------------------------------------------------------------------
     void find();
+
+    //--------------------------------------------------------------------------
+    //! \brief
+    //--------------------------------------------------------------------------
+    virtual void undo();
+
+    //--------------------------------------------------------------------------
+    //! \brief
+    //--------------------------------------------------------------------------
+    virtual void redo();
 
     //--------------------------------------------------------------------------
     //! \brief Open a window to allow you to replace a text inside the current document.

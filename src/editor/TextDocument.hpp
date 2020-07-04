@@ -83,14 +83,14 @@ public:
     void cursorAt(const uint32_t line, const uint32_t index);
 
     // -------------------------------------------------------------------------
-    //! \brief do
+    //! \brief redo the last text action
     // -------------------------------------------------------------------------
-    inline void redo() { m_buffer->redo(); }
+    void redo();
 
     // -------------------------------------------------------------------------
-    //! \brief undo previous action
+    //! \brief undo the previous text action
     // -------------------------------------------------------------------------
-    inline void undo() { m_buffer->undo(); }
+    void undo();
 
     // -------------------------------------------------------------------------
     //! \brief Return the buffer of the document.

@@ -5,6 +5,7 @@ class BaseWindow
 class ForthWindow
 class TextEditor
 class ForthEditor
+class ForthInspector
 class SimForth
 class TextDocument
 class ForthDocument
@@ -16,6 +17,7 @@ TextEditor .> "*" TextDocument
 ForthWindow .> "*" ForthEditor
 TextDocument <|-- ForthDocument
 ForthEditor .> "*" ForthDocument
+ForthEditor ..> "1" ForthInspector
 SimForth "1" <. ForthWindow
 
 @enduml

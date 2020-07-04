@@ -38,27 +38,18 @@ ForthEditor::ForthEditor(std::stringstream& buffer_cout, std::stringstream& buff
       m_forth(forth)
 {
     LOGI("%s", "Creating ForthEditor");
-
     m_hbox.pack_start(m_toolbars[FORTH_TOOLBAR_PLUGINS], Gtk::PACK_SHRINK);
-    m_hbox.pack_start(m_vpaned, Gtk::PACK_EXPAND_WIDGET);
-    m_vpaned.add1(m_vbox);
-    m_vpaned.add2(m_hpaned);
-
+    m_hbox.pack_start(m_vbox);
     m_vbox.pack_start(*this, Gtk::PACK_EXPAND_WIDGET);
     m_vbox.pack_start(m_toolbars[FORTH_TOOLBAR_CMDS], Gtk::PACK_SHRINK);
-    m_hpaned.add1(m_notebook[NTB_LEFT]);
-    m_hpaned.add2(m_vbox2);
-    m_vbox2.pack_start(m_hbox2, Gtk::PACK_EXPAND_WIDGET);
-    m_vbox2.pack_start(m_statusbar, Gtk::PACK_SHRINK);
+    m_vbox.pack_start(m_statusbar, Gtk::PACK_SHRINK);
+    m_vbox.pack_start(m_notebook[0], Gtk::PACK_EXPAND_WIDGET);
 
-    m_hbox2.pack_start(m_stack_inspector.widget(), Gtk::PACK_EXPAND_WIDGET);//m_notebook[NTB_RIGHT2], Gtk::PACK_EXPAND_PADDING);//Gtk::PACK_EXPAND_WIDGET);
-    m_hbox2.pack_start(m_dico_inspector.widget(), Gtk::PACK_EXPAND_WIDGET);//m_notebook[NTB_RIGHT], Gtk::PACK_EXPAND_PADDING);
-
-    addNoteBookPage(NTB_LEFT, ForthResTab, m_results, "_Result");
-    addNoteBookPage(NTB_LEFT, ForthHistoryTab, m_history, "H_istory");
-    addNoteBookPage(NTB_LEFT, ForthMsgTab, m_messages, "_Messages");
-    addNoteBookPage(NTB_RIGHT, ForthDicoTab, m_dico_inspector.widget(), "_Dico");
-    addNoteBookPage(NTB_RIGHT2, ForthStackTab, m_stack_inspector.widget(), "Data _Stack");
+    addNoteBookPage(0, ForthResTab, m_results, "_Result");
+    addNoteBookPage(0, ForthHistoryTab, m_history, "H_istory");
+    addNoteBookPage(0, ForthMsgTab, m_messages, "_Messages");
+    addNoteBookPage(0, ForthDicoTab, m_dico_inspector.widget(), "_Dico");
+    addNoteBookPage(0, ForthStackTab, m_stack_inspector.widget(), "Data _Stack");
 
     populateToolBars();
 

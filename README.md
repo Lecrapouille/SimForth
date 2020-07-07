@@ -64,6 +64,7 @@ Implemented:
 - Display colorful and human-friendly error messages (more than gforth).
 - Display colorful dictionary. See [here](img/Dictionary.png).
 - Basic colorful debugger. See [here](img/Debugger.png).
+- Max number of characters for a word is 32. Unicode words can be accepted while this feature is not really tested.
 - Save and load dump dictionary.
 - Unit tests and continuous integration scripts.
 

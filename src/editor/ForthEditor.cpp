@@ -83,26 +83,56 @@ void ForthEditor::populateToolBars()
         Gtk::Toolbar& toolbar = m_toolbars[FORTH_TOOLBAR_CMDS];
         toolbar.set_property("orientation", Gtk::ORIENTATION_HORIZONTAL);
         toolbar.set_property("toolbar-style", Gtk::TOOLBAR_ICONS);
+        toolbar.set_toolbar_style(Gtk::TOOLBAR_BOTH);
 
         // Forth exec button: execute the script in the active document
         {
             Gtk::ToolButton *button = Gtk::make_managed<Gtk::ToolButton>();
-            button->set_label("Exec");
+            button->set_label("Execute");
             button->set_stock_id(Gtk::Stock::EXECUTE);
-            button->set_tooltip_text("Run Forth script");
+            button->set_tooltip_text("Run the Forth script");
             toolbar.append(*button, [&]{ interpreteCurrentDocument(); });
         }
 
         // Enable/disable Forth debug
         {
-            //TODO addForthButton(Gtk::Stock::EXECUTE, "TRACES.ON", "TRACES.OFF", "Enable/disable debugger");
+            Gtk::ToggleToolButton *button = Gtk::make_managed<Gtk::ToggleToolButton>();
+            button->set_label("Enable Trace");
+            button->set_stock_id(Gtk::Stock::CONVERT);
+            button->set_tooltip_text("Enable or disable traces");
+            std::cout << "avant " << button/*->get_active()*/ << std::endl;
+            toolbar.append(*button, [button, this]
+            {
+                if (button->get_active())
+                {
+                    button->set_label("Disable Trace");
+                    this->m_forth.interpretString("TRACES.ON");
+                }
+                else
+                {
+                    button->set_label("Enable Trace");
+                    this->m_forth.interpretString("TRACES.OFF");
+                }
+            });
+        }
+
+        // Convert typed text to upper case
+        {
+            Gtk::ToolButton *button = Gtk::make_managed<Gtk::ToolButton>();
+            button->set_label("Upper Case");
+            button->set_stock_id(Gtk::Stock::BOLD);
+            button->set_tooltip_text("Convert to upper case when typing");
+            toolbar.append(*button, [&]
+            {
+                // TODO
+            });
         }
 
         // Clear dictionary
         {
             Gtk::ToolButton *button = Gtk::make_managed<Gtk::ToolButton>();
-            button->set_label("Reset");
-            button->set_stock_id(Gtk::Stock::EXECUTE);
+            button->set_label("Reset Dico");
+            button->set_stock_id(Gtk::Stock::CLEAR);
             button->set_tooltip_text("Reset dictionary");
             toolbar.append(*button, [&]
             {

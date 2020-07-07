@@ -6,7 +6,7 @@
 // -----------------------------------------------------------------------------
 TextDocument::TextDocument(Glib::RefPtr<Gsv::Language> language)
     : Gtk::ScrolledWindow(),
-      m_button(""), // FIXME a passer en param
+      m_close_label(""), // FIXME a passer en param
       m_filename("")
 {
     Gtk::ScrolledWindow::add(m_textview);
@@ -54,7 +54,7 @@ bool TextDocument::save() // FIXME shall return error message instead of gtk dia
             outfile << m_buffer->get_text();
             outfile.close();
             setModified(false);
-            m_button.set_tooltip_text(m_filename);
+            m_close_label.set_tooltip_text(m_filename);
         }
         else
         {
@@ -76,7 +76,7 @@ bool TextDocument::save() // FIXME shall return error message instead of gtk dia
 bool TextDocument::saveAs(std::string const& filename)
 {
     std::string title = filename.substr(filename.find_last_of("/") + 1);
-    m_button.title(title);
+    m_close_label.title(title);
     m_filename = filename;
     return TextDocument::save();
 }
@@ -90,10 +90,12 @@ bool TextDocument::close()
     {
         res = save();
     }
+
     if (res)
     {
-        m_button.close(); // FIXME ????
+        return m_close_label.close();
     }
+
     return res;
 }
 
@@ -108,8 +110,8 @@ bool TextDocument::load(std::string const& filename, bool clear)
         TextDocument::clear();
         m_filename = filename;
         std::string title = filename.substr(filename.find_last_of("/") + 1);
-        m_button.title(title);
-        m_button.set_tooltip_text(filename);
+        m_close_label.title(title);
+        m_close_label.set_tooltip_text(filename);
     }
 
     infile.open(filename, std::fstream::in);

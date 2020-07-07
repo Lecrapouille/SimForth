@@ -31,7 +31,7 @@ public:
     {
         m_editor = &editor;
         m_document = &document;
-        //FIXME m_save_callback = saveFct;
+        m_onSaveCallback = std::move(saveFct);
     }
 
     // -------------------------------------------------------------------------
@@ -45,18 +45,7 @@ public:
     // -------------------------------------------------------------------------
     //! \brief Change the text of the button.
     // -------------------------------------------------------------------------
-    inline void title(std::string const& title)
-    {
-        m_title = title;
-        if (m_asterisk)
-        {
-            m_label.set_text("** " + m_title);
-        }
-        else
-        {
-            m_label.set_text(m_title);
-        }
-    }
+    void title(std::string const& title);
 
     // -------------------------------------------------------------------------
     //! \brief Add a '*' to the title to indicate the document has been modified.
@@ -74,8 +63,9 @@ public:
     // -------------------------------------------------------------------------
     //! \brief Close the notebook tab. A check is made to be sure the document
     //! will be saved.
+    //! \return false if something odd happened (nullptr).
     // -------------------------------------------------------------------------
-    void close();
+    bool close();
 
 protected:
 
@@ -93,7 +83,8 @@ protected:
     bool onButtonPressEvent(GdkEventButton* event)
     {
         bool res = (GDK_BUTTON_MIDDLE == event->button);
-        if (res) onClicked();
+        if (res)
+            onClicked();
         return res;
     }
 
@@ -104,7 +95,7 @@ private:
     Gtk::Image m_image;
     Gtk::Notebook *m_editor;
     Gtk::Widget *m_document;
-    bool (*m_save_callback)();
+    std::function<bool()> m_onSaveCallback;
     bool m_asterisk;
     std::string m_title;
 };

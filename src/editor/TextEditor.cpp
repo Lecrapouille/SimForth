@@ -176,7 +176,7 @@ bool TextEditor::dialogSave(TextDocument *doc, const bool closing)
     // FIXME: faire apparaitre avant de tuer la fenetre principale sinon le
     // dialog peut etre cache par d'autres fentres
     Gtk::MessageDialog dialog((Gtk::Window&) (*get_toplevel()),
-                              "The document '" + doc->m_button.title() +
+                              "The document '" + doc->m_close_label.title() +
                               "' has been modified. Do you want to save it now ?",
                               false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO);
     dialog.add_button(Gtk::Stock::SAVE_AS, Gtk::RESPONSE_APPLY);
@@ -307,27 +307,34 @@ bool TextEditor::open(std::string const& filename)
 // -----------------------------------------------------------------------------
 // When switching page on the notebook, reaffect windows find, replace to the switched document
 // -----------------------------------------------------------------------------
-void TextEditor::onPageSwitched(Gtk::Widget* page, guint page_num)
+void TextEditor::onPageSwitched(Gtk::Widget* /*page*/, guint page_num)
 {
-    (void) page;
-    m_findwindow.bind(&(TextEditor::document(page_num)->m_textview));
-    m_findwindow.title(TextEditor::document(page_num)->title());
-    m_replacewindow.bind(&(TextEditor::document(page_num)->m_textview));
-    m_replacewindow.title(TextEditor::document(page_num)->title());
-    m_gotolinewindow.bind(&(TextEditor::document(page_num)->m_textview));
-    m_gotolinewindow.title(TextEditor::document(page_num)->title());
+    TextDocument* doc = TextEditor::document(page_num);
+    if (doc != nullptr)
+    {
+        m_findwindow.bind(&(doc->m_textview));
+        m_findwindow.title(doc->title());
+        m_replacewindow.bind(&(doc->m_textview));
+        m_replacewindow.title(doc->title());
+        m_gotolinewindow.bind(&(doc->m_textview));
+        m_gotolinewindow.title(doc->title());
+    }
 }
 
 // -----------------------------------------------------------------------------
 void TextEditor::empty(std::string const& title)
 {
-    TextDocument *doc = createDocument(); // FIXME check if GTKmm destroy it when closing the application
+    // FIXME check if GTKmm free it when closing the application
+    TextDocument *doc = createDocument();
 
     ++m_nb_nonames;
-    doc->m_button.title(title + ' ' + std::to_string(m_nb_nonames));
-    doc->m_button.bind(*this, *doc, [&](){ return this->dialogSave(doc); });
+    doc->m_close_label.title(title + ' ' + std::to_string(m_nb_nonames));
+    doc->m_close_label.bind(*this, *doc, [this, doc]()
+    {
+        return this->dialogSave(doc, true);
+    });
 
-    append_page(*doc, doc->m_button);
+    append_page(*doc, doc->m_close_label);
     show_all();
     set_current_page(-1);
 }
@@ -370,10 +377,13 @@ TextDocument *TextEditor::addTab(std::string const& title)
 TextDocument *TextEditor::addTab()
 {
     TextDocument *doc = createDocument();
-    append_page(*doc, doc->m_button);
+    append_page(*doc, doc->m_close_label);
     show_all();
     set_current_page(-1);
-    doc->m_button.bind(*this, *doc, [&](){ return this->dialogSave(doc); });
+    doc->m_close_label.bind(*this, *doc, [this, doc]()
+    {
+        return this->dialogSave(doc, true);
+    });
     return doc;
 }
 

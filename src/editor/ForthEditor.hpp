@@ -79,7 +79,9 @@ public:
     }
 
     //--------------------------------------------------------------------------
-    //! \brief
+    //! \brief Discrete message to prevent to the user something happened but not
+    //! as violent as a gtk dialog message.
+    // FIXME renommer en says() + static
     //--------------------------------------------------------------------------
     void statusBarSays(std::string const& message);
 

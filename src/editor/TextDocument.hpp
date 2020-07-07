@@ -105,7 +105,7 @@ public:
     // -------------------------------------------------------------------------
     inline void title(std::string const& text)
     {
-        m_button.title(text);
+        m_close_label.title(text);
     }
 
     // -------------------------------------------------------------------------
@@ -113,7 +113,7 @@ public:
     // -------------------------------------------------------------------------
     inline Glib::ustring title() const
     {
-        return m_button.title();
+        return m_close_label.title();
     }
 
     // -------------------------------------------------------------------------
@@ -172,7 +172,7 @@ public:
     inline void setModified(const bool b)
     {
         m_buffer->set_modified(b);
-        m_button.asterisk(b);
+        m_close_label.asterisk(b);
     }
 
 private:
@@ -192,7 +192,7 @@ protected:
 
     Gsv::View m_textview;
     Glib::RefPtr<Gsv::Buffer> m_buffer;
-    CloseLabel m_button;
+    CloseLabel m_close_label;
     std::string m_filename;
 };
 

@@ -25,6 +25,20 @@ CloseLabel::CloseLabel(std::string const& title)
 }
 
 // -----------------------------------------------------------------------------
+void CloseLabel::title(std::string const& title)
+{
+    m_title = title;
+    if (m_asterisk)
+    {
+        m_label.set_text("** " + m_title);
+    }
+    else
+    {
+        m_label.set_text(m_title);
+    }
+}
+
+// -----------------------------------------------------------------------------
 void CloseLabel::asterisk(const bool asterisk)
 {
     if (m_asterisk != asterisk)
@@ -42,20 +56,21 @@ void CloseLabel::asterisk(const bool asterisk)
 }
 
 // -----------------------------------------------------------------------------
-void CloseLabel::close()
+bool CloseLabel::close()
 {
     if ((nullptr == m_editor) || (nullptr == m_document))
-        return ;
+        return false;
 
     if (m_asterisk)
     {
         int page = m_editor->page_num(*m_document);
         Gtk::Widget *widget = m_editor->get_nth_page(page);
-        if (NULL != widget)
-        {
-            if (!m_save_callback())
-                return ;
-        }
+        if ((nullptr == widget) && (nullptr == m_onSaveCallback))
+            return false;
+
+         if (!m_onSaveCallback())
+            return false;
     }
-    m_editor->remove_page(*m_document);
+     m_editor->remove_page(*m_document);
+    return true;
 }

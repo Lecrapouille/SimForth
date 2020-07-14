@@ -138,22 +138,24 @@ void ForthWindow::onOpenFileClicked()
 }
 
 //------------------------------------------------------------------
-void ForthWindow::onRecentFilesClicked()
+void ForthWindow::onRecentFileClicked(std::string const& filename)
 {
-    // FIXME: temporary: this is not the good button
-    Application::create<ForthWindow>(m_buffer_cout, m_buffer_cerr, m_forth);
+    m_forth_editor.open(filename);
 }
 
 //------------------------------------------------------------------
 void ForthWindow::onHorizontalSplitClicked()
 {
-    //splitView(Gtk::Orientation::ORIENTATION_HORIZONTAL);
+    // TODO splitView(Gtk::Orientation::ORIENTATION_HORIZONTAL);
+
+    // FIXME: temporary: this is not the good button
+    Application::create<ForthWindow>(m_buffer_cout, m_buffer_cerr, m_forth);
 }
 
 //------------------------------------------------------------------
 void ForthWindow::onVerticalSplitClicked()
 {
-    //splitView(Gtk::Orientation::ORIENTATION_VERTICAL);
+    // TODO splitView(Gtk::Orientation::ORIENTATION_VERTICAL);
 }
 
 //------------------------------------------------------------------

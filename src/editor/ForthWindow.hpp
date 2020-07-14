@@ -65,7 +65,7 @@ private:
     //GLDrawingArea& currentView();
 
     virtual void onOpenFileClicked() override;
-    virtual void onRecentFilesClicked() override;
+    virtual void onRecentFileClicked(std::string const& filename) override;
     virtual void onHorizontalSplitClicked() override;
     virtual void onVerticalSplitClicked() override;
     virtual void onUndoClicked() override;

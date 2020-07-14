@@ -24,11 +24,13 @@
 //------------------------------------------------------------------
 BaseWindow::BaseWindow(Glib::RefPtr<Gtk::Application> application)
     : m_application(application),
-      m_exception_dialog(*this)
+      m_exception_dialog(*this),
+      m_recent_manager(Gtk::RecentManager::get_default())
 {
     set_default_size(800, 600);
     set_position(Gtk::WIN_POS_CENTER);
     populateHeaderBar();
+    populatePopovRecentFiles();
 
     // Merge two buttons into a single-like button.
     mergeButtons(0, m_open_file_button, m_recent_files_button);
@@ -105,11 +107,28 @@ void BaseWindow::populateHeaderBar()
 
     // Callbacks
     m_open_file_button.signal_clicked().connect(sigc::mem_fun(*this, &BaseWindow::onOpenFileClicked));
-    m_recent_files_button.signal_clicked().connect(sigc::mem_fun(*this, &BaseWindow::onRecentFilesClicked));
     m_horizontal_split_button.signal_clicked().connect(sigc::mem_fun(*this, &BaseWindow::onHorizontalSplitClicked));
     m_vertical_split_button.signal_clicked().connect(sigc::mem_fun(*this, &BaseWindow::onVerticalSplitClicked));
     m_undo_button.signal_clicked().connect(sigc::mem_fun(*this, &BaseWindow::onUndoClicked));
     m_redo_button.signal_clicked().connect(sigc::mem_fun(*this, &BaseWindow::onRedoClicked));
     m_saveas_file_button.signal_clicked().connect(sigc::mem_fun(*this, &BaseWindow::onSaveAsFileClicked));
     m_save_file_button.signal_clicked().connect(sigc::mem_fun(*this, &BaseWindow::onSaveFileClicked));
+}
+
+//------------------------------------------------------------------
+void BaseWindow::populatePopovRecentFiles()
+{
+    // Widget hierarchy
+    m_recent_files_button.set_popover(m_recent_files_popov);
+    m_recent_files_popov.set_relative_to(m_recent_files_button);
+    m_recent_files_popov.add(m_recent_files_box);
+    m_recent_files_box.pack_start(m_recent_chooser);
+    m_recent_files_popov.set_size_request(500, 100);
+    m_recent_files_box.show_all();
+
+    // Trigger a callback when a recent file has been selected
+    m_recent_chooser.signal_item_activated().connect([this]()
+    {
+        onRecentFileClicked(Glib::filename_from_uri(m_recent_chooser.get_current_uri()));
+    });
 }

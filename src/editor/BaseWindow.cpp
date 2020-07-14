@@ -26,7 +26,7 @@ BaseWindow::BaseWindow(Glib::RefPtr<Gtk::Application> application)
     : m_application(application),
       m_exception_dialog(*this)
 {
-    set_default_size(1400, 800);
+    set_default_size(800, 600);
     set_position(Gtk::WIN_POS_CENTER);
     populateHeaderBar();
 

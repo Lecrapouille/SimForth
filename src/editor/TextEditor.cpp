@@ -28,18 +28,19 @@ extern const std::string data_path;
 }
 
 // -----------------------------------------------------------------------------
-TextEditor::TextEditor()
-    : m_findWindow(nullptr),
-      m_replaceWindow(nullptr),
-      m_gotoLineWindow(nullptr),
-      m_noNames(0)
+TextEditor::TextEditor(Gtk::Statusbar& statusbar)
+    : m_status_bar(statusbar),
+      m_find_window(nullptr),
+      m_replace_window(nullptr),
+      m_goto_line_window(nullptr),
+      m_nonames(0)
 {
     set_scrollable();
     signal_switch_page().connect(sigc::mem_fun(*this, &TextEditor::onPageSwitched));
 
     // FIXME Default Syntax coloration is Forth
-    m_languageManager = Gsv::LanguageManager::get_default();
-    m_language = m_languageManager->get_language("forth");
+    m_language_manager = Gsv::LanguageManager::get_default();
+    m_language = m_language_manager->get_language("forth");
     if (!m_language)
     {
         std::cerr << "[WARNING] TextEditor::TextEditor: No syntax highlighted found for Forth" << std::endl;
@@ -66,12 +67,12 @@ TextEditor::~TextEditor()
 // void TextEditor::populatePopovMenu(Gtk::ApplicationWindow& win, Glib::RefPtr<Gio::Menu> menu)
 void TextEditor::populatePopovMenu(BaseWindow& win)
 {
-    m_submenuTextEditor = Gio::Menu::create();
-    win.m_menu->append_submenu("Text Editor", m_submenuTextEditor);
+    m_submenu_text_editor = Gio::Menu::create();
+    win.m_menu->append_submenu("Text Editor", m_submenu_text_editor);
 
-    m_submenuTextEditor->append("Find", "win.find-text");
-    m_submenuTextEditor->append("Replace", "win.replace-text");
-    m_submenuTextEditor->append("Go to line", "win.goto-line");
+    m_submenu_text_editor->append("Find", "win.find-text");
+    m_submenu_text_editor->append("Replace", "win.replace-text");
+    m_submenu_text_editor->append("Go to line", "win.goto-line");
 
     win.add_action("find-text", sigc::mem_fun(*this, &TextEditor::findWindow));
     win.add_action("replace-text", sigc::mem_fun(*this, &TextEditor::replaceWindow));
@@ -81,19 +82,19 @@ void TextEditor::populatePopovMenu(BaseWindow& win)
 // -----------------------------------------------------------------------------
 void TextEditor::findWindow()
 {
-    m_findWindow.show();
+    m_find_window.show();
 }
 
 // -----------------------------------------------------------------------------
 void TextEditor::replaceWindow()
 {
-    m_replaceWindow.show();
+    m_replace_window.show();
 }
 
 // -----------------------------------------------------------------------------
 void TextEditor::gotoLineWindow()
 {
-    m_gotoLineWindow.show();
+    m_goto_line_window.show();
 }
 
 // -----------------------------------------------------------------------------
@@ -117,12 +118,12 @@ void TextEditor::onPageSwitched(Gtk::Widget* /*page*/, guint page_num)
     TextDocument* doc = TextEditor::document(page_num);
     if (doc != nullptr)
     {
-        m_findWindow.bind(&(doc->m_textview));
-        m_findWindow.title(doc->title());
-        m_replaceWindow.bind(&(doc->m_textview));
-        m_replaceWindow.title(doc->title());
-        m_gotoLineWindow.bind(&(doc->m_textview));
-        m_gotoLineWindow.title(doc->title());
+        m_find_window.bind(&(doc->m_textview));
+        m_find_window.title(doc->title());
+        m_replace_window.bind(&(doc->m_textview));
+        m_replace_window.title(doc->title());
+        m_goto_line_window.bind(&(doc->m_textview));
+        m_goto_line_window.title(doc->title());
     }
 }
 
@@ -132,6 +133,7 @@ void TextEditor::clear(TextDocument* doc)
     if (nullptr != doc)
     {
         doc->clear();
+        m_status_bar.push("Cleared!");
     }
 }
 
@@ -142,6 +144,7 @@ void TextEditor::undo()
     if (nullptr != doc)
     {
         doc->undo();
+        m_status_bar.push("Undo!");
     }
 }
 
@@ -152,6 +155,7 @@ void TextEditor::redo()
     if (nullptr != doc)
     {
         doc->redo();
+        m_status_bar.push("Redo!");
     }
 }
 
@@ -170,6 +174,7 @@ bool TextEditor::saveAll()
         }
     }
 
+    m_status_bar.push(all_saved ? "all documents saved" : "some documents have not been saved");
     return all_saved;
 }
 
@@ -180,51 +185,63 @@ bool TextEditor::askForSaving(TextDocument* doc, const bool closing)
         return false;
 
     Gtk::MessageDialog dialog((Gtk::Window&) (*get_toplevel()),
-                              "The document '" + doc->title() +
-                              "' has been modified. Do you want to save before "
-                              "closing it ?",
-                              false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO);
+                              "Save your document?",
+                              false, Gtk::MESSAGE_QUESTION,
+                              Gtk::BUTTONS_YES_NO);
+    dialog.set_secondary_text("The document '" + doc->title() + "' has been modified."
+                              " Do you want to save before closing it ?");
     dialog.add_button(Gtk::Stock::SAVE_AS, Gtk::RESPONSE_APPLY);
 
+    Gtk::Image* image = Gtk::manage(new Gtk::Image(Gtk::Stock::DIALOG_WARNING, Gtk::ICON_SIZE_DIALOG));
+    dialog.set_image(*image);
+    dialog.show_all();
+
     int result = dialog.run();
+    bool ret;
     if (Gtk::RESPONSE_YES == result)
-    {LOGE("TextEditor::askForSaving");
-        return TextEditor::save(doc);
+    {
+        ret = TextEditor::save(doc);
     }
     else if (Gtk::RESPONSE_APPLY == result)
     {
-        return TextEditor::saveAs(doc);
+        ret = TextEditor::saveAs(doc);
     }
     else // other button
     {
-        if (closing)
+        if (closing) // TODO sauver le fichier dans /tmp/SimForth/canceled
         {
             doc->setModified(false);
-            return true;
+            ret = true;
         }
         else
         {
-            return !doc->isModified();
+            ret = !doc->isModified();
         }
     }
+
+    if (ret)
+    {
+        m_status_bar.push(ret ? "Saved!" : "Failed saving!");
+    }
+    return ret;
 }
 
 // -----------------------------------------------------------------------------
 bool TextEditor::save(TextDocument* doc)
-{LOGE("TextEditor::save111");
+{
     if (nullptr == doc)
         return false;
 
     if (!doc->hasPathSet())
-    {LOGE("TextEditor::save222");
+    {
         return TextEditor::saveAs(doc);
     }
     else if (doc->isReadOnly())
-    {LOGE("TextEditor::save333");
+    {
         return TextEditor::saveAs(doc);
     }
     else
-    {LOGE("TextEditor::save444");
+    {
         return doc->save();
     }
 }
@@ -269,9 +286,11 @@ bool TextEditor::saveAs(TextDocument* doc)
         if (!ret)
         {
             DialogFailure(doc);
+            m_status_bar.push("Failed saving document!");
         }
         return ret;
     }
+    m_status_bar.push("Saving document canceled!");
     return false;
 }
 
@@ -280,7 +299,9 @@ bool TextEditor::close(TextDocument* doc)
 {
     if ((nullptr != doc) && (doc->isModified()))
     {
-        return askForSaving(doc, true);
+        bool ret = askForSaving(doc, true);
+        m_status_bar.push(ret ? "Closed!" : "Failed closing: could not save document");
+        return ret;
     }
     return false;
 }
@@ -299,6 +320,7 @@ bool TextEditor::closeAll()
             all_closed &= askForSaving(doc, true);
         }
     }
+    m_status_bar.push(all_closed ? "all documents closed" : "some documents could not been closed: saving failure");
     return all_closed;
 }
 
@@ -333,8 +355,11 @@ bool TextEditor::open()
     int result = dialog.run();
     if (Gtk::RESPONSE_OK == result)
     {
-        return TextEditor::open(dialog.get_filename());
+        bool ret = TextEditor::open(dialog.get_filename());
+        m_status_bar.push(ret ? "Document opened!" : "Failed opening document");
+        return ret;
     }
+    m_status_bar.push("Open canceled!");
     return false;
 }
 
@@ -352,12 +377,15 @@ bool TextEditor::open(std::string const& filename)
         {
             //std::cout << "'" << filename << "' already opened\n"; // TODO statusbar
             set_current_page(k);
+            m_status_bar.push("Document already opened!");
             return true;
         }
     }
 
     TextDocument* doc = addTab(filename);
-    return doc->load(filename);
+    bool ret = doc->load(filename);
+    m_status_bar.push(ret ? "Document loaded!" : "Failure when loading document!");
+    return ret;
 }
 
 // -----------------------------------------------------------------------------
@@ -379,8 +407,8 @@ void TextEditor::newDocument(std::string const& title)
 {
     TextDocument* doc = createDocument();
 
-    ++m_noNames;
-    doc->title(title + ' ' + std::to_string(m_noNames));
+    ++m_nonames;
+    doc->title(title + ' ' + std::to_string(m_nonames));
     doc->m_closeLabel.bind(*this, *doc, [this, doc]()
     {
         return this->askForSaving(doc, true);

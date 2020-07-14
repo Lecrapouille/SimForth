@@ -26,7 +26,7 @@ ForthWindow::ForthWindow(std::stringstream& buffer_cout, std::stringstream& buff
       m_buffer_cout(buffer_cout),
       m_buffer_cerr(buffer_cerr),
       m_forth(simforth),
-      m_forth_editor(buffer_cout, buffer_cerr, simforth)
+      m_forth_editor(buffer_cout, buffer_cerr, m_status_bar, simforth)
 {
     populatePopovMenu();
     populateToolBar();

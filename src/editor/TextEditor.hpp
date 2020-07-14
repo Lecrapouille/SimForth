@@ -38,7 +38,7 @@ public:
     //--------------------------------------------------------------------------
     //! \brief Constructor. Create all widgets needed by the text editor.
     //--------------------------------------------------------------------------
-    TextEditor();//TODO add &statusbar
+    TextEditor(Gtk::Statusbar& statusbar);
 
     //--------------------------------------------------------------------------
     //! \brief Destructor. Ask the user if he wants to save unsaved documents
@@ -207,24 +207,26 @@ private:
 
 protected:
 
+    //! \brief
+    Gtk::Statusbar& m_status_bar;
     //! \brief Window used for searching a text inside the current document.
-    FindWindow m_findWindow;
+    FindWindow m_find_window;
     //! \brief Window used for replacing a text inside the current document.
-    ReplaceWindow m_replaceWindow;
+    ReplaceWindow m_replace_window;
     //! \brief Window used for jumping to a given line inside the current
     //! document.
-    GotoLineWindow m_gotoLineWindow;
+    GotoLineWindow m_goto_line_window;
     //! brief
-    Glib::RefPtr<Gsv::LanguageManager> m_languageManager;
+    Glib::RefPtr<Gsv::LanguageManager> m_language_manager;
     //! brief
     Glib::RefPtr<Gsv::Language> m_language;
     //! brief
-    Glib::RefPtr<Gio::Menu> m_submenuTextEditor;
+    Glib::RefPtr<Gio::Menu> m_submenu_text_editor;
 
 private:
 
     //! \brief Counter of "no name" documents.
-    int m_noNames;
+    int m_nonames;
 };
 
 #endif // GTKMM_TEXT_EDITOR_HPP

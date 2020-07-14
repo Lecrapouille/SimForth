@@ -118,6 +118,9 @@ public:
 
         Gtk::MessageDialog dialog(m_win, e.what(), false, Gtk::MESSAGE_WARNING);
         dialog.set_secondary_text(msg);
+        Gtk::Image* image = Gtk::manage(new Gtk::Image(Gtk::Stock::DIALOG_WARNING, Gtk::ICON_SIZE_DIALOG));
+        dialog.set_image(*image);
+        dialog.show_all();
         dialog.run();
     }
 

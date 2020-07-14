@@ -55,7 +55,7 @@ public:
     //! \brief Constructor: create all GTKmm widgets.
     //--------------------------------------------------------------------------
     ForthEditor(std::stringstream& buffer_cout, std::stringstream& buffer_cerr,
-                forth::Forth& forth);
+                Gtk::Statusbar& statusbar, forth::Forth& forth);
 
     //--------------------------------------------------------------------------
     //! \brief Destructor: Check for unsaved document when destroying the GTKmm
@@ -187,7 +187,6 @@ private:
     Gtk::HBox              m_hbox2;
     Gtk::Notebook          m_notebook[3];
     Gtk::Toolbar           m_toolbars[2];
-    Gtk::Statusbar         m_statusbar;
     Gtk::SeparatorToolItem m_separator[2];
     Gtk::TextView          m_results;
     Gtk::TextView          m_history;

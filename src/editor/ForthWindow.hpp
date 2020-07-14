@@ -84,6 +84,7 @@ private:
     //! \brief Forth interpreter
     forth::Forth&           m_forth;
     //! \brief Text editor specialized for Forth scripts
+    Gtk::Statusbar          m_status_bar;
     ForthEditor             m_forth_editor;
     Gtk::Popover            m_menu_popov;
     Glib::RefPtr<Gio::Menu> m_submenu_forth_plugins;

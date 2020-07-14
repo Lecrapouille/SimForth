@@ -32,8 +32,9 @@
 
 // -----------------------------------------------------------------------------
 ForthEditor::ForthEditor(std::stringstream& buffer_cout, std::stringstream& buffer_cerr,
-                         forth::Forth& forth)
-    : m_buffer_cout(buffer_cout),
+                         Gtk::Statusbar& statusbar, forth::Forth& forth)
+    : TextEditor(statusbar),
+      m_buffer_cout(buffer_cout),
       m_buffer_cerr(buffer_cerr),
       m_forth(forth)
 {
@@ -42,7 +43,7 @@ ForthEditor::ForthEditor(std::stringstream& buffer_cout, std::stringstream& buff
     m_hbox.pack_start(m_vbox);
     m_vbox.pack_start(*this, Gtk::PACK_EXPAND_WIDGET);
     m_vbox.pack_start(m_toolbars[FORTH_TOOLBAR_CMDS], Gtk::PACK_SHRINK);
-    m_vbox.pack_start(m_statusbar, Gtk::PACK_SHRINK);
+    m_vbox.pack_start(m_status_bar, Gtk::PACK_SHRINK);
     m_vbox.pack_start(m_notebook[0], Gtk::PACK_EXPAND_WIDGET);
 
     addNoteBookPage(0, ForthResTab, m_results, "_Result");
@@ -199,7 +200,7 @@ void ForthEditor::addNoteBookPage(uint32_t const nth_notebook, uint32_t const nt
 // *****************************************************************************
 void ForthEditor::statusBarSays(std::string const& message)
 {
-    m_statusbar.push(message);
+    m_status_bar.push(message);
 }
 
 // *****************************************************************************
@@ -359,7 +360,7 @@ bool ForthEditor::interpreteCurrentDocument()
 
     if (nullptr == doc)
     {
-        m_statusbar.push("Please, feed me with a Forth script !");
+        m_status_bar.push("Please, feed me with a Forth script !");
         return false;
     }
 
@@ -402,7 +403,7 @@ bool ForthEditor::interpreteScript(std::string const& script, std::string const&
         LOGI("Succeeded executing script '%s'", filename.c_str());
 
         m_elapsed_time = std::chrono::duration_cast<ns>(t1 - t0);
-        m_statusbar.push(elapsedTime());
+        m_status_bar.push(elapsedTime());
 
         // Paste the script Forth result in the "Result" tab of the notebook
         buf->insert(buf->end(), "m_forth.message: TBD");
@@ -420,7 +421,7 @@ bool ForthEditor::interpreteScript(std::string const& script, std::string const&
         LOGE("Failed executing script '%s'", filename.c_str());
 
         // Text view: indiquer ligne ko
-        m_statusbar.push("FAILED");
+        m_status_bar.push("FAILED");
 
         // Show the faulty document
         // TODO TextEditor::open(m_forth.nameStreamInFault());
@@ -460,7 +461,7 @@ void ForthEditor::onForthButtonClicked(Gtk::ToolButton& button)
         else
         {
             // Do not exec the script forth while in edition
-            m_statusbar.push("Use ignored saving the Forth script button"); // FIXME: inutile car ecrase par le resultat de l'exec
+            m_status_bar.push("Use ignored saving the Forth script button"); // FIXME: inutile car ecrase par le resultat de l'exec
         }
     }
 

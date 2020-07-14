@@ -100,7 +100,6 @@ void ForthEditor::populateToolBars()
             button->set_label("Enable Trace");
             button->set_stock_id(Gtk::Stock::CONVERT);
             button->set_tooltip_text("Enable or disable traces");
-            std::cout << "avant " << button/*->get_active()*/ << std::endl;
             toolbar.append(*button, [button, this]
             {
                 if (button->get_active())
@@ -226,7 +225,7 @@ void ForthEditor::completeForthName(int const key)
 // *****************************************************************************
 void ForthEditor::createEmptyScript()
 {
-    TextEditor::empty("New Forth script");
+    TextEditor::newDocument("New Forth script");
 }
 
 // *****************************************************************************
@@ -234,7 +233,7 @@ void ForthEditor::createEmptyScript()
 // *****************************************************************************
 void ForthEditor::createTemplateScript()
 {
-    ForthEditor::empty();
+    ForthEditor::createDocument();
     TextDocument* doc = TextEditor::document();
     if (nullptr == doc)
         return ;

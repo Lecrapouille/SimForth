@@ -1,13 +1,13 @@
 #include "TextDocument.hpp"
+#include "MyLogger/Logger.hpp"
 #include <fstream>
-
-#include <iostream> //TODO
+#include <unistd.h>
 
 // -----------------------------------------------------------------------------
 TextDocument::TextDocument(Glib::RefPtr<Gsv::Language> language)
     : Gtk::ScrolledWindow(),
-      m_close_label(""), // FIXME a passer en param
-      m_filename("")
+      m_closeLabel(""), // FIXME a passer en param
+      m_path("")
 {
     Gtk::ScrolledWindow::add(m_textview);
     Gtk::ScrolledWindow::set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
@@ -39,64 +39,42 @@ TextDocument::TextDocument(Glib::RefPtr<Gsv::Language> language)
   }*/
 
 // -----------------------------------------------------------------------------
-bool TextDocument::save() // FIXME shall return error message instead of gtk dialog, the caller can display the message on a dialog
-{
-    bool res = true;
-
-    if (TextDocument::isModified())
+bool TextDocument::save()
+{LOGE("TextDocument::save()111");
+    if (!TextDocument::isModified())
+        return true;
+LOGE("TextDocument::save()222");
+    std::ofstream outfile;
+    outfile.open(m_path, std::fstream::out);
+    if (!outfile)
     {
-        std::ofstream outfile;
-
-        // FIXME BUG si  m_filename == ""
-        outfile.open(m_filename, std::fstream::out);
-        if (outfile)
-        {
-            outfile << m_buffer->get_text();
-            outfile.close();
-            setModified(false);
-            m_close_label.set_tooltip_text(m_filename);
-        }
-        else
-        {
-            std::string why = strerror(errno);
-            //LOGF("could not save the file '%s' reason was '%s'",
-            //     m_filename.c_str(), why.c_str());
-            Gtk::MessageDialog dialog((Gtk::Window&) (*m_textview.get_toplevel()),
-                                      "Could not save '" + m_filename + "'",
-                                      false, Gtk::MESSAGE_WARNING);
-            dialog.set_secondary_text("Reason was: " + why);
-            dialog.run();
-            res = false;
-        }
+        LOGE("Failed saving the file '%s' reason was '%s'",
+             m_path.c_str(), strerror(errno));
+        m_errno = errno;
+        outfile.close();
+        return false;
     }
-    return res;
+LOGE("TextDocument::save()333");
+    outfile << m_buffer->get_text();
+    outfile.close();
+    setModified(false);
+    m_closeLabel.set_tooltip_text(m_path);
+    return true;
 }
 
 // -----------------------------------------------------------------------------
 bool TextDocument::saveAs(std::string const& filename)
 {
     std::string title = filename.substr(filename.find_last_of("/") + 1);
-    m_close_label.title(title);
-    m_filename = filename;
+    m_closeLabel.title(title);
+    m_path = filename;
     return TextDocument::save();
 }
 
 // -----------------------------------------------------------------------------
 bool TextDocument::close()
 {
-    bool res = true;
-
-    if (isModified())
-    {
-        res = save();
-    }
-
-    if (res)
-    {
-        return m_close_label.close();
-    }
-
-    return res;
+    return m_closeLabel.close();
 }
 
 // -----------------------------------------------------------------------------
@@ -108,25 +86,15 @@ bool TextDocument::load(std::string const& filename, bool clear)
     if (clear)
     {
         TextDocument::clear();
-        m_filename = filename;
+        m_path = filename;
         std::string title = filename.substr(filename.find_last_of("/") + 1);
-        m_close_label.title(title);
-        m_close_label.set_tooltip_text(filename);
+        m_closeLabel.title(title);
+        m_closeLabel.set_tooltip_text(filename);
     }
 
     infile.open(filename, std::fstream::in);
     if (!infile)
-    {
-        std::string why = strerror(errno);
-        //LOGF("could not open the file '%s' reason was '%s'",
-        //     filename.c_str(), why.c_str());
-        Gtk::MessageDialog dialog((Gtk::Window&) (*m_textview.get_toplevel()),
-                                  "Could not load '" + filename + "'",
-                                  false, Gtk::MESSAGE_WARNING);
-        dialog.set_secondary_text("Reason was: " + why);
-        dialog.run();
         return false;
-    }
 
     while (std::getline(infile, line))
     {
@@ -163,4 +131,15 @@ void TextDocument::undo()
         m_buffer->undo();
         setModified(m_buffer->can_undo());
     }
+}
+
+// -----------------------------------------------------------------------------
+bool TextDocument::isReadOnly() const
+{
+    bool ret = access(m_path.c_str(), W_OK);
+    if (ret)
+    {// FIXME chnager la couleur du fond en rouge
+        LOGW("The document '%s' is read-only", m_path.c_str());
+    }
+    return ret;
 }

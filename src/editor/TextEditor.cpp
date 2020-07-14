@@ -29,17 +29,17 @@ extern const std::string data_path;
 
 // -----------------------------------------------------------------------------
 TextEditor::TextEditor()
-    : m_findwindow(nullptr),
-      m_replacewindow(nullptr),
-      m_gotolinewindow(nullptr),
-      m_nb_nonames(0)
+    : m_findWindow(nullptr),
+      m_replaceWindow(nullptr),
+      m_gotoLineWindow(nullptr),
+      m_noNames(0)
 {
     set_scrollable();
     signal_switch_page().connect(sigc::mem_fun(*this, &TextEditor::onPageSwitched));
 
     // FIXME Default Syntax coloration is Forth
-    m_language_manager = Gsv::LanguageManager::get_default();
-    m_language = m_language_manager->get_language("forth");
+    m_languageManager = Gsv::LanguageManager::get_default();
+    m_language = m_languageManager->get_language("forth");
     if (!m_language)
     {
         std::cerr << "[WARNING] TextEditor::TextEditor: No syntax highlighted found for Forth" << std::endl;
@@ -57,26 +57,102 @@ TextEditor::TextEditor()
 }
 
 // -----------------------------------------------------------------------------
-// FIXME:: le seul endroit ou appeller les sauvegardes
-// -----------------------------------------------------------------------------
 TextEditor::~TextEditor()
 {
     TextEditor::closeAll();
 }
 
 // -----------------------------------------------------------------------------
-void TextEditor::populatePopovMenu(BaseWindow& win)//Gtk::ApplicationWindow& win, Glib::RefPtr<Gio::Menu> menu)
+// void TextEditor::populatePopovMenu(Gtk::ApplicationWindow& win, Glib::RefPtr<Gio::Menu> menu)
+void TextEditor::populatePopovMenu(BaseWindow& win)
 {
-    m_submenu_text_editor = Gio::Menu::create();
-    win.m_menu->append_submenu("Text Editor", m_submenu_text_editor);
+    m_submenuTextEditor = Gio::Menu::create();
+    win.m_menu->append_submenu("Text Editor", m_submenuTextEditor);
 
-    m_submenu_text_editor->append("Find", "win.find-text");
-    m_submenu_text_editor->append("Replace", "win.replace-text");
-    m_submenu_text_editor->append("Go to line", "win.goto-line");
+    m_submenuTextEditor->append("Find", "win.find-text");
+    m_submenuTextEditor->append("Replace", "win.replace-text");
+    m_submenuTextEditor->append("Go to line", "win.goto-line");
 
-    win.add_action("find-text", sigc::mem_fun(*this, &TextEditor::find));
-    win.add_action("replace-text", sigc::mem_fun(*this, &TextEditor::replace));
-    win.add_action("goto-line", sigc::mem_fun(*this, &TextEditor::gotoLine));
+    win.add_action("find-text", sigc::mem_fun(*this, &TextEditor::findWindow));
+    win.add_action("replace-text", sigc::mem_fun(*this, &TextEditor::replaceWindow));
+    win.add_action("goto-line", sigc::mem_fun(*this, &TextEditor::gotoLineWindow));
+}
+
+// -----------------------------------------------------------------------------
+void TextEditor::findWindow()
+{
+    m_findWindow.show();
+}
+
+// -----------------------------------------------------------------------------
+void TextEditor::replaceWindow()
+{
+    m_replaceWindow.show();
+}
+
+// -----------------------------------------------------------------------------
+void TextEditor::gotoLineWindow()
+{
+    m_gotoLineWindow.show();
+}
+
+// -----------------------------------------------------------------------------
+TextDocument* TextEditor::document()
+{
+    int page = get_current_page();
+    Gtk::Widget *widget = get_nth_page(page);
+    return dynamic_cast<TextDocument*>(widget);
+}
+
+// -----------------------------------------------------------------------------
+TextDocument* TextEditor::document(const uint32_t nth)
+{
+    Gtk::Widget *widget = get_nth_page(static_cast<int>(nth));
+    return dynamic_cast<TextDocument*>(widget);
+}
+
+// -----------------------------------------------------------------------------
+void TextEditor::onPageSwitched(Gtk::Widget* /*page*/, guint page_num)
+{
+    TextDocument* doc = TextEditor::document(page_num);
+    if (doc != nullptr)
+    {
+        m_findWindow.bind(&(doc->m_textview));
+        m_findWindow.title(doc->title());
+        m_replaceWindow.bind(&(doc->m_textview));
+        m_replaceWindow.title(doc->title());
+        m_gotoLineWindow.bind(&(doc->m_textview));
+        m_gotoLineWindow.title(doc->title());
+    }
+}
+
+// -----------------------------------------------------------------------------
+void TextEditor::clear(TextDocument* doc)
+{
+    if (nullptr != doc)
+    {
+        doc->clear();
+    }
+}
+
+// -----------------------------------------------------------------------------
+void TextEditor::undo()
+{
+    TextDocument* doc = TextEditor::document();
+    if (nullptr != doc)
+    {
+        doc->undo();
+    }
+}
+
+// -----------------------------------------------------------------------------
+void TextEditor::redo()
+{
+    TextDocument* doc = TextEditor::document();
+    if (nullptr != doc)
+    {
+        doc->redo();
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -87,10 +163,10 @@ bool TextEditor::saveAll()
     for (int k = 0; k < get_n_pages(); ++k)
     {
         set_current_page(k);
-        TextDocument *doc = TextEditor::document();
+        TextDocument* doc = TextEditor::document();
         if ((nullptr != doc) && (doc->isModified()))
         {
-            all_saved &= dialogSave(doc);
+            all_saved &= askForSaving(doc);
         }
     }
 
@@ -98,100 +174,22 @@ bool TextEditor::saveAll()
 }
 
 // -----------------------------------------------------------------------------
-void TextEditor::undo()
+bool TextEditor::askForSaving(TextDocument* doc, const bool closing)
 {
-    TextDocument *doc = TextEditor::document();
-    if (nullptr != doc)
-    {
-        doc->undo();
-    }
-}
+    if (nullptr == doc)
+        return false;
 
-// -----------------------------------------------------------------------------
-void TextEditor::redo()
-{
-    TextDocument *doc = TextEditor::document();
-    if (nullptr != doc)
-    {
-        doc->redo();
-    }
-}
-
-// -----------------------------------------------------------------------------
-bool TextEditor::close()
-{
-    bool res = false;
-    TextDocument *doc = TextEditor::document();
-
-    if ((nullptr != doc) && (doc->isModified()))
-    {
-        res = dialogSave(doc, true);
-    }
-    return res;
-}
-
-// -----------------------------------------------------------------------------
-bool TextEditor::closeAll()
-{
-    bool all_closed = true;
-
-    for (int k = 0; k < get_n_pages(); ++k)
-    {
-        set_current_page(k);
-        TextDocument *doc = TextEditor::document();
-        if ((nullptr != doc) && (doc->isModified()))
-        {
-            all_closed &= dialogSave(doc, true);
-        }
-    }
-    return all_closed;
-}
-
-// -----------------------------------------------------------------------------
-TextDocument* TextEditor::document()
-{
-    int page = get_current_page();
-    Gtk::Widget *widget = get_nth_page(page);
-    if (NULL == widget)
-    {
-        return nullptr;
-    }
-    return dynamic_cast<TextDocument*>(widget);
-}
-
-// -----------------------------------------------------------------------------
-TextDocument* TextEditor::document(const uint32_t nth)
-{
-    Gtk::Widget *widget = get_nth_page(static_cast<int>(nth));
-    if (nullptr == widget)
-    {
-        return nullptr;
-    }
-    return dynamic_cast<TextDocument*>(widget);
-}
-
-// -----------------------------------------------------------------------------
-bool TextEditor::dialogSave(TextDocument *doc, const bool closing)
-{
-    // FIXME: faire apparaitre avant de tuer la fenetre principale sinon le
-    // dialog peut etre cache par d'autres fentres
     Gtk::MessageDialog dialog((Gtk::Window&) (*get_toplevel()),
-                              "The document '" + doc->m_close_label.title() +
-                              "' has been modified. Do you want to save it now ?",
+                              "The document '" + doc->title() +
+                              "' has been modified. Do you want to save before "
+                              "closing it ?",
                               false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO);
     dialog.add_button(Gtk::Stock::SAVE_AS, Gtk::RESPONSE_APPLY);
 
     int result = dialog.run();
     if (Gtk::RESPONSE_YES == result)
-    {
-        if (0 == doc->m_filename.compare(""))
-        {
-            return TextEditor::saveAs(doc);
-        }
-        else
-        {
-            return doc->save();
-        }
+    {LOGE("TextEditor::askForSaving");
+        return TextEditor::save(doc);
     }
     else if (Gtk::RESPONSE_APPLY == result)
     {
@@ -204,17 +202,45 @@ bool TextEditor::dialogSave(TextDocument *doc, const bool closing)
             doc->setModified(false);
             return true;
         }
-        return !doc->isModified();
+        else
+        {
+            return !doc->isModified();
+        }
     }
 }
 
 // -----------------------------------------------------------------------------
-bool TextEditor::saveAs(TextDocument *doc)
+bool TextEditor::save(TextDocument* doc)
+{LOGE("TextEditor::save111");
+    if (nullptr == doc)
+        return false;
+
+    if (!doc->hasPathSet())
+    {LOGE("TextEditor::save222");
+        return TextEditor::saveAs(doc);
+    }
+    else if (doc->isReadOnly())
+    {LOGE("TextEditor::save333");
+        return TextEditor::saveAs(doc);
+    }
+    else
+    {LOGE("TextEditor::save444");
+        return doc->save();
+    }
+}
+
+// -----------------------------------------------------------------------------
+bool TextEditor::saveAs(TextDocument* doc)
 {
-    Gtk::FileChooserDialog dialog("Please choose a file to save as", Gtk::FILE_CHOOSER_ACTION_SAVE);
+    if (nullptr == doc)
+        return false;
+
+    Gtk::FileChooserDialog dialog("Please choose a file to save as",
+                                  Gtk::FILE_CHOOSER_ACTION_SAVE);
     dialog.set_transient_for((Gtk::Window&) (*get_toplevel()));
 
-    // Set to the resource path while this is method seems to be deprecated by GTK+ team.
+    // Set to the resource path while this is method seems to be deprecated by
+    // GTK+ team.
     dialog.set_current_folder(config::data_path);
 
     // Add response buttons the the dialog:
@@ -240,13 +266,40 @@ bool TextEditor::saveAs(TextDocument *doc)
     if (Gtk::RESPONSE_OK == result)
     {
         bool ret = doc->saveAs(dialog.get_filename());
-        if (ret)
+        if (!ret)
         {
-            // m_nb_nonames--;
+            DialogFailure(doc);
         }
         return ret;
     }
     return false;
+}
+
+// -----------------------------------------------------------------------------
+bool TextEditor::close(TextDocument* doc)
+{
+    if ((nullptr != doc) && (doc->isModified()))
+    {
+        return askForSaving(doc, true);
+    }
+    return false;
+}
+
+// -----------------------------------------------------------------------------
+bool TextEditor::closeAll()
+{
+    bool all_closed = true;
+
+    for (int k = 0; k < get_n_pages(); ++k)
+    {
+        set_current_page(k);
+        TextDocument* doc = TextEditor::document();
+        if ((nullptr != doc) && (doc->isModified()))
+        {
+            all_closed &= askForSaving(doc, true);
+        }
+    }
+    return all_closed;
 }
 
 // -----------------------------------------------------------------------------
@@ -289,52 +342,51 @@ bool TextEditor::open()
 bool TextEditor::open(std::string const& filename)
 {
     int pages = get_n_pages();
-    if (pages < 0) return false;
+    if (pages < 0)
+        return false;
 
     // Already opened ? Switch the page
     for (int k = 0; k < pages; ++k)
     {
-        if (0 == document(static_cast<uint32_t>(k))->m_filename.compare(filename))
+        if (document(static_cast<uint32_t>(k))->filename() == filename)
         {
             //std::cout << "'" << filename << "' already opened\n"; // TODO statusbar
             set_current_page(k);
             return true;
         }
     }
-    return load(filename);
+
+    TextDocument* doc = addTab(filename);
+    return doc->load(filename);
 }
 
 // -----------------------------------------------------------------------------
-// When switching page on the notebook, reaffect windows find, replace to the switched document
-// -----------------------------------------------------------------------------
-void TextEditor::onPageSwitched(Gtk::Widget* /*page*/, guint page_num)
+void TextEditor::DialogFailure(TextDocument* doc)
 {
-    TextDocument* doc = TextEditor::document(page_num);
-    if (doc != nullptr)
-    {
-        m_findwindow.bind(&(doc->m_textview));
-        m_findwindow.title(doc->title());
-        m_replacewindow.bind(&(doc->m_textview));
-        m_replacewindow.title(doc->title());
-        m_gotolinewindow.bind(&(doc->m_textview));
-        m_gotolinewindow.title(doc->title());
-    }
+    if (nullptr == doc)
+        return ;
+
+    std::string why(strerror(doc->error()));
+    Gtk::MessageDialog dialog((Gtk::Window&) (*get_toplevel()),
+                              "Could not save '" + doc->filename() + "'",
+                              false, Gtk::MESSAGE_WARNING);
+    dialog.set_secondary_text("Reason was: " + why);
+    dialog.run();
 }
 
 // -----------------------------------------------------------------------------
-void TextEditor::empty(std::string const& title)
+void TextEditor::newDocument(std::string const& title)
 {
-    // FIXME check if GTKmm free it when closing the application
-    TextDocument *doc = createDocument();
+    TextDocument* doc = createDocument();
 
-    ++m_nb_nonames;
-    doc->m_close_label.title(title + ' ' + std::to_string(m_nb_nonames));
-    doc->m_close_label.bind(*this, *doc, [this, doc]()
+    ++m_noNames;
+    doc->title(title + ' ' + std::to_string(m_noNames));
+    doc->m_closeLabel.bind(*this, *doc, [this, doc]()
     {
-        return this->dialogSave(doc, true);
+        return this->askForSaving(doc, true);
     });
 
-    append_page(*doc, doc->m_close_label);
+    append_page(*doc, doc->m_closeLabel);
     show_all();
     set_current_page(-1);
 }
@@ -363,7 +415,7 @@ TextDocument *TextEditor::tab(std::string const& title)
 // -----------------------------------------------------------------------------
 TextDocument *TextEditor::addTab(std::string const& title)
 {
-    TextDocument *doc = tab(title);
+    TextDocument* doc = tab(title);
     if (nullptr == doc)
     {
         doc = addTab();
@@ -376,105 +428,13 @@ TextDocument *TextEditor::addTab(std::string const& title)
 // -----------------------------------------------------------------------------
 TextDocument *TextEditor::addTab()
 {
-    TextDocument *doc = createDocument();
-    append_page(*doc, doc->m_close_label);
+    TextDocument* doc = createDocument();
+    append_page(*doc, doc->m_closeLabel);
     show_all();
     set_current_page(-1);
-    doc->m_close_label.bind(*this, *doc, [this, doc]()
+    doc->m_closeLabel.bind(*this, *doc, [this, doc]()
     {
-        return this->dialogSave(doc, true);
+        return this->askForSaving(doc, true);
     });
     return doc;
-}
-
-// -----------------------------------------------------------------------------
-bool TextEditor::load(std::string const& filename)
-{
-    TextDocument *doc = addTab(filename);
-    //assert(nullptr != doc);
-    // FIXME: mettre en gris le fond si le document est en read-only
-    return doc->load(filename);
-}
-
-// -----------------------------------------------------------------------------
-void TextEditor::save()
-{
-    TextDocument* doc = document();
-
-    if (nullptr != doc)
-    {
-        if (0 == doc->m_filename.compare("")) // FIXME || read-only(file)
-        {
-            TextEditor::saveAs(doc);
-        }
-        else
-        {
-            doc->save();
-        }
-    }
-}
-
-// -----------------------------------------------------------------------------
-void TextEditor::saveAs()
-{
-    TextDocument* doc = document();
-
-    if (nullptr != doc)
-    {
-        TextEditor::saveAs(doc);
-    }
-}
-
-// -----------------------------------------------------------------------------
-// Return the UTF8 string from the current text editor
-// -----------------------------------------------------------------------------
-Glib::ustring TextEditor::text()
-{
-    TextDocument* doc = document();
-
-    if (nullptr != doc)
-    {
-        return doc->utext();
-    }
-    else
-    {
-        return Glib::ustring("");
-    }
-}
-
-// -----------------------------------------------------------------------------
-// Erase all text in the current text editor
-// -----------------------------------------------------------------------------
-void TextEditor::clear()
-{
-    TextDocument* doc = document();
-
-    if (nullptr != doc)
-    {
-        doc->clear();
-    }
-}
-
-// -----------------------------------------------------------------------------
-// Launch the search window
-// -----------------------------------------------------------------------------
-void TextEditor::find()
-{
-    m_findwindow.show();
-}
-
-// -----------------------------------------------------------------------------
-// Launch the find and replace window
-// -----------------------------------------------------------------------------
-void TextEditor::replace()
-{
-    m_replacewindow.show();
-}
-
-// -----------------------------------------------------------------------------
-// Launch the go to line window
-// -----------------------------------------------------------------------------
-void TextEditor::gotoLine()
-{
-    m_gotolinewindow.show();
 }

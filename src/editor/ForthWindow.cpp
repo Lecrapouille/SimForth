@@ -171,13 +171,13 @@ void ForthWindow::onRedoClicked()
 //------------------------------------------------------------------
 void ForthWindow::onSaveFileClicked()
 {
-    m_forth_editor.save();
+    m_forth_editor.save(m_forth_editor.document());
 }
 
 //------------------------------------------------------------------
 void ForthWindow::onSaveAsFileClicked()
 {
-    m_forth_editor.saveAs();
+    m_forth_editor.saveAs(m_forth_editor.document());
 }
 
 //------------------------------------------------------------------

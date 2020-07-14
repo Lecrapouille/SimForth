@@ -105,7 +105,7 @@ public:
     // -------------------------------------------------------------------------
     inline void title(std::string const& text)
     {
-        m_close_label.title(text);
+        m_closeLabel.title(text);
     }
 
     // -------------------------------------------------------------------------
@@ -113,7 +113,7 @@ public:
     // -------------------------------------------------------------------------
     inline Glib::ustring title() const
     {
-        return m_close_label.title();
+        return m_closeLabel.title();
     }
 
     // -------------------------------------------------------------------------
@@ -121,7 +121,7 @@ public:
     // -------------------------------------------------------------------------
     //inline void filename(std::string const& filename)
     //{
-    //    m_filename = filename;
+    //    m_path = filename;
     //}
 
     // -------------------------------------------------------------------------
@@ -129,7 +129,7 @@ public:
     // -------------------------------------------------------------------------
     inline const std::string& filename() const
     {
-        return m_filename;
+        return m_path;
     }
 
     // -------------------------------------------------------------------------
@@ -172,7 +172,41 @@ public:
     inline void setModified(const bool b)
     {
         m_buffer->set_modified(b);
-        m_close_label.asterisk(b);
+        m_closeLabel.asterisk(b);
+    }
+
+    // -------------------------------------------------------------------------
+    //! \brief Check if the save path is not empty.
+    // -------------------------------------------------------------------------
+    inline bool hasPathSet() const
+    {
+        return m_path.size() != 0u;
+    }
+
+    // -------------------------------------------------------------------------
+    //! \brief Check if the file is read only
+    // -------------------------------------------------------------------------
+    bool isReadOnly() const;
+
+    // -------------------------------------------------------------------------
+    //! \brief Bind the tab to a text document and its text editor and the
+    //! callback to call when closing an unsaved document.
+    //! \tparam F the functor/callback to call.
+    // -------------------------------------------------------------------------
+    template<typename F>
+    inline void bind(Gtk::Notebook& editor, Gtk::Widget& document, F saveFct)
+    {
+        m_closeLabel.bind(editor, document, saveFct);
+    }
+
+    // -------------------------------------------------------------------------
+    //! \brief Return the last errno and clear it
+    // -------------------------------------------------------------------------
+    inline int error()
+    {
+        int err = m_errno;
+        m_errno = 0;
+        return err;
     }
 
 private:
@@ -192,8 +226,9 @@ protected:
 
     Gsv::View m_textview;
     Glib::RefPtr<Gsv::Buffer> m_buffer;
-    CloseLabel m_close_label;
-    std::string m_filename;
+    CloseLabel m_closeLabel;
+    std::string m_path;
+    int m_errno = 0;
 };
 
 #endif

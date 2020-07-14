@@ -38,7 +38,7 @@ public:
     //--------------------------------------------------------------------------
     //! \brief Constructor. Create all widgets needed by the text editor.
     //--------------------------------------------------------------------------
-    TextEditor();
+    TextEditor();//TODO add &statusbar
 
     //--------------------------------------------------------------------------
     //! \brief Destructor. Ask the user if he wants to save unsaved documents
@@ -46,14 +46,70 @@ public:
     //--------------------------------------------------------------------------
     virtual ~TextEditor();
 
+    //--------------------------------------------------------------------------
+    //! \brief
+    //--------------------------------------------------------------------------
     void populatePopovMenu(BaseWindow& win);
-    //Gtk::ApplicationWindow& win, Glib::RefPtr<Gio::Menu> menu);
 
     //--------------------------------------------------------------------------
-    //! \brief Open a GTKmm dialog window for choosing the text file to open.
-    //! \return status if the file has been successfully opened.
+    //! \brief Open a window to allow you to find a text inside the current document.
     //--------------------------------------------------------------------------
-    bool open();
+    void findWindow();
+
+    //--------------------------------------------------------------------------
+    //! \brief Open a window to allow you to replace a text inside the current document.
+    //--------------------------------------------------------------------------
+    void replaceWindow();
+
+    //--------------------------------------------------------------------------
+    //! \brief Open a window to allow you to jump to the desired line inside the
+    //! current document.
+    //--------------------------------------------------------------------------
+    void gotoLineWindow();
+
+    //--------------------------------------------------------------------------
+    //! \brief Return the current document (holded by the opened tab).
+    //! \return return the document or nullptr if no document is present.
+    //--------------------------------------------------------------------------
+    TextDocument* document();
+
+    //--------------------------------------------------------------------------
+    //! \brief Return the document refered by the nth tab of the Notebook.
+    //! \return return the document or nullptr if nth refers to nothing.
+    //--------------------------------------------------------------------------
+    TextDocument* document(const uint32_t nth);
+
+    //--------------------------------------------------------------------------
+    //! \brief Clear the whole text of the current document.
+    //--------------------------------------------------------------------------
+    void clear(TextDocument* doc);
+
+    //--------------------------------------------------------------------------
+    //! \brief Save all documents.
+    //--------------------------------------------------------------------------
+    bool saveAll();
+
+    //--------------------------------------------------------------------------
+    //! \brief Save the current document.
+    //--------------------------------------------------------------------------
+    bool save(TextDocument* doc);
+
+    //--------------------------------------------------------------------------
+    //! \brief Open a GTKmm dialog to save as a document.
+    //--------------------------------------------------------------------------
+    bool saveAs(TextDocument* doc);
+
+    //--------------------------------------------------------------------------
+    //! \brief Close the current document. If the document is unsaved a GTKmm
+    //! dialog window offers you to path to save in.
+    //--------------------------------------------------------------------------
+    bool close(TextDocument* doc);
+
+    //--------------------------------------------------------------------------
+    //! \brief Close all documents. If a document is unsaved a GTKmm dialog
+    //! window offers you to path to save in.
+    //--------------------------------------------------------------------------
+    bool closeAll();
 
     //--------------------------------------------------------------------------
     //! \brief Open the text file indicated by its path given as param.
@@ -63,55 +119,17 @@ public:
     bool open(std::string const& filename);
 
     //--------------------------------------------------------------------------
+    //! \brief Open a GTKmm dialog window for choosing the text file to open.
+    //! \return status if the file has been successfully opened.
+    //--------------------------------------------------------------------------
+    bool open();
+
+    //--------------------------------------------------------------------------
     //! \brief Create a new and empty document.
     //! \param title The title of the document shown in the Gtkmm Notebook tab.
     //! The title may be different to the document path.
     //--------------------------------------------------------------------------
-    void empty(std::string const& title = "New document");
-
-    //--------------------------------------------------------------------------
-    //! \brief Save the current document.
-    //--------------------------------------------------------------------------
-    void save();
-
-    //--------------------------------------------------------------------------
-    //! \brief Open a GTKmm dialog window for choosing the new path of the file
-    //! in which the current document will be save in.
-    //! \todo shall return a bool ?
-    //--------------------------------------------------------------------------
-    void saveAs();
-
-    //--------------------------------------------------------------------------
-    //! \brief Save all documents.
-    //--------------------------------------------------------------------------
-    bool saveAll();
-
-    //--------------------------------------------------------------------------
-    //! \brief Close the current document. If the document is unsaved a GTKmm
-    //! dialog window offers you to path to save in.
-    //--------------------------------------------------------------------------
-    bool close();
-
-    //--------------------------------------------------------------------------
-    //! \brief Close all documents. If a document is unsaved a GTKmm dialog
-    //! window offers you to path to save in.
-    //--------------------------------------------------------------------------
-    bool closeAll();
-
-    //--------------------------------------------------------------------------
-    //! \brief Return a copy of the whole UTF8 text of the current document.
-    //--------------------------------------------------------------------------
-    Glib::ustring text();
-
-    //--------------------------------------------------------------------------
-    //! \brief Clear the whole text of the current document.
-    //--------------------------------------------------------------------------
-    void clear();
-
-    //--------------------------------------------------------------------------
-    //! \brief Open a window to allow you to find a text inside the current document.
-    //--------------------------------------------------------------------------
-    void find();
+    void newDocument(std::string const& title = "New document");
 
     //--------------------------------------------------------------------------
     //! \brief
@@ -124,23 +142,39 @@ public:
     virtual void redo();
 
     //--------------------------------------------------------------------------
-    //! \brief Open a window to allow you to replace a text inside the current document.
-    //--------------------------------------------------------------------------
-    void replace();
-
-    //--------------------------------------------------------------------------
-    //! \brief Open a window to allow you to jump to the desired line inside the
-    //! current document.
-    //--------------------------------------------------------------------------
-    void gotoLine();
-
-    //--------------------------------------------------------------------------
     //! \brief Open or create a new document refered by its title. A GTKmm
     //! Notebook tab is created (if the title has not been found) or the tab is
     //! activated and its document is set as current document.
     //! \return the text document.
     //--------------------------------------------------------------------------
     TextDocument *addTab(std::string const& title);
+
+protected:
+
+    //--------------------------------------------------------------------------
+    //! \brief Create a new document (FIXME: RAII by GTKmm ?)
+    // FIXME check if GTKmm free it when closing the application
+    //--------------------------------------------------------------------------
+    inline virtual TextDocument* createDocument()
+    {
+        return new TextDocument(m_language);
+    }
+
+    //--------------------------------------------------------------------------
+    //! \brief Open a GTKmm dialog for asking the user to save a document. If
+    //! this doc needs to be simply "saved" or "saved as", a popup is created to
+    //! prevent the user and depending on the user choice save or not the
+    //! document.
+    //! \param doc the document to save (shall not be nullptr).
+    //! \param closing if set close the document once saved.
+    //! \return a bool if the document has been correctly saved.
+    //--------------------------------------------------------------------------
+    bool askForSaving(TextDocument* doc, const bool closing = false);
+
+    //--------------------------------------------------------------------------
+    //! \brief
+    //--------------------------------------------------------------------------
+    void DialogFailure(TextDocument* doc);
 
     //--------------------------------------------------------------------------
     //! \brief Create a new document. A GTKmm Notebook tab is created (if the
@@ -156,24 +190,13 @@ public:
     //--------------------------------------------------------------------------
     TextDocument *tab(std::string const& title);
 
-    //! \brief Window used for searching a text inside the current document.
-    FindWindow m_findwindow;
-    //! \brief Window used for replacing a text inside the current document.
-    ReplaceWindow m_replacewindow;
-    //! \brief Window used for jumping to a given line inside the current
-    //! document.
-    GotoLineWindow m_gotolinewindow;
+private:
 
-#if 0
-    // TODO A remplacer par populatePopoverMenu()
-    Gtk::MenuItem          m_menuitem[simtadyn::MaxForthMenuNames + 1];
-    Gtk::Menu              m_menu[simtadyn::MaxForthMenuNames + 1];
-    Gtk::ImageMenuItem     m_submenu[16];
-    Gtk::Image             m_image[16];
-    Gtk::SeparatorMenuItem m_menuseparator[4];
-#endif
-
-protected:
+    //--------------------------------------------------------------------------
+    //! \brief Callback when a page of the notebook has been clicked.
+    //! Bind the current document to windows such as find, replace, go to line.
+    //--------------------------------------------------------------------------
+    void onPageSwitched(Gtk::Widget* page, guint page_num);
 
     //--------------------------------------------------------------------------
     //! \brief When opening GTK dialog for loading/saving files, you can add
@@ -182,59 +205,26 @@ protected:
     // TODO Gtk::FileFilter* addFileFilters(filter_name, file_extensions[])
     virtual void addFileFilters(Gtk::FileChooserDialog& /*dialog*/) {}
 
-    //--------------------------------------------------------------------------
-    //! \brief Create a new document (FIXME: RAII by GTKmm ?)
-    //--------------------------------------------------------------------------
-    inline virtual TextDocument* createDocument()
-    {
-        return new TextDocument(m_language);
-    }
-
-    //--------------------------------------------------------------------------
-    //! \brief Return the current document (holded by the opened tab).
-    //! \return return the document or nullptr if no document is present.
-    //--------------------------------------------------------------------------
-    TextDocument* document();
-
-    //--------------------------------------------------------------------------
-    //! \brief Return the document refered by the nth tab of the Notebook.
-    //! \return return the document or nullptr if nth refers to nothing.
-    //--------------------------------------------------------------------------
-    TextDocument* document(const uint32_t nth);
-
-    //--------------------------------------------------------------------------
-    //! \brief Open a GTKmm dialog to save a document. If this doc needs to be
-    //! simply "saved" or "saved as", a popup is created to prevent the user and
-    //! depending on the user choice save or not the document.
-    //! \param doc the document to save (shall not be nullptr).
-    //! \param closing if set close the document once saved.
-    //! \return a bool if the document has been correctly saved.
-    //--------------------------------------------------------------------------
-    bool dialogSave(TextDocument *doc, const bool closing = false);
-
-    //--------------------------------------------------------------------------
-    //! \brief Open a GTKmm dialog to save as a document.
-    //--------------------------------------------------------------------------
-    bool saveAs(TextDocument *doc);
-
-    //--------------------------------------------------------------------------
-    //! \brief Replace the content of the current document by the content of the
-    //! file given by its path.
-    //--------------------------------------------------------------------------
-    bool load(std::string const& filename);
-
-    //--------------------------------------------------------------------------
-    //! \brief Callback when a page of the notebook has been clicked.
-    //! Bind the current document to windows such as find, replace, go to line.
-    //--------------------------------------------------------------------------
-    void onPageSwitched(Gtk::Widget* page, guint page_num);
-
 protected:
 
-    int m_nb_nonames;
-    Glib::RefPtr<Gsv::LanguageManager> m_language_manager;
+    //! \brief Window used for searching a text inside the current document.
+    FindWindow m_findWindow;
+    //! \brief Window used for replacing a text inside the current document.
+    ReplaceWindow m_replaceWindow;
+    //! \brief Window used for jumping to a given line inside the current
+    //! document.
+    GotoLineWindow m_gotoLineWindow;
+    //! brief
+    Glib::RefPtr<Gsv::LanguageManager> m_languageManager;
+    //! brief
     Glib::RefPtr<Gsv::Language> m_language;
-    Glib::RefPtr<Gio::Menu> m_submenu_text_editor;
+    //! brief
+    Glib::RefPtr<Gio::Menu> m_submenuTextEditor;
+
+private:
+
+    //! \brief Counter of "no name" documents.
+    int m_noNames;
 };
 
 #endif // GTKMM_TEXT_EDITOR_HPP

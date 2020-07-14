@@ -41,24 +41,24 @@ using Real = double;
 //! \brief In Forth a cell holds a numerical signed value. Forth uses a stack of
 //! cells for passing parameters to words (aka functions). In classic Forth a
 //! cell size is 16 bits but in SimForth a Cell is an union between an integer
-//! and a real value. The integer is enough large to hold a C++ pointer.
+//! and a real value and the integer shall be enough large to hold a C++ pointer.
 //******************************************************************************
 struct Cell // TODO routines for endian
 {
 public:
 
     //--------------------------------------------------------------------------
-    //! \brief Static method for creating a new integer value.
+    //! \brief Static method for creating a new integer cell.
     //--------------------------------------------------------------------------
     static INLINE Cell integer(Int i) { return Cell(i); }
 
     //--------------------------------------------------------------------------
-    //! \brief Static method for creating a new floatiing pointer value.
+    //! \brief Static method for creating a new floating-point cell.
     //--------------------------------------------------------------------------
     static INLINE Cell real(Real d) { return Cell(d); }
 
     //--------------------------------------------------------------------------
-    //! \brief Constructor. Initialize integer value set to 0.
+    //! \brief Constructor. Initialize an integer cell set to 0.
     //--------------------------------------------------------------------------
     INLINE Cell()
         : i(0), tag(Cell::INTEGER)
@@ -70,12 +70,12 @@ public:
     INLINE bool isInteger() const { return tag == Cell::INTEGER; }
 
     //--------------------------------------------------------------------------
-    //! \brief Check if the cell is an floating point value.
+    //! \brief Check if the cell is a floating point value.
     //--------------------------------------------------------------------------
     INLINE bool isReal() const { return tag == Cell::REAL; }
 
     //--------------------------------------------------------------------------
-    //! \brief Return the integer value. If the cell was a floating point value
+    //! \brief Return the integer value. If the cell is a floating point value
     //! then return the nearest integer.
     //--------------------------------------------------------------------------
     INLINE Int integer() const { return isInteger() ? i : nearest(r); }
@@ -91,7 +91,7 @@ public:
     INLINE char byte(int const nth) { return b[nth]; }
 
     //--------------------------------------------------------------------------
-    //! \brief Return the string of the value
+    //! \brief Return the cell value converted as a string.
     //--------------------------------------------------------------------------
     std::string to_string()
     {
@@ -106,8 +106,9 @@ public:
     }
 
     //--------------------------------------------------------------------------
-    //! Self operators because of Forth words such as ADD will do on the data
-    //! stack: push(pop() + pop()) it will be faster to do: cell = pop(); tos()
+    //! Use self operators instead of direct operations because of Forth words
+    //! such as ADD does the following action on the data stack: push(pop() + pop())
+    //! and instead it will be faster to do the following: cell = pop(); tos()
     //! += cell; where tos() means top of stack.
     //--------------------------------------------------------------------------
 
@@ -130,21 +131,21 @@ public:
 private:
 
     //--------------------------------------------------------------------------
-    //! \brief Private constructor. Use insteal integer(Int).
+    //! \brief Private constructor. Use instead integer(Int).
     //--------------------------------------------------------------------------
     INLINE explicit Cell(Int i_)
         : i(i_), tag(Cell::INTEGER)
     {}
 
     //--------------------------------------------------------------------------
-    //! \brief Private constructor. Use insteal real(r).
+    //! \brief Private constructor. Use instead real(r).
     //--------------------------------------------------------------------------
     INLINE explicit Cell(Real r_)
         : r(r_), tag(Cell::REAL)
     {}
 
     //--------------------------------------------------------------------------
-    // Template helper
+    // Template helpers
     //--------------------------------------------------------------------------
 
     struct Plus { template<typename T> T exec(T const& a, T const& b) { return a + b; } };

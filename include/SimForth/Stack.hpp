@@ -36,8 +36,8 @@ constexpr size_t stack = 1024u; // Tokens or Cells
 }
 
 // *****************************************************************************
-//! \brief Stack class holding objects of type T.
-//! \note: The stack has fixed size!
+//! \brief Stack class holding elements of type T.
+//! \note: The stack has fixed size and therefore no reallocations are made.
 //! \tparam T Can be Cell, int, smart pointers, ...
 // *****************************************************************************
 template<typename T>
@@ -45,13 +45,16 @@ class Stack
 {
 public:
 
-    //! \brief Canari (unused extra memory) for detecting stack overflow or
+    //--------------------------------------------------------------------------
+    //! \brief Canari: unused extra memory for detecting stack overflow or
     //! underflow.
+    //--------------------------------------------------------------------------
     static constexpr size_t security_margin = 8;
 
     //--------------------------------------------------------------------------
-    //! \brief Constructor. Initialize an empty stack. The m_name passed as param is
-    //! used for error messages and logs.
+    //! \brief Constructor. Initialize an empty stack. The name passed as param
+    //! is used for error messages and logs.
+    //! \param[in] name_ the name of the stack (debug purpose only).
     //--------------------------------------------------------------------------
     Stack(const char *name_)
         : sp(sp0), m_name(name_)
@@ -60,7 +63,9 @@ public:
     }
 
     //--------------------------------------------------------------------------
-    //! \brief Reset the stack to an empty state.
+    //! \brief Reset the stack to initial states.
+    //! The top of Stack (TOS) is restored and the stack has no data and its
+    //! depth is 0.
     //--------------------------------------------------------------------------
     INLINE void reset() { sp = sp0; } // TODO zeros(m_data, sp0 - m_data);
 
@@ -70,66 +75,91 @@ public:
     INLINE int32_t depth() const { return int32_t(sp - sp0); }
 
     //--------------------------------------------------------------------------
-    //! \brief Insert a Forth Cell on the top of the stack
+    //! \brief Push an element which will be on the top of the stack.
+    //! \note this routine does not check against stack overflow.
     //--------------------------------------------------------------------------
     INLINE void push(T const& n) { *(sp++) = n; }
 
+    //--------------------------------------------------------------------------
+    //! \brief Push an element which will be on the top of the stack.
+    //! This method is specialized for smart pointer and it is used for ie for
+    //! memorizing included Forth files (INCLUDE word).
+    //! \note this routine does not check against stack overflow.
+    //--------------------------------------------------------------------------
     template<typename N>
     INLINE void push(std::unique_ptr<N> n) { *(sp++) = std::move(n); }
 
     //--------------------------------------------------------------------------
-    //! \brief Remove the top of stack
+    //! \brief Remove the element place on the top of stack.
+    //! \note this routine does not check against stack underflow.
     //--------------------------------------------------------------------------
     INLINE void drop() { --sp; }
+
+    //--------------------------------------------------------------------------
+    //! \brief Duplicate the top of stack.
+    //! \note this routine does not check against stack overflow.
+    //--------------------------------------------------------------------------
     INLINE void dup() { *(sp) = *(sp - 1); ++sp; }
 
     //--------------------------------------------------------------------------
-    //! \brief Consum the top of stack
+    //! \brief Consum the top of stack.
+    //! \note this routine does not check against stack underflow.
     //--------------------------------------------------------------------------
     INLINE T& pop() { return *(--sp); }
 
     //--------------------------------------------------------------------------
-    //! \brief Consum the Nth element of stack from its top
+    //! \brief Access to the Nth element of stack from its top.
+    //! \note this routine does not check against bad index access.
+    //! \param nth the nth param to access (0 is TOS, 1 is the second element).
     //--------------------------------------------------------------------------
-    INLINE T& pick(int const n) { return *(sp - n - 1); }
-
-    INLINE T& tos() { return *(sp - 1); }
+    INLINE T& pick(int const nth) { return *(sp - nth - 1); }
 
     //--------------------------------------------------------------------------
-    //! \brief Consum the Nth element of stack from its top.
-    //! 0th is the top of the stack.
+    //! \brief Access to the Nth element of stack from its top.
+    //! \note this routine does not check against bad index access.
+    //! \param nth the nth param to access (0 is TOS, 1 is the second element).
     //--------------------------------------------------------------------------
     INLINE T const& pick(int const nth) const { return *(sp - nth - 1); }
 
     //--------------------------------------------------------------------------
-    //! \brief Check if the stack is enough deep.
+    //! \brief Access to the top of the stack (TOS).
+    //! \note this routine does not check if the stack is empty.
     //--------------------------------------------------------------------------
-    inline bool hasDepth(int32_t const depth) const
+    INLINE T& tos() { return *(sp - 1); }
+
+    //--------------------------------------------------------------------------
+    //! \brief Check if the stack is enough deep.
+    //! \param depth expected minimal stack depth.
+    //! \return true if the stack depth is deeper than the param depth.
+    //--------------------------------------------------------------------------
+    INLINE bool hasDepth(int32_t const depth) const
     {
         return this->depth() >= depth;
     }
 
     //--------------------------------------------------------------------------
     //! \brief Check if the stack has overflowed.
+    //! \return true if the stack has overflowed.
     //--------------------------------------------------------------------------
-    inline bool hasOverflowed() const
+    INLINE bool hasOverflowed() const
     {
         return sp > spM;
     }
 
     //--------------------------------------------------------------------------
     //! \brief Check if the stack has underflowed.
+    //! \return true if the stack has underflowed.
     //--------------------------------------------------------------------------
-    inline bool hasUnderflowed() const
+    INLINE bool hasUnderflowed() const
     {
         return sp < sp0;
     }
 
     //--------------------------------------------------------------------------
-    //! \brief Display the content of a Forth stack. Element are displayed
-    //! in the current base (initialy decimal).
+    //! \brief Display the content of a Forth stack. Elements are displayed
+    //! in the given number base (initialy decimal).
     //--------------------------------------------------------------------------
-    std::ostream& display(std::ostream& os, int base)
+    std::ostream& display(std::ostream& os, int base = 10)
     {
         os << m_name;
         if (hasOverflowed())
@@ -156,7 +186,7 @@ public:
     }
 
     //--------------------------------------------------------------------------
-    //! \brief
+    //! \brief Call a function on each element of the stack
     //! Example: stack.for_each([](forth::Cell c) { std::cout << c << std::endl; });
     //--------------------------------------------------------------------------
     template<class Fn, typename... Args>
@@ -169,26 +199,34 @@ public:
         }
     }
 
-    inline T*& top()
+    //--------------------------------------------------------------------------
+    //! \brief Return the stack pointer.
+    //--------------------------------------------------------------------------
+    INLINE T*& top()
     {
         return sp;
     }
 
-    inline T const*& top() const
+    //--------------------------------------------------------------------------
+    //! \brief Return the stack pointer.
+    //--------------------------------------------------------------------------
+    INLINE T const*& top() const
     {
         return sp;
     }
 
-    inline std::string const& name() const
+    //--------------------------------------------------------------------------
+    //! \brief Return the name of the stack.
+    //--------------------------------------------------------------------------
+    INLINE std::string const& name() const
     {
         return m_name;
     }
 
 private:
-public:
 
     //--------------------------------------------------------------------------
-    //! \brief A stack is a memory segment of Forth cells.
+    //! \brief A stack is a fixed-size memory segment of elements.
     //--------------------------------------------------------------------------
     T data[size::stack];
 
@@ -199,7 +237,7 @@ public:
     T* const spM = data + size::stack - security_margin;
 
     //--------------------------------------------------------------------------
-    //! \brief Top of stack.
+    //! \brief Stack pointer (refers to the top element of the stack).
     //--------------------------------------------------------------------------
     T* sp;
 

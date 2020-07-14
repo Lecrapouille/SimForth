@@ -28,14 +28,16 @@ namespace forth
 {
 
 //******************************************************************************
-//! \brief Forth functions (aka Forth words) are compiled into byte codes and
-//! stored contigously inside a huge set of memory named dictionary. Tokens are
-//! the smallest unit element (rooms) of the dictionary.
-//! \note The number of bytes coding a Token constrain the doctionary size. For
-//! example if token == uint16_t then the maximal dictionary is will be 2^16 so
-//! 64 Kib.
+//! \brief SimForth functions (aka Forth words) are compiled into byte codes and
+//! stored contigously inside a huge set of memory named dictionary like done in
+//! Forth 79. Tokens are the smallest unit element for storing byte code. In
+//! classic Forth, the HERE word (pointer indicating the first empty slot of
+//! the dictionnary) is refered to a byte position and is not necessarly aligned
+//! to a number of tokens. In SimForth to avoid the user the constraint to align
+//! SimForth dictionary slots are Tokens (uint16_t). The maximal number of stored
+//! words in the dictionary is 2^16 so 64 Kilo-Token or 128 Kib.
 //******************************************************************************
-typedef uint16_t  Token; // FIXME Token = short but when doing short + short they are cast to int
+typedef uint16_t  Token; // FIXME Token = short but GCC when computing short + short cast value to int
 
 //template<class T>
 //constexpr Token operator ""tok(T val)

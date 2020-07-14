@@ -187,7 +187,8 @@ public:
 
     virtual Options& options() override;
 
-protected:
+// TODO
+//protected:
 
     Dictionary dictionary;
     StreamStack streams;

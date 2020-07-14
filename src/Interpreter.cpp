@@ -572,7 +572,7 @@ void Interpreter::verboseExecuteToken(Token xt)
 }
 
 //----------------------------------------------------------------------------
-bool Interpreter::isPrimitive(Token const xt)
+bool Interpreter::isPrimitive(Token const xt) const
 {
     return xt < Primitives::MAX_PRIMITIVES_;
 }

@@ -172,6 +172,22 @@ public:
     }
 
     //--------------------------------------------------------------------------
+    //! \brief Return the const reference of the auxiliary stack.
+    //--------------------------------------------------------------------------
+    inline forth::AuxiliaryStack const& auxStack() const
+    {
+        return AS;
+    }
+
+    //--------------------------------------------------------------------------
+    //! \brief Return the const reference of the return stack.
+    //--------------------------------------------------------------------------
+    inline forth::ReturnStack const& returnStack() const
+    {
+        return RS;
+    }
+
+    //--------------------------------------------------------------------------
     //! \brief Return the path manager doing the same goal than Unix environement
     //! varaible $PATH but in this case for searching files holding Forth code.
     //--------------------------------------------------------------------------
@@ -197,6 +213,20 @@ public:
     {
         return m_base;
     }
+
+    //--------------------------------------------------------------------------
+    //! \brief Is token xt a primitive or secondary word ?
+    //--------------------------------------------------------------------------
+    bool isPrimitive(Token const xt) const;
+
+    //--------------------------------------------------------------------------
+    //! \brief Convert a string to a cell (integer or float)
+    //! \param[in] word the string to convert.
+    //! \param[out] number the converted number. Undefined value if this method
+    //! returns false.
+    //! \return true if the string was a number else return false.
+    //--------------------------------------------------------------------------
+    bool toNumber(std::string const& word, Cell& number);
 
 private:
 
@@ -240,18 +270,12 @@ private:
     void executeToken(Token const xt);
 
     //--------------------------------------------------------------------------
-    //! \brief Is token xt a primitive or secondary word ?
+    //! \brief Return the number of Forth primitives
     //--------------------------------------------------------------------------
-    bool isPrimitive(Token const xt);
-
-    //--------------------------------------------------------------------------
-    //! \brief Convert a string to a cell (integer or float)
-    //! \param[in] word the string to convert.
-    //! \param[out] number the converted number. Undefined value if this method
-    //! returns false.
-    //! \return true if the string was a number else return false.
-    //--------------------------------------------------------------------------
-    bool toNumber(std::string const& word, Cell& number);
+    //virtual Token nbPrimitives()
+    //{
+    //    return Primitives::MAX_PRIMITIVES_;
+    //}
 
     void included();
 

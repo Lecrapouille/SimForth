@@ -139,6 +139,25 @@ public:
     //--------------------------------------------------------------------------
     void completeForthName(int const key);
 
+    //--------------------------------------------------------------------------
+    //! \brief Create a forth file extension filter. Used for widget such as
+    //! load/save files and recent files.
+    //! \tparam T Gtk::FileFilter or Gtk::RecentFilter
+    //--------------------------------------------------------------------------
+    template<class T>
+    Glib::RefPtr<T> createFileFilter()
+    {
+        Glib::RefPtr<T> filter = T::create();
+
+        filter->set_name("Forth files");
+        filter->add_pattern("*.fs");
+        filter->add_pattern("*.fth");
+        filter->add_pattern("*.4th");
+        filter->add_pattern("*.forth");
+
+        return filter;
+    }
+
 protected:
 
     virtual void addFileFilters(Gtk::FileChooserDialog& dialog) override;

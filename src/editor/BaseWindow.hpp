@@ -48,14 +48,24 @@ public:
     //--------------------------------------------------------------------------
     void setTitleIcon(std::string const& icon_name);
 
+protected:
+
+    //--------------------------------------------------------------------------
+    //! \brief Create a filter for recently used files.
+    //--------------------------------------------------------------------------
+    void setFileFilter(Glib::RefPtr<Gtk::RecentFilter> filter);
+
 private:
 
     //--------------------------------------------------------------------------
     //! \brief Create all widgets of the window header bar.
     //--------------------------------------------------------------------------
-    virtual void populateHeaderBar();
+    void populateHeaderBar();
 
-    virtual void populatePopovRecentFiles();
+    //--------------------------------------------------------------------------
+    //! \brief
+    //--------------------------------------------------------------------------
+    void populatePopovRecentFiles();
 
     //--------------------------------------------------------------------------
     //! \brief Callback to the user clicked on the button for opening a new file.
@@ -136,7 +146,6 @@ private:
     Gtk::Button     m_save_file_button;
     Gtk::Button     m_saveas_file_button;
     Gtk::HBox       m_boxes[4];
-
     Glib::RefPtr<Gtk::RecentManager> m_recent_manager;
     Gtk::RecentChooserWidget m_recent_chooser;
     Gtk::Popover    m_recent_files_popov;

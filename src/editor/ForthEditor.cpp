@@ -67,13 +67,7 @@ ForthEditor::ForthEditor(std::stringstream& buffer_cout, std::stringstream& buff
 // -----------------------------------------------------------------------------
 void ForthEditor::addFileFilters(Gtk::FileChooserDialog& dialog)
 {
-    auto filter_forth = Gtk::FileFilter::create();
-    filter_forth->set_name("Forth files");
-    filter_forth->add_pattern("*.fs");
-    filter_forth->add_pattern("*.fth");
-    filter_forth->add_pattern("*.4th");
-    filter_forth->add_pattern("*.forth");
-    dialog.add_filter(filter_forth);
+    dialog.add_filter(createFileFilter<Gtk::FileFilter>());
 }
 
 // -----------------------------------------------------------------------------

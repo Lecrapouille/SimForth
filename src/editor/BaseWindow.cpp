@@ -131,4 +131,14 @@ void BaseWindow::populatePopovRecentFiles()
     {
         onRecentFileClicked(Glib::filename_from_uri(m_recent_chooser.get_current_uri()));
     });
+
+    // Do not show all files but only project files
+    // Cannot call m_recent_chooser.add_filter(createRecentFileFilters());
+    // because cannot call virtual method from constructor
+}
+
+//------------------------------------------------------------------------------
+void BaseWindow::setFileFilter(Glib::RefPtr<Gtk::RecentFilter> filter)
+{
+    m_recent_chooser.add_filter(filter);
 }

@@ -34,6 +34,7 @@ ForthWindow::ForthWindow(std::stringstream& buffer_cout, std::stringstream& buff
     add_events(Gdk::KEY_PRESS_MASK);
     signal_key_press_event().connect_notify(sigc::mem_fun(*this, &ForthWindow::onKeyPressed));
 
+    setFileFilter(m_forth_editor.createFileFilter<Gtk::RecentFilter>());
     m_forth_editor.statusBarSays("Welcome to SimForth");
     add(m_forth_editor.widget());
     show_all();

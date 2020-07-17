@@ -123,7 +123,7 @@ void BaseWindow::populatePopovRecentFiles()
     m_recent_files_popov.set_relative_to(m_recent_files_button);
     m_recent_files_popov.add(m_recent_files_box);
     m_recent_files_box.pack_start(m_recent_chooser);
-    m_recent_files_popov.set_size_request(500, 100);
+    m_recent_files_popov.set_size_request(200, 50);
     m_recent_files_box.show_all();
 
     // Trigger a callback when a recent file has been selected

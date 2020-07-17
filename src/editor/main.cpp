@@ -30,9 +30,9 @@ int main()
 
     // Redirect stdout and stderr to GTK+ window
     std::stringstream buffer_cout;
-    //std::streambuf* old_cout = std::cout.rdbuf(buffer_cout.rdbuf());
+    std::streambuf* old_cout = std::cout.rdbuf(buffer_cout.rdbuf());
     std::stringstream buffer_cerr;
-    //std::streambuf* old_cerr = std::cerr.rdbuf(buffer_cerr.rdbuf());
+    std::streambuf* old_cerr = std::cerr.rdbuf(buffer_cerr.rdbuf());
 
     // Start Forth
     forth::Forth simforth;

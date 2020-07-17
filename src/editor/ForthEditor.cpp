@@ -39,6 +39,11 @@ ForthEditor::ForthEditor(std::stringstream& buffer_cout, std::stringstream& buff
       m_forth(forth)
 {
     LOGI("%s", "Creating ForthEditor");
+
+    // Forth commands
+    populateToolBars();
+
+    // Widget hierarchy
     m_hbox.pack_start(m_toolbars[FORTH_TOOLBAR_PLUGINS], Gtk::PACK_SHRINK);
     m_hbox.pack_start(m_vbox);
     m_vbox.pack_start(*this, Gtk::PACK_EXPAND_WIDGET);
@@ -46,13 +51,12 @@ ForthEditor::ForthEditor(std::stringstream& buffer_cout, std::stringstream& buff
     m_vbox.pack_start(m_status_bar, Gtk::PACK_SHRINK);
     m_vbox.pack_start(m_notebook[0], Gtk::PACK_EXPAND_WIDGET);
 
+    // Notebooks
     addNoteBookPage(0, ForthResTab, m_results, "_Result");
-    addNoteBookPage(0, ForthHistoryTab, m_history, "H_istory");
+    addNoteBookPage(0, ForthHistoryTab, m_history.widget(), "H_istory", false);
     addNoteBookPage(0, ForthMsgTab, m_messages, "_Messages");
     addNoteBookPage(0, ForthDicoTab, m_dico_inspector.widget(), "_Dico");
-    addNoteBookPage(0, ForthStackTab, m_stack_inspector.widget(), "Data _Stack");
-
-    populateToolBars();
+    addNoteBookPage(0, ForthStackTab, m_stack_inspector.widget(), "_Stacks");
 
     // Show the dictionary
     m_dico_inspector.inspect(m_forth);
@@ -181,12 +185,20 @@ void ForthEditor::populatePopovMenu(BaseWindow& win)//Gtk::ApplicationWindow& wi
 }
 
 void ForthEditor::addNoteBookPage(uint32_t const nth_notebook, uint32_t const nth_page,
-                                  Gtk::Widget& widget, const char* label)
+                                  Gtk::Widget& widget, const char* label, bool const scroll)
 {
-    m_scrolled[nth_page].add(widget);
-    m_scrolled[nth_page].set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
-    m_notebook[nth_notebook].append_page(m_scrolled[nth_page], label, true);
-    m_notebook[nth_notebook].set_tab_detachable(m_scrolled[nth_page], true);
+    if (scroll)
+    {
+        m_scrolled[nth_page].add(widget);
+        m_scrolled[nth_page].set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+        m_notebook[nth_notebook].append_page(m_scrolled[nth_page], label, true);
+        m_notebook[nth_notebook].set_tab_detachable(m_scrolled[nth_page], true);
+    }
+    else
+    {
+        m_notebook[nth_notebook].append_page(widget, label, true);
+        m_notebook[nth_notebook].set_tab_detachable(widget, true);
+    }
 }
 
 // *****************************************************************************
@@ -403,9 +415,7 @@ bool ForthEditor::interpreteScript(std::string const& script, std::string const&
         buf->insert(buf->end(), "m_forth.message: TBD");
 
         // Copy paste the Forth script into the historic buffer
-        buf = m_history.get_buffer();
-        buf->insert(buf->end(), script);
-        buf->insert(buf->end(), "\n\n");
+        m_history.add(script, m_buffer_cout.str());
 
         // TODO: inserer nouveau mot dans tree
         return false;

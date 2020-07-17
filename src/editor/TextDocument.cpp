@@ -40,10 +40,10 @@ TextDocument::TextDocument(Glib::RefPtr<Gsv::Language> language)
 
 // -----------------------------------------------------------------------------
 bool TextDocument::save()
-{LOGE("TextDocument::save()111");
+{
     if (!TextDocument::isModified())
         return true;
-LOGE("TextDocument::save()222");
+
     std::ofstream outfile;
     outfile.open(m_path, std::fstream::out);
     if (!outfile)
@@ -54,7 +54,7 @@ LOGE("TextDocument::save()222");
         outfile.close();
         return false;
     }
-LOGE("TextDocument::save()333");
+
     outfile << m_buffer->get_text();
     outfile.close();
     setModified(false);

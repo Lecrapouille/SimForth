@@ -4,7 +4,7 @@
 #include <unistd.h>
 
 // -----------------------------------------------------------------------------
-TextDocument::TextDocument(Glib::RefPtr<Gsv::Language> language)
+TextDocument::TextDocument(Glib::RefPtr<Gsv::Language> language) // TODO add: TextDocument::TextDocument()
     : Gtk::ScrolledWindow(),
       m_closeLabel(""), // FIXME a passer en param
       m_path("")

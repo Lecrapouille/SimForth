@@ -219,6 +219,15 @@ public:
     //--------------------------------------------------------------------------
     bool isPrimitive(Token const xt) const;
 
+    //--------------------------------------------------------------------------
+    //! \brief Convert a string to a cell (integer or float)
+    //! \param[in] word the string to convert.
+    //! \param[out] number the converted number. Undefined value if this method
+    //! returns false.
+    //! \return true if the string was a number else return false.
+    //--------------------------------------------------------------------------
+    bool toNumber(std::string const& word, Cell& number);
+
 private:
 
     //--------------------------------------------------------------------------
@@ -267,15 +276,6 @@ private:
     //{
     //    return Primitives::MAX_PRIMITIVES_;
     //}
-
-    //--------------------------------------------------------------------------
-    //! \brief Convert a string to a cell (integer or float)
-    //! \param[in] word the string to convert.
-    //! \param[out] number the converted number. Undefined value if this method
-    //! returns false.
-    //! \return true if the string was a number else return false.
-    //--------------------------------------------------------------------------
-    bool toNumber(std::string const& word, Cell& number);
 
     void included();
 

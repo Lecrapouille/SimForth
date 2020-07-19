@@ -18,8 +18,8 @@
 // along with SimForth.  If not, see <http://www.gnu.org/licenses/>.
 //==============================================================================
 
-#ifndef FORTH_INSPECTOR_HPP
-#  define FORTH_INSPECTOR_HPP
+#ifndef GTKMM_FORTH_IDE_FORTH_INSPECTOR_HPP
+#  define GTKMM_FORTH_IDE_FORTH_INSPECTOR_HPP
 
 #  include "Gtkmm.hpp"
 #  include <SimForth/SimForth.hpp>
@@ -340,4 +340,4 @@ private:
     Columns         m_columns;
 };
 
-#endif // FORTH_INSPECTOR_HPP
+#endif // GTKMM_FORTH_IDE_FORTH_INSPECTOR_HPP

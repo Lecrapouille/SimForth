@@ -18,8 +18,8 @@
 // along with SimForth.  If not, see <http://www.gnu.org/licenses/>.
 //==============================================================================
 
-#ifndef FORTH_EDITOR_WINDOW_HPP
-#  define FORTH_EDITOR_WINDOW_HPP
+#ifndef GTKMM_FORTH_IDE_FORTH_WINDOW_HPP
+#  define GTKMM_FORTH_IDE_FORTH_WINDOW_HPP
 
 #  include "BaseWindow.hpp"
 #  include "ForthEditor.hpp"
@@ -92,4 +92,4 @@ private:
 };
 
 
-#endif // FORTH_EDITOR_WINDOW_HPP
+#endif // GTKMM_FORTH_IDE_FORTH_WINDOW_HPP

@@ -18,8 +18,8 @@
 // along with SimForth.  If not, see <http://www.gnu.org/licenses/>.
 //==============================================================================
 
-#ifndef TEXTDOCUMENT_HPP
-#  define TEXTDOCUMENT_HPP
+#ifndef GTKMM_FORTH_IDE_TEXT_DOCUMENT_HPP
+#  define GTKMM_FORTH_IDE_TEXT_DOCUMENT_HPP
 
 #  include "CloseLabel.hpp"
 
@@ -231,4 +231,4 @@ protected:
     int m_errno = 0;
 };
 
-#endif
+#endif // GTKMM_FORTH_IDE_TEXT_DOCUMENT_HPP

@@ -18,8 +18,8 @@
 // along with SimForth.  If not, see <http://www.gnu.org/licenses/>.
 //==============================================================================
 
-#ifndef FORTHDOCUMENT_HPP
-#  define FORTHDOCUMENT_HPP
+#ifndef GTKMM_FORTH_IDE_FORTH_DOCUMENT_HPP
+#  define GTKMM_FORTH_IDE_FORTH_DOCUMENT_HPP
 
 #  include "TextDocument.hpp"
 #  include <SimForth/SimForth.hpp>

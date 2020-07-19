@@ -18,8 +18,8 @@
 // along with SimForth.  If not, see <http://www.gnu.org/licenses/>.
 //==============================================================================
 
-#ifndef BASE_WINDOWS_HPP
-#  define BASE_WINDOWS_HPP
+#ifndef GTKMM_FORTH_IDE_BASE_WINDOWS_HPP
+#  define GTKMM_FORTH_IDE_BASE_WINDOWS_HPP
 
 #  include "Dialogs.hpp"
 #  include "MyLogger/Path.hpp"
@@ -152,4 +152,4 @@ private:
     Gtk::HBox       m_recent_files_box;
 };
 
-#endif // BASE_WINDOWS_HPP
+#endif // GTKMM_FORTH_IDE_BASE_WINDOWS_HPP

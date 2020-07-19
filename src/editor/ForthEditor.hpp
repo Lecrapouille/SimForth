@@ -18,8 +18,8 @@
 // along with SimForth.  If not, see <http://www.gnu.org/licenses/>.
 //==============================================================================
 
-#ifndef GTKMM_FORTH_EDITOR_HPP
-#  define GTKMM_FORTH_EDITOR_HPP
+#ifndef GTKMM_FORTH_IDE_FORTH_EDITOR_HPP
+#  define GTKMM_FORTH_IDE_FORTH_EDITOR_HPP
 
 #  include "TextEditor.hpp"
 #  include "ForthInspector.hpp"
@@ -339,4 +339,4 @@ private:
     Glib::RefPtr<Gio::Menu> m_submenu_forth_editor;
 };
 
-#endif // GTKMM_FORTH_EDITOR_HPP
+#endif // GTKMM_FORTH_IDE_FORTH_EDITOR_HPP

@@ -35,6 +35,14 @@ public:
     TextDocument(Glib::RefPtr<Gsv::Language> language);
 
     // -------------------------------------------------------------------------
+    //! \brief Chnage font
+    // -------------------------------------------------------------------------
+    void font(Glib::ustring const& name)
+    {
+        m_textview.override_font(Pango::FontDescription(name));
+    }
+
+    // -------------------------------------------------------------------------
     //! \brief Erase all text in the document
     // -------------------------------------------------------------------------
     inline void clear()

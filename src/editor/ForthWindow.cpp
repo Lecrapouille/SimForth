@@ -19,6 +19,7 @@
 //==============================================================================
 
 #include "ForthWindow.hpp"
+#include "IDEOptions.hpp"
 #include "Application.hpp"
 
 ForthWindow::ForthWindow(std::stringstream& buffer_cout, std::stringstream& buffer_cerr, forth::Forth& simforth)
@@ -117,12 +118,16 @@ void ForthWindow::populatePopovMenu()
     // Forth Editor submenu
     m_forth_editor.populatePopovMenu(*this/*m_menu*/);
 
-    // Forth plugins submenu
+    // Submenu holding Forth plugins
     m_submenu_forth_plugins = Gio::Menu::create();
     m_menu->append_submenu("Forth Plugins", m_submenu_forth_plugins);
     addForthActionMenu("a", "jjhj", "broken", "help"); // FIXME
 
-    // About submenu
+    // Window holding IDE options and settings
+    m_menu->append("Options", "win.options");
+    add_action("options", sigc::mem_fun(IDEOptions::instance(), &IDEOptions::show));
+
+    // About window
     m_menu->append("About", "win.about"); // TODO separator
     add_action("about", sigc::mem_fun(m_about, &AboutDialog::show));
 
@@ -192,7 +197,7 @@ bool ForthWindow::onExit(GdkEventAny* /*event*/)
 
 //------------------------------------------------------------------
 void ForthWindow::onForthActionMenuClicked(std::string const& script_code,
-                                                 std::string const& script_name)
+                                           std::string const& script_name)
 {
     if (m_forth_editor.interpreteScript(script_code, script_name))
     {

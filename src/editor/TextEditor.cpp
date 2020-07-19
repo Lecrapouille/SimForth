@@ -19,6 +19,7 @@
 //==============================================================================
 
 #include "TextEditor.hpp"
+#include "IDEOptions.hpp"
 #include <ctype.h>
 #include <iostream>
 

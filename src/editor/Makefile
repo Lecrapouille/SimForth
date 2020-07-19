@@ -50,7 +50,7 @@ VPATH += $(P)/src
 #
 OBJS = BaseWindow.o Application.o CloseLabel.o TextDocument.o \
   ForthInspector.o ForthDocument.o TextEditor.o ForthEditor.o \
-  ForthWindow.o main.o
+  ForthWindow.o IDEOptions.o main.o
 
 ###################################################
 # Project defines

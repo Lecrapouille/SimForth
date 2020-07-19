@@ -1,4 +1,5 @@
 #include "TextDocument.hpp"
+#include "IDEOptions.hpp"
 #include "MyLogger/Logger.hpp"
 #include <fstream>
 #include <unistd.h>
@@ -15,8 +16,9 @@ TextDocument::TextDocument(Glib::RefPtr<Gsv::Language> language) // TODO add: Te
     m_buffer = Gsv::Buffer::create(language);
     m_buffer->set_highlight_syntax(true);
     m_textview.set_source_buffer(m_buffer);
-    // Fonts size
-    m_textview.override_font(Pango::FontDescription("mono 12"));
+    // Default font style and size
+    m_textview.override_font(Pango::FontDescription(IDEOptions::instance().font()));
+    IDEOptions::instance().signal_font_selected.connect(sigc::mem_fun(*this, &TextDocument::font));
     // Behavior/Display of the text view
     gtk_source_view_set_background_pattern(m_textview.gobj(), GTK_SOURCE_BACKGROUND_PATTERN_TYPE_GRID);
     m_textview.set_show_line_numbers(true);

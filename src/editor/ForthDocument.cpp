@@ -1,4 +1,5 @@
 #include "ForthDocument.hpp"
+#include "IDEOptions.hpp"
 
 //------------------------------------------------------------------------------
 ForthDocument::ForthDocument(forth::Forth& forth, Glib::RefPtr<Gsv::Language> language)
@@ -12,28 +13,49 @@ ForthDocument::ForthDocument(forth::Forth& forth, Glib::RefPtr<Gsv::Language> la
 
     // Tag for primitive Forth words
     m_tag_primitive_word = m_buffer->create_tag("primitive");
-    m_tag_primitive_word->property_foreground() = "#0000ff";
+    m_tag_primitive_word->property_foreground() = IDEOptions::instance().colorPrimitive();
     m_tag_primitive_word->property_weight() = Pango::WEIGHT_BOLD;
+    IDEOptions::instance().signal_color_primitive_word_selected.connect([this](Glib::ustring const& color)
+    {
+        std::cout << "RR 0000000000000" << std::endl;
+        m_tag_primitive_word->property_foreground() = color;
+    });
 
     // Tag for immediate primitive Forth words
-    m_tag_primitive_immediate_word = m_buffer->create_tag("imed-prim");
-    m_tag_primitive_immediate_word->property_foreground() = "#FFA000";
+    m_tag_primitive_immediate_word = m_buffer->create_tag("immed-prim");
+    m_tag_primitive_immediate_word->property_foreground() = IDEOptions::instance().colorImmediatePrimitive();
     m_tag_primitive_immediate_word->property_weight() = Pango::WEIGHT_BOLD;
+    IDEOptions::instance().signal_color_primitive_immediate_word_selected.connect([this](Glib::ustring const& color)
+    {
+        m_tag_primitive_immediate_word->property_foreground() = color;
+    });
 
     // Tag for secondary Forth words (non-primitives)
     m_tag_secondary_word = m_buffer->create_tag("secondary");
-    m_tag_secondary_word->property_foreground() = "#ff0000";
+    m_tag_secondary_word->property_foreground() = IDEOptions::instance().colorSecondaryWord();
     m_tag_secondary_word->property_weight() = Pango::WEIGHT_BOLD;
+    IDEOptions::instance().signal_color_secondary_word_selected.connect([this](Glib::ustring const& color)
+    {
+        m_tag_secondary_word->property_foreground() = color;
+    });
 
     // Tag for secondary immediate primitive Forth words
-    m_tag_secondary_immediate_word = m_buffer->create_tag("imed-sec");
-    m_tag_secondary_immediate_word->property_foreground() = "#00C4FF";
+    m_tag_secondary_immediate_word = m_buffer->create_tag("immed-sec");
+    m_tag_secondary_immediate_word->property_foreground() = IDEOptions::instance().colorImmediateSecondaryWord();
     m_tag_secondary_immediate_word->property_weight() = Pango::WEIGHT_BOLD;
+    IDEOptions::instance().signal_color_secondary_immediate_word_selected.connect([this](Glib::ustring const& color)
+    {
+        m_tag_secondary_immediate_word->property_foreground() = color;
+    });
 
     // Tag for numbers
     m_tag_number = m_buffer->create_tag("numbers");
-    m_tag_number->property_foreground() = "#ff0000";//1BA322";
+    m_tag_number->property_foreground() = IDEOptions::instance().colorNumber();
     m_tag_number->property_weight() = Pango::WEIGHT_BOLD;
+    IDEOptions::instance().signal_color_number_selected.connect([this](Glib::ustring const& color)
+    {
+        m_tag_number->property_foreground() = color;
+    });
 
     // Signal for highlighting unknown Forth words and immediate words.
     m_buffer->signal_insert().connect(sigc::mem_fun(this, &ForthDocument::onInsertText));
@@ -133,6 +155,8 @@ void ForthDocument::skipBackwardSpaces(Gtk::TextBuffer::iterator& iter)
 }
 
 //------------------------------------------------------------------------------
+// FIXME s"    S"
+//       ^     ^  ne permet pas d'extraire le mot
 std::string ForthDocument::getPreviousWord(Gtk::TextBuffer::iterator const& cursor,
                                            Gtk::TextBuffer::iterator& start,
                                            Gtk::TextBuffer::iterator& end)
@@ -141,6 +165,12 @@ std::string ForthDocument::getPreviousWord(Gtk::TextBuffer::iterator const& curs
     skipBackwardSpaces(end);
     start = end;
     skipBackwardWord(start);
+
+    //start = cursor;
+    //start.backward_word_start();
+    //end = cursor;
+    //skipBackwardSpaces(end);
+    //end.forward_word_end();
 
     return m_buffer->get_text(start, end).raw(); // TODO: to upper case
 }
@@ -165,6 +195,7 @@ void ForthDocument::colorize(Gtk::TextBuffer::iterator const& cursor)
     // Extract the current word
     Gtk::TextBuffer::iterator start, end;
     std::string word = getPreviousWord(cursor, start, end);
+    std::cout << "prev '" << word << "'" << std::endl;
 
     // Check the presence of the extracted word inside the dictionary
     if (m_forth.find(word, token, immediate))
@@ -219,21 +250,18 @@ void ForthDocument::colorize(Gtk::TextBuffer::iterator const& cursor)
 }
 
 //------------------------------------------------------------------------------
+// Slot. FIXME: gerer les commentaires
 void ForthDocument::onInsertText(const Gtk::TextBuffer::iterator& cursor,
                                  const Glib::ustring& text_inserted,
-                                 int /*bytes*/)
+                                 int bytes)
 {
-    // std::cout << "onInsertText '" << text_inserted << "'" << std::endl;
+    // Reset auto-completion state
+    m_state = Init;
 
-    // Slot. FIXME: gerer les commentaires
-    // FIXME: enlever les tags
-    // New char inserted
-    std::string c = text_inserted.raw();
+    std::cout << "onInsertText '" << text_inserted << "'" << std::endl;
 
-    if (isspace(c[0])) // Pas bon !! il faut faire une boucle text_inserted peut etre un gros morceau de code
+    if ((bytes == 1) && (isspace(text_inserted.raw()[0])))
     {
         colorize(cursor);
     }
-
-    // FIXME: reset completion state
 }

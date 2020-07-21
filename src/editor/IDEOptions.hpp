@@ -41,6 +41,31 @@ public:
         return m_selected_font;
     }
 
+    inline Glib::ustring const& colorPrimitive() const
+    {
+        return m_color_primitive;
+    }
+
+    inline Glib::ustring const& colorSecondaryWord() const
+    {
+        return m_color_secondary;
+    }
+
+    inline Glib::ustring const& colorImmediatePrimitive() const
+    {
+        return m_color_immediate_primitive;
+    }
+
+    inline Glib::ustring const& colorImmediateSecondaryWord() const
+    {
+        return m_color_immediate_secondary;
+    }
+
+    inline Glib::ustring const& colorNumber() const
+    {
+        return m_color_number;
+    }
+
     IDEOptions(const IDEOptions&) = delete;
     const IDEOptions& operator=(const IDEOptions&) = delete;
 
@@ -49,10 +74,16 @@ private:
     IDEOptions();
     void populateGeneralTab();
     void populateFontsTab();
+    void populateColorTab();
 
 public:
 
     sigc::signal<void, Glib::ustring const&> signal_font_selected;
+    sigc::signal<void, Glib::ustring const&> signal_color_primitive_word_selected;
+    sigc::signal<void, Glib::ustring const&> signal_color_secondary_word_selected;
+    sigc::signal<void, Glib::ustring const&> signal_color_primitive_immediate_word_selected;
+    sigc::signal<void, Glib::ustring const&> signal_color_secondary_immediate_word_selected;
+    sigc::signal<void, Glib::ustring const&> signal_color_number_selected;
 
 private:
 
@@ -63,6 +94,17 @@ private:
     Gtk::VBox         m_vbox[1];
 
     // --- General
+
+    // --- Color
+
+    Glib::ustring m_color_primitive = "#0000ff";
+    Glib::ustring m_color_secondary = "#FFA000";
+    Glib::ustring m_color_immediate_primitive = "#ff0000";
+    Glib::ustring m_color_immediate_secondary = "#00C4FF";
+    Glib::ustring m_color_number = "#1BA322";
+    Gtk::Grid m_colors_grid;
+    Gtk::ColorButton m_color_buttons[6];
+    Gtk::Label m_color_labels[6];
 
     // --- Fonts
 

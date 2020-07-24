@@ -33,6 +33,17 @@ namespace forth
 static Dictionary* dictionary = nullptr;
 
 //----------------------------------------------------------------------------
+//! \brief Personal implementation of strdup because this is a POSIX function
+//! which is unknown on Windows (msys2).
+//----------------------------------------------------------------------------
+static char* my_strdup(const char* s)
+{
+    char* p = static_cast<char*>(malloc(strlen(s) + 1));
+    if (p) strcpy(p, s);
+    return p;
+}
+
+//----------------------------------------------------------------------------
 //! \brief
 //----------------------------------------------------------------------------
 static char *character_name_generator(const char *text, int state)
@@ -48,7 +59,7 @@ static char *character_name_generator(const char *text, int state)
     if (complete == nullptr)
         return nullptr;
 
-    return strdup(complete);
+    return my_strdup(complete);
 }
 
 //----------------------------------------------------------------------------

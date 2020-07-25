@@ -36,25 +36,20 @@ include $(M)/Makefile.header
 ###################################################
 # Inform Makefile where to find header files
 #
-INCLUDES += \
-  -I$(P)/include -I$(P)/src -I$(P)/external/MyLogger/include \
-  -I$(P)/external/MyLogger/src -I$(P)/external
+INCLUDES += -I$(P)/include -I$(P)/src -I$(P)/external/MyLogger/include	\
+-I$(P)/external/MyLogger/src -I$(P)/external
 
 ###################################################
-# Inform Makefile where to find *.cpp and *.o files
+# Inform Makefile where to find *.cpp files
 #
-VPATH += \
-  $(P)/src $(P)/external/Exception $(P)/external/MyLogger/src $(P)/src/standalone
+VPATH += $(P)/src $(P)/external/Exception $(P)/external/MyLogger/src	\
+  $(P)/src/standalone
 
 ###################################################
 # Make the list of compiled files
 #
-OBJS_THIRD_PART = \
-  Exception.o File.o ILogger.o Logger.o Path.o
-OBJS_FORTH = \
-  Utils.o Exceptions.o LibC.o Streams.o Dictionary.o Display.o \
-  Interpreter.o Primitives.o Forth.o
-OBJS = $(OBJS_THIRD_PART) $(OBJS_FORTH)
+OBJS += Exception.o File.o ILogger.o Logger.o Path.o Utils.o Exceptions.o LibC.o	\
+  Streams.o Dictionary.o Display.o Interpreter.o Primitives.o Forth.o
 
 ###################################################
 # Project defines
@@ -62,10 +57,9 @@ OBJS = $(OBJS_THIRD_PART) $(OBJS_FORTH)
 DEFINES +=
 
 ###################################################
-# Set Libraries. For knowing which libraries
-# is needed please read the external/README.md file.
-# lreadline: for interactive prompt
-# ldl: for loading symbols in shared libraries
+# Set Libraries:
+# -lreadline: for interactive prompt
+# -ldl: for loading symbols in shared libraries
 #
 NOT_PKG_LIBS += -lreadline -ldl
 
@@ -77,22 +71,11 @@ all: $(STATIC_LIB_TARGET) $(SHARED_LIB_TARGET) $(PKG_FILE)
 	@cp src/standalone/$(BUILD)/SimForth $(BUILD)
 
 ###################################################
-# Downoad third part libraries
-#$(BUILD) : | $(THIRDPART)/.downloaded
-#$(THIRDPART)/.downloaded:
-#	(cd $(P)/$(THIRDPART) && ./download-external-libs.sh $(ARCHI) $(TARGET))
-
-###################################################
-# Compile and launch unit tests and generate the code coverage html report.
-.PHONY: unit-tests
-unit-tests:
+# Compile, launch unit tests and generate the code coverage html report.
+.PHONY: check
+check:
 	@$(call print-simple,"Compiling unit tests")
 	@$(MAKE) -C tests coverage
-
-###################################################
-# Compile and launch unit tests and generate the code coverage html report.
-.PHONY: check
-check: unit-tests
 
 ###################################################
 # Install project. You need to be root.
@@ -109,13 +92,16 @@ install: $(STATIC_LIB_TARGET) $(SHARED_LIB_TARGET) $(PKG_FILE)
 	@(cd src/standalone && $(MAKE) -s install)
 
 ###################################################
-# Uninstall the project. You need to be root. FIXME: to be updated
+# TODO
+# Uninstall the project. You need to be root.
 #.PHONY: uninstall
 #uninstall:
 #	@$(call print-simple,"Uninstalling",$(PREFIX)/$(TARGET))
 #	@rm $(PROJECT_EXE)
 #	@rm -r $(PROJECT_DATA_ROOT)
 
+###################################################
+# Clean the project and sub-project
 clean::
 	@(cd tests && $(MAKE) -s clean)
 	@(cd src/standalone && $(MAKE) -s clean)

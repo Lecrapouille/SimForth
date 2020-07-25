@@ -25,6 +25,7 @@ PROJECT = SimForth
 TARGET = $(PROJECT)-UnitTest
 DESCRIPTION = Unit tests for $(PROJECT)
 BUILD_TYPE = debug
+USE_COVERAGE = 1
 DEFINES += -Wno-unused-function
 
 ###################################################
@@ -56,8 +57,7 @@ PKG_LIBS += gtest gmock
 # Code coverage. Comment these lines if coveraging
 # is not desired.
 #
-COMPIL_FLAGS += --coverage
-LINKER_FLAGS += -lreadline -ldl --coverage
+LINKER_FLAGS += -lreadline -ldl
 
 ###################################################
 # Inform Makefile where to find header files

@@ -1137,13 +1137,13 @@ void Interpreter::executePrimitive(Token const xt)
         CODE(EXECUTE)
         {
           DDEEP(1);
-          Token xt = static_cast<Token>(DPOPI());
-          if (isPrimitive(xt))
-              executePrimitive(xt);
+          Token tok = static_cast<Token>(DPOPI());
+          if (isPrimitive(tok))
+              executePrimitive(tok);
           else
           {
               RS.push(IP);
-              IP = xt;
+              IP = tok;
           }
         }
         NEXT;

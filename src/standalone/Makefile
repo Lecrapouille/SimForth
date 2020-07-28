@@ -24,7 +24,8 @@
 PROJECT = SimForth
 TARGET = $(PROJECT)
 DESCRIPTION = A basic standalone Forth interpreter
-BUILD_TYPE = debug
+# FIXME cannot use debug because of shared lib + backward_cpp library makes segfault
+BUILD_TYPE = release
 
 ###################################################
 # Location of the project directory and Makefiles

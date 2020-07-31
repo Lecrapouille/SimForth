@@ -494,7 +494,7 @@ void Interpreter::executePrimitive(Token const xt)
         // ---------------------------------------------------------------------
         // Terminate the definition of the C library and link it against SimForth.
         CODE(CLIB_END) // ( -- )
-          if (!m_clibs.end())
+          if (!m_clibs.end(/* options */))
               THROW(m_clibs.error());
           m_clibs.saveToDictionary(dictionary);
         NEXT;

@@ -27,13 +27,13 @@
 namespace forth
 {
 
-Token CFunHolder::next_token = 0;
+// Initialize static member variable
+Token CFunHolder::next_handle = 0;
 
 //----------------------------------------------------------------------------
 CLib::~CLib()
 {
-    //FIXME
-    CFunHolder::next_token = 0;
+    CFunHolder::next_handle = 0;
 
     // Close the shared library file
     if (m_handle == nullptr)
@@ -63,7 +63,7 @@ bool CLib::begin(InputStream& stream)
 {
     reset();
 
-    // Get the library name
+    // Get the library name from the input stream
     if (!stream.split())
     {
         m_error = "Failed getting libray name. Reason was " + stream.error();
@@ -120,7 +120,7 @@ bool CLib::function(InputStream& stream)
                   + stream.error();
         return false;
     }
-    holder.CName = "simforth_c_" + stream.word() + '_';
+    holder.cName = "simforth_c_" + stream.word() + '_';
 
     // Extract C function params
     if (!extractFunParams(holder, stream))
@@ -143,7 +143,7 @@ bool CLib::extractFunParams(CFunHolder& holder, InputStream& stream)
     // Generate the code source getting parameters from the Forth data stack
     // and transfer them into the C function.
     std::string args;
-    args.reserve(16); // For helping of insert(0, "...")
+    args.reserve(16); // For helping the insert(0, "...") function
 
     // Number of parameters
     int count = 0;
@@ -157,7 +157,7 @@ bool CLib::extractFunParams(CFunHolder& holder, InputStream& stream)
         word = stream.word();
         if ((word == "i") || (word == "f") || (word == "a")) // Integer or float or address
         {
-            holder.CName += word[0];
+            holder.cName += word[0];
             if (param == Param::Output)
                 continue;
             ++count;
@@ -171,7 +171,7 @@ bool CLib::extractFunParams(CFunHolder& holder, InputStream& stream)
                 return false;
             }
             param = Param::Output;
-            holder.CName += '_';
+            holder.cName += '_';
         }
         else
         {
@@ -188,7 +188,7 @@ bool CLib::extractFunParams(CFunHolder& holder, InputStream& stream)
     }
 
     // Header of the function
-    m_file << "\nvoid " << holder.CName << "(struct Cell** dsp)\n{\n";
+    m_file << "\nvoid " << holder.cName << "(struct Cell** dsp)\n{\n";
     if (count || (param == Param::Output))
     {
         m_file << "  struct Cell* ds = *dsp;\n";
@@ -252,19 +252,38 @@ bool CLib::pkgconfig(InputStream& stream)
 //----------------------------------------------------------------------------
 bool CLib::library(InputStream& stream)
 {
-    if (stream.split())
+    // Read next word from the input stream
+    if (!stream.split())
     {
-        m_extLibs += " -l";
-        m_extLibs += stream.word();
+        m_error = stream.error();
+        return false;
+    }
+    auto const& lib = stream.word();
+
+    // Has read "-lfoo" ?
+    if ((lib.size() >= 3u) && (lib[0] == '-') && (lib[1] == 'l'))
+    {
+        m_extLibs += ' ';
+        m_extLibs += lib;
         return true;
     }
 
-    m_error = stream.error();
-    return false;
+    // Has read "libfoo" ?
+    if ((lib.size() >= 4u) && (lib[0] != 'l') && (lib[1] != 'i') && (lib[2] != 'b'))
+    {
+        m_extLibs += ' ';
+        m_extLibs += lib;
+        return true;
+    }
+
+    // Has read "foo" ? Append "-l"
+    m_extLibs += " -l";
+    m_extLibs += lib;
+    return true;
 }
 
 //----------------------------------------------------------------------------
-bool CLib::end()
+bool CLib::end(CLibOptions const& options)
 {
     // Close the temporary C file.
     m_file.close();
@@ -278,7 +297,7 @@ bool CLib::end()
     }
 
     // Compile the temporary C file as a dynamic library.
-    if (!compile())
+    if (!compile(options))
         return false;
 
     // Open the newly created shared library.
@@ -294,10 +313,10 @@ bool CLib::end()
     bool ret = true;
     for (auto &it: m_functions)
     {
-        void* symbol = dlsym(m_handle, it.CName.c_str());
+        void* symbol = dlsym(m_handle, it.cName.c_str());
         if (symbol != nullptr)
         {
-            LOGI("Found symbol '%s' in '%s'", it.CName.c_str(),
+            LOGI("Found symbol '%s' in '%s'", it.cName.c_str(),
                  m_libPath.c_str());
             it.function = reinterpret_cast<forth_c_func>(
                 reinterpret_cast<long>(symbol));
@@ -305,7 +324,7 @@ bool CLib::end()
         else
         {
             std::string err =
-                    "Failed finding symbol '" + it.CName +
+                    "Failed finding symbol '" + it.cName +
                     "' in '" + m_libPath + "\n";
             m_error.append(err);
             ret = false;
@@ -316,19 +335,28 @@ bool CLib::end()
 }
 
 //----------------------------------------------------------------------------
-bool CLib::compile()
+bool CLib::compile(CLibOptions const& options)
 {
     // Refer to the generic Makefile for compiling C file into a shared library.
     std::string makefile = m_path.expand("LibC/Makefile");
     std::string command = "rm -f " + m_libPath + " " + config::tmp_path + m_libName + ".o"
-                          + "; make -f " + makefile
-                          + " BUILD=" + config::tmp_path
-                          + " SRCS=" + m_libName + ".c"
-                          + " EXTLIBS=\"" + m_extLibs + "\""
-                          + " PKGCONFIG=\"" + m_pkgConfig + "\""
-                          //+ " CC=clang-7" // For changing of compiler
-                          + " VERBOSE=1"  // For verbose
-                          + " 2> " + config::tmp_path + "compilation.res";
+                        + "; make -f " + makefile
+                        + " BUILD=" + config::tmp_path
+                        + " SRCS=" + m_libName + ".c"
+                        + " EXTLIBS=\"" + m_extLibs + "\""
+                        + " PKGCONFIG=\"" + m_pkgConfig + "\"";
+    // Optional behaviors
+    if (!options.compiler.empty())
+    {
+        command += " CC=" + options.compiler;
+    }
+    if (options.verbose)
+    {
+        command += " VERBOSE=1";
+    }
+    // Redirect error to a temporary file since it is not easy to get it
+    // directly
+    command += " 2> " + config::tmp_path + "compilation.res";
 
     // Compile the C file
     LOGI("C-Lib compilation: %s", command.c_str());
@@ -358,21 +386,21 @@ void CLib::saveToDictionary(Dictionary& dictionary)
     {
         dictionary.createEntry(it.forthName);
         dictionary.append(Primitives::PLITERAL);
-        dictionary.append(it.token);
+        dictionary.append(it.handle);
         dictionary.append(Primitives::CLIB_EXEC);
         dictionary.finalizeEntry();
     }
 }
 
 //----------------------------------------------------------------------------
-void CLib::exec(Token xt, DataStack& stack) const
+void CLib::exec(Token handle, DataStack& stack) const
 {
     // TODO check the depth
-    if (xt < m_functions.size())
+    if (handle < m_functions.size())
     {
-        if (m_functions[xt].function != nullptr)
+        if (m_functions[handle].function != nullptr)
         {
-            m_functions[xt].function(&stack.top());
+            m_functions[handle].function(&stack.top());
         }
         else
         {
@@ -381,7 +409,7 @@ void CLib::exec(Token xt, DataStack& stack) const
     }
     else
     {
-        THROW("Invalid identifer to C function: " + std::to_string(int(xt)));
+        THROW("Invalid identifer to C function: " + std::to_string(int(handle)));
     }
 }
 

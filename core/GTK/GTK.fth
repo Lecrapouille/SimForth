@@ -19,7 +19,7 @@ C-FUNCTION gdk-pixmap-new               gdk_pixmap_new             a i i i -- a
 C-FUNCTION gdk-gc-new                   gdk_gc_new                       a -- a
 C-FUNCTION gtk-image-set-from-pixmap    gtk_image_set_from_pixmap    a a a
 C-FUNCTION g-malloc                     g_malloc                         i -- a
-C-FUNCTION gdk-color-parse              qq_gdk_color_parse             a a -- i
+C-FUNCTION gdk-color-parse              gdk_color_parse                a a -- i
 C-FUNCTION gdk-gc-set-rgb-fg-color      gdk_gc_set_rgb_fg_color        a a
 C-FUNCTION gdk-draw-rectangle           gdk_draw_rectangle   a a i i i i i
 

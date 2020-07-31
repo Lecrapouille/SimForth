@@ -18,8 +18,8 @@
 // along with SimForth.  If not, see <http://www.gnu.org/licenses/>.
 //==============================================================================
 
-#ifndef FORTH_EDITOR_WINDOW_HPP
-#  define FORTH_EDITOR_WINDOW_HPP
+#ifndef GTKMM_FORTH_IDE_FORTH_WINDOW_HPP
+#  define GTKMM_FORTH_IDE_FORTH_WINDOW_HPP
 
 #  include "BaseWindow.hpp"
 #  include "ForthEditor.hpp"
@@ -32,7 +32,7 @@ class ForthWindow : public BaseWindow
 {
 public:
 
-    ForthWindow(forth::Forth& simforth);
+    ForthWindow(std::stringstream& buffer_cout, std::stringstream& buffer_cerr, forth::Forth& simforth);
 
     //--------------------------------------------------------------------------
     //! \brief Add a GTKmm button executing a Forth script.
@@ -65,7 +65,7 @@ private:
     //GLDrawingArea& currentView();
 
     virtual void onOpenFileClicked() override;
-    virtual void onRecentFilesClicked() override;
+    virtual void onRecentFileClicked(std::string const& filename) override;
     virtual void onHorizontalSplitClicked() override;
     virtual void onVerticalSplitClicked() override;
     virtual void onUndoClicked() override;
@@ -75,12 +75,16 @@ private:
     virtual bool onExit(GdkEventAny* event) override;
     void onForthActionMenuClicked(std::string const& script_code,
                                   std::string const& script_name);
+    void onKeyPressed(GdkEventKey* evenement);
 
 private:
 
+    std::stringstream&      m_buffer_cout;
+    std::stringstream&      m_buffer_cerr;
     //! \brief Forth interpreter
     forth::Forth&           m_forth;
     //! \brief Text editor specialized for Forth scripts
+    Gtk::Statusbar          m_status_bar;
     ForthEditor             m_forth_editor;
     Gtk::Popover            m_menu_popov;
     Glib::RefPtr<Gio::Menu> m_submenu_forth_plugins;
@@ -88,4 +92,4 @@ private:
 };
 
 
-#endif // FORTH_EDITOR_WINDOW_HPP
+#endif // GTKMM_FORTH_IDE_FORTH_WINDOW_HPP

@@ -48,7 +48,9 @@ VPATH += $(P)/src
 ###################################################
 # Make the list of compiled files
 #
-OBJS = BaseWindow.o ForthWindow.o TextEditor.o ForthInspector.o ForthEditor.o Application.o main.o
+OBJS = BaseWindow.o Application.o CloseLabel.o TextDocument.o \
+  ForthInspector.o ForthDocument.o TextEditor.o ForthEditor.o \
+  ForthWindow.o IDEOptions.o main.o
 
 ###################################################
 # Project defines

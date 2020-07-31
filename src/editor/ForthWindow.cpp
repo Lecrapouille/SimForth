@@ -19,19 +19,34 @@
 //==============================================================================
 
 #include "ForthWindow.hpp"
+#include "IDEOptions.hpp"
 #include "Application.hpp"
 
-ForthWindow::ForthWindow(forth::Forth& simforth)
+ForthWindow::ForthWindow(std::stringstream& buffer_cout, std::stringstream& buffer_cerr, forth::Forth& simforth)
     : BaseWindow(Application::application()),
+      m_buffer_cout(buffer_cout),
+      m_buffer_cerr(buffer_cerr),
       m_forth(simforth),
-      m_forth_editor(simforth)
+      m_forth_editor(buffer_cout, buffer_cerr, m_status_bar, simforth)
 {
     populatePopovMenu();
     populateToolBar();
 
+    add_events(Gdk::KEY_PRESS_MASK);
+    signal_key_press_event().connect_notify(sigc::mem_fun(*this, &ForthWindow::onKeyPressed));
+
+    setFileFilter(m_forth_editor.createFileFilter<Gtk::RecentFilter>());
     m_forth_editor.statusBarSays("Welcome to SimForth");
     add(m_forth_editor.widget());
     show_all();
+}
+
+// *****************************************************************************
+//
+// *****************************************************************************
+void ForthWindow::onKeyPressed(GdkEventKey* evenement)
+{
+    m_forth_editor.completeForthName(evenement->keyval);
 }
 
 //------------------------------------------------------------------
@@ -95,17 +110,30 @@ Gtk::ToolButton& ForthWindow::addForthButton(Gtk::BuiltinStockID const icon,
 //------------------------------------------------------------------
 void ForthWindow::populatePopovMenu()
 {
-    Glib::RefPtr<Gio::Menu> menu = m_forth_editor.populatePopovMenu(*this);
-    m_submenu_forth_plugins = Gio::Menu::create();
-    menu->append_submenu("Forth Plugins", m_submenu_forth_plugins);
+    m_menu = Gio::Menu::create();
 
-    menu->append("About", "win.about");
+    // Text Editor submenu
+    reinterpret_cast<TextEditor*>(&m_forth_editor)->populatePopovMenu(*this/*m_menu*/);
+
+    // Forth Editor submenu
+    m_forth_editor.populatePopovMenu(*this/*m_menu*/);
+
+    // Submenu holding Forth plugins
+    m_submenu_forth_plugins = Gio::Menu::create();
+    m_menu->append_submenu("Forth Plugins", m_submenu_forth_plugins);
+    addForthActionMenu("a", "jjhj", "broken", "help"); // FIXME
+
+    // Window holding IDE options and settings
+    m_menu->append("Options", "win.options");
+    add_action("options", sigc::mem_fun(IDEOptions::instance(), &IDEOptions::show));
+
+    // About window
+    m_menu->append("About", "win.about"); // TODO separator
     add_action("about", sigc::mem_fun(m_about, &AboutDialog::show));
 
-    addForthActionMenu("a", "jjhj", "broken", "help");
-
+    //
     m_menu_button.set_popover(m_menu_popov);
-    m_menu_button.set_menu_model(menu);
+    m_menu_button.set_menu_model(m_menu);
     m_menu_popov.set_size_request(-1, -1);
 }
 
@@ -116,44 +144,48 @@ void ForthWindow::onOpenFileClicked()
 }
 
 //------------------------------------------------------------------
-void ForthWindow::onRecentFilesClicked()
+void ForthWindow::onRecentFileClicked(std::string const& filename)
 {
-    // FIXME: temporary: this is not the good button
-    Application::create<ForthWindow>(m_forth);
+    m_forth_editor.open(filename);
 }
 
 //------------------------------------------------------------------
 void ForthWindow::onHorizontalSplitClicked()
 {
-    //splitView(Gtk::Orientation::ORIENTATION_HORIZONTAL);
+    // TODO splitView(Gtk::Orientation::ORIENTATION_HORIZONTAL);
+
+    // FIXME: temporary: this is not the good button
+    Application::create<ForthWindow>(m_buffer_cout, m_buffer_cerr, m_forth);
 }
 
 //------------------------------------------------------------------
 void ForthWindow::onVerticalSplitClicked()
 {
-    //splitView(Gtk::Orientation::ORIENTATION_VERTICAL);
+    // TODO splitView(Gtk::Orientation::ORIENTATION_VERTICAL);
 }
 
 //------------------------------------------------------------------
 void ForthWindow::onUndoClicked()
 {
+    m_forth_editor.undo();
 }
 
 //------------------------------------------------------------------
 void ForthWindow::onRedoClicked()
 {
+    m_forth_editor.redo();
 }
 
 //------------------------------------------------------------------
 void ForthWindow::onSaveFileClicked()
 {
-    m_forth_editor.save();
+    m_forth_editor.save(m_forth_editor.document());
 }
 
 //------------------------------------------------------------------
 void ForthWindow::onSaveAsFileClicked()
 {
-    m_forth_editor.saveAs();
+    m_forth_editor.saveAs(m_forth_editor.document());
 }
 
 //------------------------------------------------------------------
@@ -165,7 +197,7 @@ bool ForthWindow::onExit(GdkEventAny* /*event*/)
 
 //------------------------------------------------------------------
 void ForthWindow::onForthActionMenuClicked(std::string const& script_code,
-                                                 std::string const& script_name)
+                                           std::string const& script_name)
 {
     if (m_forth_editor.interpreteScript(script_code, script_name))
     {

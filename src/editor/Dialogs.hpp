@@ -29,17 +29,17 @@
 namespace config
 {
 //! \brief Project compiled in release or debug mode ?
-extern const bool debug;
+extern bool debug;
 //! \brief Used for logs and GUI.
-extern const std::string project_name;
+extern std::string project_name;
 //! \brief Major version of project
-extern const uint32_t major_version;
+extern uint32_t major_version;
 //! \brief Minor version of project
-extern const uint32_t minor_version;
+extern uint32_t minor_version;
 //! \brief Save the git SHA1
-extern const std::string git_sha1;
+extern std::string git_sha1;
 //! \brief Save the git branch
-extern const std::string git_branch;
+extern std::string git_branch;
 }
 
 // *****************************************************************************
@@ -83,6 +83,9 @@ public:
     }
 };
 
+// TODO QuestionDialog Yes/No/Cancel -> 2 lambdas yes/No
+// TODO InfoDialog
+
 // *****************************************************************************
 //! \brief Facade class for informing to the user an exception has occured.
 // *****************************************************************************
@@ -115,6 +118,9 @@ public:
 
         Gtk::MessageDialog dialog(m_win, e.what(), false, Gtk::MESSAGE_WARNING);
         dialog.set_secondary_text(msg);
+        Gtk::Image* image = Gtk::manage(new Gtk::Image(Gtk::Stock::DIALOG_WARNING, Gtk::ICON_SIZE_DIALOG));
+        dialog.set_image(*image);
+        dialog.show_all();
         dialog.run();
     }
 

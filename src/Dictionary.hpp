@@ -382,8 +382,6 @@ public:
         return m_memory[addr];
     }
 
-private:
-
     //--------------------------------------------------------------------------
     //! \brief Iterate on Forth words stored in the dictionary and call the
     //! function fun() for each of them (with given optional parameters args).

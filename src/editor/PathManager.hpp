@@ -18,8 +18,8 @@
 // along with SimForth.  If not, see <http://www.gnu.org/licenses/>.
 //==============================================================================
 
-#ifndef PATHMANAGER_HPP
-#  define PATHMANAGER_HPP
+#ifndef GTKMM_FORTH_IDE_PATH_MANAGER_HPP
+#  define GTKMM_FORTH_IDE_PATH_MANAGER_HPP
 
 #  include "MyLogger/Path.hpp"
 
@@ -121,4 +121,4 @@ public:
     }
 };
 
-#endif // PATHMANAGER_HPP
+#endif // GTKMM_FORTH_IDE_PATH_MANAGER_HPP

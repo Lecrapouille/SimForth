@@ -18,8 +18,8 @@
 // along with SimForth.  If not, see <http://www.gnu.org/licenses/>.
 //==============================================================================
 
-#ifndef BASE_WINDOWS_HPP
-#  define BASE_WINDOWS_HPP
+#ifndef GTKMM_FORTH_IDE_BASE_WINDOWS_HPP
+#  define GTKMM_FORTH_IDE_BASE_WINDOWS_HPP
 
 #  include "Dialogs.hpp"
 #  include "MyLogger/Path.hpp"
@@ -48,12 +48,24 @@ public:
     //--------------------------------------------------------------------------
     void setTitleIcon(std::string const& icon_name);
 
+protected:
+
+    //--------------------------------------------------------------------------
+    //! \brief Create a filter for recently used files.
+    //--------------------------------------------------------------------------
+    void setFileFilter(Glib::RefPtr<Gtk::RecentFilter> filter);
+
 private:
 
     //--------------------------------------------------------------------------
     //! \brief Create all widgets of the window header bar.
     //--------------------------------------------------------------------------
-    virtual void populateHeaderBar();
+    void populateHeaderBar();
+
+    //--------------------------------------------------------------------------
+    //! \brief
+    //--------------------------------------------------------------------------
+    void populatePopovRecentFiles();
 
     //--------------------------------------------------------------------------
     //! \brief Callback to the user clicked on the button for opening a new file.
@@ -63,7 +75,7 @@ private:
     //--------------------------------------------------------------------------
     //! \brief Callback to the user clicked on the button for opening a recent file.
     //--------------------------------------------------------------------------
-    virtual void onRecentFilesClicked() = 0;
+    virtual void onRecentFileClicked(std::string const& filename) = 0;
 
     //--------------------------------------------------------------------------
     //! \brief Callback to the user clicked on the button splitting horizontally
@@ -119,6 +131,9 @@ protected:
     //! \brief
     Gtk::MenuButton                m_menu_button;
 
+public: //FIXME
+    Glib::RefPtr<Gio::Menu> m_menu;
+
 private:
 
     Gtk::HeaderBar  m_header_bar;
@@ -131,6 +146,10 @@ private:
     Gtk::Button     m_save_file_button;
     Gtk::Button     m_saveas_file_button;
     Gtk::HBox       m_boxes[4];
+    Glib::RefPtr<Gtk::RecentManager> m_recent_manager;
+    Gtk::RecentChooserWidget m_recent_chooser;
+    Gtk::Popover    m_recent_files_popov;
+    Gtk::HBox       m_recent_files_box;
 };
 
-#endif // BASE_WINDOWS_HPP
+#endif // GTKMM_FORTH_IDE_BASE_WINDOWS_HPP

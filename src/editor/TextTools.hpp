@@ -18,8 +18,8 @@
 // along with SimForth.  If not, see <http://www.gnu.org/licenses/>.
 //==============================================================================
 
-#ifndef GTKMM_TEXT_EDITOR_TOOLS_HPP
-#  define GTKMM_TEXT_EDITOR_TOOLS_HPP
+#ifndef GTKMM_FORTH_IDE_TEXT_TOOLS_HPP
+#  define GTKMM_FORTH_IDE_TEXT_TOOLS_HPP
 
 #  include "Gtkmm.hpp"
 
@@ -314,4 +314,4 @@ private:
     Gtk::Button m_all;
 };
 
-#endif // GTKMM_TEXT_EDITOR_TOOLS_HPP
+#endif // GTKMM_FORTH_IDE_TEXT_TOOLS_HPP

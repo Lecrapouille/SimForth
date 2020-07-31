@@ -1,0 +1,23 @@
+@startuml
+
+class Application
+class BaseWindow
+class ForthWindow
+class TextEditor
+class ForthEditor
+class ForthInspector
+class SimForth
+class TextDocument
+class ForthDocument
+
+Application ..> "*" BaseWindow
+BaseWindow <|-- ForthWindow
+TextEditor <|-- ForthEditor
+TextEditor .> "*" TextDocument
+ForthWindow .> "*" ForthEditor
+TextDocument <|-- ForthDocument
+ForthEditor .> "*" ForthDocument
+ForthEditor ..> "1" ForthInspector
+SimForth "1" <. ForthWindow
+
+@enduml

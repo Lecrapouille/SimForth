@@ -18,8 +18,8 @@
 // along with SimForth.  If not, see <http://www.gnu.org/licenses/>.
 //==============================================================================
 
-#ifndef APPLICATION_HPP
-#  define APPLICATION_HPP
+#ifndef GTKMM_FORTH_IDE_APPLICATION_HPP
+#  define GTKMM_FORTH_IDE_APPLICATION_HPP
 
 #  include "BaseWindow.hpp"
 #  include "Utils.hpp"
@@ -88,4 +88,4 @@ private:
     static Glib::RefPtr<Gtk::Application> m_application;
 };
 
-#endif // APPLICATION_HPP
+#endif // GTKMM_FORTH_IDE_APPLICATION_HPP

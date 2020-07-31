@@ -21,211 +21,60 @@
 #include "ForthEditor.hpp"
 #include "Utils.hpp"
 
-// *****************************************************************************
-//
-// *****************************************************************************
-ForthDocument::ForthDocument(forth::Forth& forth, Glib::RefPtr<Gsv::Language> language)
-    : TextDocument(language),
-      m_forth(forth),
-      m_tab_sm(ForthAutoCompletSMBegin)
-{
-    // Tag for Forth word not in dictionary
-    m_tag_unknown_word = m_buffer->create_tag("error");
-    m_tag_unknown_word->property_underline() = Pango::UNDERLINE_ERROR;
-    m_tag_unknown_word->property_style() = Pango::STYLE_ITALIC;
-
-    // Tag for immediate Forth words
-    m_tag_immediate_word = m_buffer->create_tag("immediate");
-    m_tag_immediate_word->property_foreground() = "#FFA000";
-    m_tag_immediate_word->property_weight() = Pango::WEIGHT_BOLD;
-
-    // Signal for highlighting unknown Forth words and immediate words.
-    m_buffer->signal_insert().connect(sigc::mem_fun(this, &ForthDocument::onInsertText));
-}
-
-// *****************************************************************************
-void ForthDocument::completeForthName(const bool reset_state)
-{
-    // User did not press the tabulator: restart the state machine
-    if (reset_state)
-    {
-        m_tab_sm = ForthAutoCompletSMBegin;
-        return ;
-    }
-
-    // Get the iterator from the position of the cursor
-    Gtk::TextBuffer::iterator cursor = m_buffer->get_iter_at_mark(m_buffer->get_insert());
-    Gtk::TextBuffer::iterator start(cursor);
-
-    // Remove the space/tabulator inserted during the state ForthAutoCompletSMBegin
-    if (ForthAutoCompletSMEnd == m_tab_sm)
-    {
-        skipBackwardSpaces(start);
-    }
-
-    // The tabulator has not yet been inserted so no need to skip spaces
-    skipBackwardWord(start);
-    if (ForthAutoCompletSMBegin == m_tab_sm)
-    {
-        // Several space between the previous word: no completion allowed
-        if (start == cursor)
-        {
-            // but remove the space because it (keyval) will be inserted
-            m_buffer->erase(--start, cursor);
-            return ;
-        }
-        // Extract the word to be auto-completed
-        m_partial_word = m_buffer->get_text(start, cursor).raw();
-        // Next step
-        m_tab_sm = ForthAutoCompletSMEnd;
-    }
-
-#if 0
-    forth::Token
-    const char* completed_word = m_forth.dictionary.autocomplete(m_partial_word);
-    if (NULL != completed_word)
-    {
-        // A Forth word has been found in the dictionary;
-        // Replace the word by the found one.
-        m_buffer->erase(start, cursor);
-        cursor = m_buffer->get_iter_at_mark(m_buffer->get_insert());
-        m_buffer->insert(cursor, completed_word);
-    }
-    else
-    {
-        // No Forth word found: restart the state machine
-        m_tab_sm = ForthAutoCompletSMBegin;
-    }
-#endif
-}
-
-// *****************************************************************************
-//!
-// *****************************************************************************
-void ForthDocument::skipBackwardWord(Gtk::TextBuffer::iterator& iter)
-{
-    while (1)
-    {
-        if (!iter.backward_char())
-            return ;
-
-        if (g_unichar_isspace(iter.get_char()))
-        {
-            iter.forward_char();
-            return ;
-        }
-    }
-}
-
-// *****************************************************************************
-//!
-// *****************************************************************************
-void ForthDocument::skipBackwardSpaces(Gtk::TextBuffer::iterator& iter)
-{
-    while (1)
-    {
-        if (!iter.backward_char())
-            return ;
-
-        if (!g_unichar_isspace(iter.get_char()))
-        {
-            iter.forward_char();
-            return ;
-        }
-    }
-}
-
-// *****************************************************************************
-// Slot. FIXME: gerer les commentaires
-// *****************************************************************************
-void ForthDocument::onInsertText(const Gtk::TextBuffer::iterator& pos1,
-                                 const Glib::ustring& text_inserted,
-                                 __attribute__((unused)) int bytes)
-{
-    // FIXME: enlever les tags
-    // New char inserted
-    std::string c = text_inserted.raw();
-    std::cout << "c: '" <<  text_inserted.raw() << "'" << std::endl;
-
-    if (isspace(c[0])) // Pas bon !! il faut faire une boucle text_inserted peut etre un gros morceau de code
-    {
-        Gtk::TextBuffer::iterator pos(pos1);
-        skipBackwardSpaces(pos);
-        Gtk::TextBuffer::iterator start(pos);
-        skipBackwardWord(start);
-        std::string partial_word = m_buffer->get_text(start, pos).raw();
-        std::cout << "WORD '" << partial_word << "'" << std::endl;
-
-        // TODO: not in a comment
-        {
-            // Mark unknown word. FIXME underline IMMEDIATE words
-            forth::Token token;
-            bool immediate;
-            if (m_forth.find(partial_word, token, immediate))
-            {std::cout << "found" << std::endl;
-                if (immediate)
-                {
-                    m_buffer->apply_tag(m_tag_immediate_word, start, pos);
-                }
-            }
-            else
-            {std::cout << "not found " << m_forth.base() << std::endl;
-                forth::Cell val;
-                if (!toInteger(partial_word, m_forth.base(), val))
-                {std::cout << "not a number" << std::endl;
-                    // Check if not a definition
-                    Gtk::TextBuffer::iterator p1(start);
-                    skipBackwardSpaces(p1);
-                    Gtk::TextBuffer::iterator p2(p1);
-                    skipBackwardWord(p1);
-                    partial_word = m_buffer->get_text(p1, p2).raw();
-                    if (0 != partial_word.compare(":"))
-                    {
-                        m_buffer->apply_tag(m_tag_unknown_word, start, pos);
-                    }
-                }
-                else
-                {std::cout << "number" << std::endl;
-
-                }
-            }
-        }
-    }
-
-    // FIXME: reset completion state
-}
 
 // FIXME: temporary
 #define FORTH_TOOLBAR_PLUGINS 0
 #define FORTH_TOOLBAR_CMDS 1
 
-// *****************************************************************************
-//
-// *****************************************************************************
-ForthEditor::ForthEditor(forth::Forth& forth)
-    : m_forth(forth),
-      m_dico_inspector(forth),
-      m_stack_inspector(forth)/*,
-      m_cout(std::cout, m_results.get_buffer()),
-      m_cerr(std::cerr, m_messages.get_buffer())*/
+#define NTB_LEFT 0
+#define NTB_RIGHT 1
+#define NTB_RIGHT2 2
+
+// -----------------------------------------------------------------------------
+ForthEditor::ForthEditor(std::stringstream& buffer_cout, std::stringstream& buffer_cerr,
+                         Gtk::Statusbar& statusbar, forth::Forth& forth)
+    : TextEditor(statusbar),
+      m_buffer_cout(buffer_cout),
+      m_buffer_cerr(buffer_cerr),
+      m_forth(forth)
 {
     LOGI("%s", "Creating ForthEditor");
+
+    // Forth commands
+    populateToolBars();
+
+    // Widget hierarchy
     m_hbox.pack_start(m_toolbars[FORTH_TOOLBAR_PLUGINS], Gtk::PACK_SHRINK);
     m_hbox.pack_start(m_vbox);
     m_vbox.pack_start(*this, Gtk::PACK_EXPAND_WIDGET);
     m_vbox.pack_start(m_toolbars[FORTH_TOOLBAR_CMDS], Gtk::PACK_SHRINK);
-    m_vbox.pack_start(m_statusbar, Gtk::PACK_SHRINK);
-    m_vbox.pack_start(m_notebook, Gtk::PACK_EXPAND_WIDGET);
+    m_vbox.pack_start(m_status_bar, Gtk::PACK_SHRINK);
+    m_vbox.pack_start(m_notebook[0], Gtk::PACK_EXPAND_WIDGET);
 
-    addNoteBookPage(ForthResTab, m_results, "_Result");
-    addNoteBookPage(ForthHistoryTab, m_history, "H_istory");
-    addNoteBookPage(ForthMsgTab, m_messages, "_Messages");
-    addNoteBookPage(ForthDicoTab, m_dico_inspector.widget(), "_Dico");
-    addNoteBookPage(ForthStackTab, m_stack_inspector.widget(), "Data _Stack");
+    // Notebooks
+    addNoteBookPage(0, ForthResTab, m_results, "_Result");
+    addNoteBookPage(0, ForthHistoryTab, m_history.widget(), "H_istory", false);
+    addNoteBookPage(0, ForthMsgTab, m_messages, "_Messages");
+    addNoteBookPage(0, ForthDicoTab, m_dico_inspector.widget(), "_Dico");
+    addNoteBookPage(0, ForthStackTab, m_stack_inspector.widget(), "_Stacks");
 
-    populateToolBars();
+    // Show the dictionary
+    m_dico_inspector.inspect(m_forth);
+
+    // Flush the std::cout in the textview
+    Glib::RefPtr<Gtk::TextBuffer> buf = m_results.get_buffer();
+    buf->insert(buf->end(), m_buffer_cout.str());
+    buf = m_messages.get_buffer();
+    buf->insert(buf->end(), m_buffer_cerr.str());
 }
 
+// -----------------------------------------------------------------------------
+void ForthEditor::addFileFilters(Gtk::FileChooserDialog& dialog)
+{
+    dialog.add_filter(createFileFilter<Gtk::FileFilter>());
+}
+
+// -----------------------------------------------------------------------------
 void ForthEditor::populateToolBars()
 {
     // Horizontal toolbar: Forth commands
@@ -233,15 +82,63 @@ void ForthEditor::populateToolBars()
         Gtk::Toolbar& toolbar = m_toolbars[FORTH_TOOLBAR_CMDS];
         toolbar.set_property("orientation", Gtk::ORIENTATION_HORIZONTAL);
         toolbar.set_property("toolbar-style", Gtk::TOOLBAR_ICONS);
+        toolbar.set_toolbar_style(Gtk::TOOLBAR_BOTH);
 
-        // Forth exec button
+        // Forth exec button: execute the script in the active document
         {
             Gtk::ToolButton *button = Gtk::make_managed<Gtk::ToolButton>();
-            button->set_label("Exec");
+            button->set_label("Execute");
             button->set_stock_id(Gtk::Stock::EXECUTE);
-            button->set_tooltip_text("Run Forth script");
-            toolbar.append(*button, [&]{interpreteCurrentDocument();});
-            toolbar.append(m_separator[1]);
+            button->set_tooltip_text("Run the Forth script");
+            toolbar.append(*button, [&]{ interpreteCurrentDocument(); });
+        }
+
+        // Enable/disable Forth debug
+        {
+            Gtk::ToggleToolButton *button = Gtk::make_managed<Gtk::ToggleToolButton>();
+            button->set_label("Enable Trace");
+            button->set_stock_id(Gtk::Stock::CONVERT);
+            button->set_tooltip_text("Enable or disable traces");
+            toolbar.append(*button, [button, this]
+            {
+                if (button->get_active())
+                {
+                    button->set_label("Disable Trace");
+                    this->m_forth.interpretString("TRACES.ON");
+                }
+                else
+                {
+                    button->set_label("Enable Trace");
+                    this->m_forth.interpretString("TRACES.OFF");
+                }
+            });
+        }
+
+        // Convert typed text to upper case
+        {
+            Gtk::ToolButton *button = Gtk::make_managed<Gtk::ToolButton>();
+            button->set_label("Upper Case");
+            button->set_stock_id(Gtk::Stock::BOLD);
+            button->set_tooltip_text("Convert to upper case when typing");
+            toolbar.append(*button, [&]
+            {
+                // TODO
+            });
+        }
+
+        // Clear dictionary
+        {
+            Gtk::ToolButton *button = Gtk::make_managed<Gtk::ToolButton>();
+            button->set_label("Reset Dico");
+            button->set_stock_id(Gtk::Stock::CLEAR);
+            button->set_tooltip_text("Reset dictionary");
+            toolbar.append(*button, [&]
+            {
+                // TODO if (QuestionDialog("Do You really want to reset the dictionary ?")) {
+                m_forth.dictionary.clear();
+                m_forth.boot();
+                // }
+            });
         }
     }
 
@@ -269,35 +166,39 @@ ForthEditor::~ForthEditor()
 }
 
 //------------------------------------------------------------------
-Glib::RefPtr<Gio::Menu> ForthEditor::populatePopovMenu(Gtk::ApplicationWindow& win)
+void ForthEditor::populatePopovMenu(BaseWindow& win)//Gtk::ApplicationWindow& win)
 {
-    Glib::RefPtr<Gio::Menu> menu = Gio::Menu::create();
-    //Glib::RefPtr<Gio::Menu> submenu_text_editor = TextEditor::populatePopovMenu();
-    Glib::RefPtr<Gio::Menu> submenu_forth_editor = Gio::Menu::create();
-    //TODO menu->append_submenu("Text Editor", submenu_text_editor);
-    menu->append_submenu("Forth Editor", submenu_forth_editor);
+    m_submenu_forth_editor = Gio::Menu::create();
+    win.m_menu->append_submenu("Forth Editor", m_submenu_forth_editor);
 
-    submenu_forth_editor->append("New Script", "win.script-create-dummy");
-    submenu_forth_editor->append("New Template Script", "win.script-create-template");
-    submenu_forth_editor->append("Interactive Script", "win.script-interactive");
-    submenu_forth_editor->append("Load dictionary", "win.dico-load");
-    submenu_forth_editor->append("Dump dictionary", "win.dico-dump");
+    m_submenu_forth_editor->append("New Script", "win.script-create-dummy");
+    m_submenu_forth_editor->append("New Template Script", "win.script-create-template");
+    m_submenu_forth_editor->append("Interactive Script", "win.script-interactive");
+    m_submenu_forth_editor->append("Load dictionary", "win.dico-load");
+    m_submenu_forth_editor->append("Dump dictionary", "win.dico-dump");
 
     win.add_action("script-create-dummy", sigc::mem_fun(*this, &ForthEditor::createEmptyScript));
     win.add_action("script-create-template", sigc::mem_fun(*this, &ForthEditor::createTemplateScript));
     win.add_action("script-interactive", sigc::mem_fun(*this, &ForthEditor::openInteractiveScript));
     win.add_action("dico-load", sigc::mem_fun(*this, &ForthEditor::loadDictionary));
     win.add_action("dico-dump", sigc::mem_fun(*this, &ForthEditor::dumpDictionary));
-
-    return menu;
 }
 
-void ForthEditor::addNoteBookPage(uint32_t const nth, Gtk::Widget& widget, const char* label)
+void ForthEditor::addNoteBookPage(uint32_t const nth_notebook, uint32_t const nth_page,
+                                  Gtk::Widget& widget, const char* label, bool const scroll)
 {
-    m_scrolled[nth].add(widget);
-    m_scrolled[nth].set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
-    m_notebook.append_page(m_scrolled[nth], label, true);
-    m_notebook.set_tab_detachable(m_scrolled[nth], true);
+    if (scroll)
+    {
+        m_scrolled[nth_page].add(widget);
+        m_scrolled[nth_page].set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+        m_notebook[nth_notebook].append_page(m_scrolled[nth_page], label, true);
+        m_notebook[nth_notebook].set_tab_detachable(m_scrolled[nth_page], true);
+    }
+    else
+    {
+        m_notebook[nth_notebook].append_page(widget, label, true);
+        m_notebook[nth_notebook].set_tab_detachable(widget, true);
+    }
 }
 
 // *****************************************************************************
@@ -305,13 +206,13 @@ void ForthEditor::addNoteBookPage(uint32_t const nth, Gtk::Widget& widget, const
 // *****************************************************************************
 void ForthEditor::statusBarSays(std::string const& message)
 {
-    m_statusbar.push(message);
+    m_status_bar.push(message);
 }
 
 // *****************************************************************************
 //
 // *****************************************************************************
-void ForthEditor::completeForthName(const bool reset_state)
+void ForthEditor::completeForthName(int const key)
 {
     TextDocument* txt_doc = TextEditor::document();
     if (nullptr == txt_doc)
@@ -323,7 +224,7 @@ void ForthEditor::completeForthName(const bool reset_state)
         LOGES("%s", "Cannot cast TextDocument to ForthDocument");
         return ;
     }
-    doc->completeForthName(reset_state);
+    doc->completeForthName(key != GDK_KEY_Tab);
 }
 
 // *****************************************************************************
@@ -331,7 +232,7 @@ void ForthEditor::completeForthName(const bool reset_state)
 // *****************************************************************************
 void ForthEditor::createEmptyScript()
 {
-    TextEditor::empty("New Forth script");
+    TextEditor::newDocument("New Forth script");
 }
 
 // *****************************************************************************
@@ -339,7 +240,7 @@ void ForthEditor::createEmptyScript()
 // *****************************************************************************
 void ForthEditor::createTemplateScript()
 {
-    ForthEditor::empty();
+    ForthEditor::createDocument();
     TextDocument* doc = TextEditor::document();
     if (nullptr == doc)
         return ;
@@ -355,7 +256,7 @@ void ForthEditor::dumpDictionary()
 {
     Gtk::FileChooserDialog dialog("Choose a binary file to save Forth dictionary",
                                   Gtk::FILE_CHOOSER_ACTION_SAVE);
-    dialog.set_transient_for((Gtk::Window&) (*m_notebook.get_toplevel()));
+    dialog.set_transient_for((Gtk::Window&) (*m_notebook[NTB_RIGHT].get_toplevel()));
 
     // Set to the SimTaDyn path while no longer the GTK team strategy.
     dialog.set_current_folder(config::data_path);
@@ -390,7 +291,7 @@ void ForthEditor::loadDictionary()
 {
     Gtk::FileChooserDialog dialog("Choose a binary file to save Forth dictionary",
                                   Gtk::FILE_CHOOSER_ACTION_OPEN);
-    dialog.set_transient_for((Gtk::Window&) (*m_notebook.get_toplevel()));
+    dialog.set_transient_for((Gtk::Window&) (*m_notebook[NTB_RIGHT].get_toplevel()));
 
     // Set to the SimTaDyn path while no longer the GTK team strategy.
     dialog.set_current_folder(config::data_path);
@@ -465,7 +366,7 @@ bool ForthEditor::interpreteCurrentDocument()
 
     if (nullptr == doc)
     {
-        m_statusbar.push("Please, feed me with a Forth script !");
+        m_status_bar.push("Please, feed me with a Forth script !");
         return false;
     }
 
@@ -475,6 +376,15 @@ bool ForthEditor::interpreteCurrentDocument()
         // FIXME: Clear the text editor if and only if we are in an interactive mode
         doc->clear();
     }
+    m_stack_inspector.inspect(m_forth);
+    m_dico_inspector.inspect(m_forth);
+
+    // Flush the std::cout in the textview
+    Glib::RefPtr<Gtk::TextBuffer> buf = m_results.get_buffer();
+    buf->insert(buf->end(), m_buffer_cout.str());
+    buf = m_messages.get_buffer();
+    buf->insert(buf->end(), m_buffer_cerr.str());
+
     return res;
 }
 
@@ -494,24 +404,18 @@ bool ForthEditor::interpreteScript(std::string const& script, std::string const&
     bool res = m_forth.interpretString(script.c_str());
     auto t1 = Time::now();
 
-    // Flush the std::cout in the textview
-    //m_cout.flush();
-    //m_cerr.flush();
-
     if (res)
     {
         LOGI("Succeeded executing script '%s'", filename.c_str());
 
         m_elapsed_time = std::chrono::duration_cast<ns>(t1 - t0);
-        m_statusbar.push(elapsedTime());
+        m_status_bar.push(elapsedTime());
 
         // Paste the script Forth result in the "Result" tab of the notebook
         buf->insert(buf->end(), "m_forth.message: TBD");
 
         // Copy paste the Forth script into the historic buffer
-        buf = m_history.get_buffer();
-        buf->insert(buf->end(), script);
-        buf->insert(buf->end(), "\n\n");
+        m_history.add(script, m_buffer_cout.str());
 
         // TODO: inserer nouveau mot dans tree
         return false;
@@ -521,7 +425,7 @@ bool ForthEditor::interpreteScript(std::string const& script, std::string const&
         LOGE("Failed executing script '%s'", filename.c_str());
 
         // Text view: indiquer ligne ko
-        m_statusbar.push("FAILED");
+        m_status_bar.push("FAILED");
 
         // Show the faulty document
         // TODO TextEditor::open(m_forth.nameStreamInFault());
@@ -546,7 +450,7 @@ void ForthEditor::onForthButtonClicked(Gtk::ToolButton& button)
     TextDocument *doc = tab(name);
     if ((nullptr != doc) && (doc->isModified()))
     {
-        Gtk::MessageDialog dialog((Gtk::Window&) (*m_notebook.get_toplevel()),
+        Gtk::MessageDialog dialog((Gtk::Window&) (*m_notebook[NTB_RIGHT].get_toplevel()),
                                   "The document '" + doc->title() +
                                   "' has been modified. Do you want to save it now before running its script ?",
                                   false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO);
@@ -556,12 +460,12 @@ void ForthEditor::onForthButtonClicked(Gtk::ToolButton& button)
         {
             button.set_label(doc->utext());
             button.set_tooltip_text(doc->utext());
-            doc->modified(false);
+            doc->setModified(false);
         }
         else
         {
             // Do not exec the script forth while in edition
-            m_statusbar.push("Use ignored saving the Forth script button"); // FIXME: inutile car ecrase par le resultat de l'exec
+            m_status_bar.push("Use ignored saving the Forth script button"); // FIXME: inutile car ecrase par le resultat de l'exec
         }
     }
 
@@ -570,7 +474,7 @@ void ForthEditor::onForthButtonClicked(Gtk::ToolButton& button)
         doc = TextEditor::addTab(name);
         doc->clear();
         doc->appendText(button.get_label());
-        doc->modified(false);
+        doc->setModified(false);
     }
     // FIXME: quand on sauvegarde ne pas stocker dans un fichier mais dans le bouton
 }
@@ -604,3 +508,31 @@ Gtk::ToolButton& ForthEditor::addForthButton(Gtk::BuiltinStockID const icon,
     }
     return *button;
 }
+
+#if 0
+Gtk::ToggleToolButton& ForthEditor::addForthButton(Gtk::BuiltinStockID const icon,
+                                                   std::string const& script1,
+                                                   std::string const& script2,
+                                                   std::string const& help)
+{
+    Gtk::ToggleToolButton *button = Gtk::make_managed<Gtk::ToggleToolButton>();
+
+    if (nullptr != button)
+    {
+        Gtk::Toolbar& toolbar = m_toolbars[FORTH_TOOLBAR_PLUGINS];
+
+        button->set_label(script);
+        button->set_stock_id(icon);
+        button->set_tooltip_text(help);
+        toolbar.append(*button, sigc::bind<Gtk::ToolButton&>
+                       (sigc::mem_fun(*this, &ForthEditor::onForthButtonClicked), *button));
+        toolbar.show_all_children();
+    }
+    else
+    {
+        //FIXME Gtk::MessageDialog dialog(*this, "Failed creating a Forth button");
+        //dialog.run();
+    }
+    return *button;
+}
+#endif

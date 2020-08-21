@@ -46,7 +46,7 @@ OBJS  = Exception.o File.o ILogger.o Logger.o Path.o LibC.o \
 ###################################################
 # Project defines
 #
-DEFINES +=
+DEFINES += -Wno-undef -Wno-keyword-macro -Wno-float-equal
 
 ###################################################
 # Compilation options.

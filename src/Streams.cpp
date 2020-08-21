@@ -338,7 +338,7 @@ InteractiveStream::InteractiveStream(Dictionary& dic, int const base)
     LOGD("Open InteractiveStream");
     dictionary = &dic;
     openHistoryFile();
-    rl_basic_word_break_characters = SPACES.c_str();
+    rl_basic_word_break_characters = const_cast<char*>(SPACES.c_str());
     rl_attempted_completion_function = character_name_completion;
     feed("Interactive");
 }

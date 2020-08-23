@@ -64,7 +64,7 @@ DEFINES += -Wno-float-equal -Wno-pedantic -Wno-sign-conversion -Wno-switch-enum 
 # Set Libraries compiled in the external/ directory.
 # For knowing which libraries is needed please read
 # the doc/Install.md file.
-THIRDPART_LIBS += $(abspath $(P)/$(BUILD)/libsimforth.so.$(shell cat $(P)/VERSION))
+THIRDPART_LIBS += $(abspath $(P)/$(BUILD)/libsimforth.$(SO).$(shell cat $(P)/VERSION))
 
 ###################################################
 # Set Libraries.

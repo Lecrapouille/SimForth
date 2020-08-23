@@ -58,7 +58,8 @@ OBJS = BaseWindow.o Application.o CloseLabel.o TextDocument.o \
 
 # Disable ugly gtkmm compilation warnings
 DEFINES += -DGTK_SOURCE_H_INSIDE -DGTK_SOURCE_COMPILATION
-DEFINES += -Wno-float-equal -Wno-pedantic -Wno-sign-conversion -Wno-switch-enum -Wno-conversion -Wno-old-style-cast -Wno-cast-qual
+DEFINES += -Wno-float-equal -Wno-pedantic -Wno-sign-conversion
+DEFINES += -Wno-undef -Wno-switch-enum -Wno-conversion -Wno-old-style-cast -Wno-cast-qual
 
 ###################################################
 # Set Libraries compiled in the external/ directory.

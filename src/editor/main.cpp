@@ -20,10 +20,12 @@
 
 #include "Application.hpp"
 #include "ForthWindow.hpp"
-#include "config.hpp"
+#include "project_info.hpp"
 
 int main()
 {
+    CONFIG_LOG(project::info);
+
     // Stop colorizing std::cout because we want to redirect the stream to GTK
     // windows and we not want to get hidden caracters doing colors.
     termcolor::disable();

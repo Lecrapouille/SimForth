@@ -25,22 +25,7 @@
 #  include "MyLogger/Logger.hpp"
 #  include "Exception/Exception.hpp"
 #  include "PathManager.hpp"
-
-namespace config
-{
-//! \brief Project compiled in release or debug mode ?
-extern bool debug;
-//! \brief Used for logs and GUI.
-extern std::string project_name;
-//! \brief Major version of project
-extern uint32_t major_version;
-//! \brief Minor version of project
-extern uint32_t minor_version;
-//! \brief Save the git SHA1
-extern std::string git_sha1;
-//! \brief Save the git branch
-extern std::string git_branch;
-}
+#  include "build/project_info.hpp"
 
 // *****************************************************************************
 //! \brief Facade class for Gtk::AboutDialog.
@@ -52,12 +37,12 @@ public:
     AboutDialog()
     {
         std::stringstream ss;
-        ss << config::major_version << '.' << config::minor_version << ' '
-           << (config::debug ? "debug" : "release")
-           << "\nGit SHA1: " << config::git_sha1
-           << "\nGit branch: " << config::git_branch;
+        ss << project::info.major_version << '.' << project::info.minor_version << ' '
+           << (project::info.debug ? "debug" : "release")
+           << "\nGit SHA1: " << project::info.git_sha1
+           << "\nGit branch: " << project::info.git_branch;
 
-        set_program_name(config::project_name);
+        set_program_name(project::info.project_name);
         set_version(ss.str());
         set_copyright("Copyright Quentin Quadrat");
         set_comments("Basic IDE for SimForth");
@@ -65,7 +50,7 @@ public:
         set_wrap_license(false);
         set_website("https://github.com/Lecrapouille");
         set_website_label(std::string("Visit ") +
-                          std::string(config::project_name) +
+                          std::string(project::info.project_name) +
                           std::string(" github site"));
         set_authors({"Quentin Quadrat <lecrapouille@gmail.com>"});
 

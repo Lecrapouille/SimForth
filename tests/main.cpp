@@ -20,15 +20,11 @@
 
 #include "main.hpp"
 #include "MyLogger/Logger.hpp"
+#include "project_info.hpp"
 
 int main(int argc, char *argv[])
 {
-    // Call it before Logger constructor
-    if (!File::mkdir(config::tmp_path))
-    {
-        std::cerr << "Failed creating the temporary directory '"
-                  << config::tmp_path << "'" << std::endl;
-    }
+     CONFIG_LOG(project::info);
 
     // The following line must be executed to initialize Google Mock
     // (and Google Test) before running the tests.

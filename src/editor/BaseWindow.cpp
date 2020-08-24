@@ -20,6 +20,7 @@
 
 #include "BaseWindow.hpp"
 #include "PathManager.hpp"
+#include "project_info.hpp"
 
 //------------------------------------------------------------------
 BaseWindow::BaseWindow(Glib::RefPtr<Gtk::Application> application)
@@ -86,7 +87,7 @@ void BaseWindow::setTitleIcon(std::string const &icon_name)
 void BaseWindow::populateHeaderBar()
 {
     m_header_bar.set_show_close_button(true);
-    m_header_bar.set_title (config::project_name);
+    m_header_bar.set_title (project::info.project_name);
     set_titlebar(m_header_bar);
 
     m_open_file_button.set_label("Open");

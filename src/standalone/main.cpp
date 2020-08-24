@@ -21,7 +21,7 @@
 #include "SimForth/SimForth.hpp"
 #include "MyLogger/Path.hpp"
 #include "MyLogger/File.hpp"
-#include "config.hpp"
+#include "project_info.hpp"
 
 static void usage(const char* fun)
 {
@@ -44,12 +44,7 @@ int main(int argc,char *argv[])
 {
     int opt;
 
-    // Call it before Logger constructor
-    if (!File::mkdir(config::tmp_path))
-    {
-        std::cerr << "Failed creating the temporary directory '"
-                  << config::tmp_path << "'" << std::endl;
-    }
+    CONFIG_LOG(project::info);
 
     forth::Forth forth;
 

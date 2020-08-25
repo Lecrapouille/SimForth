@@ -48,6 +48,11 @@ Once compiled, the standalone project can be run by:
 ./build/SimForth
 ```
 
+Note: for MacOS X users, you probably have to call:
+```sh
+DYLD_LIBRARY_PATH=build ./build/SimForth
+```
+
 ### Cleaning
 
 `make clean` or `make veryclean`

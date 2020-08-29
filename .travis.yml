@@ -5,18 +5,9 @@ language: cpp
 matrix:
   archi:
   - amd64
-  - s390x
+#  - s390x
+
   include:
-#  - os: linux
-#    dist: bionic
-#    compiler: gcc
-#    env:
-#      - COMPILER=g++-4.8
-#      - GCOV=gcov-4.8
-#    addons:
-#      apt:
-#        sources: ['ubuntu-toolchain-r-test']
-#        packages: [g++-4.8]
   - os: linux
     dist: bionic
     compiler: gcc
@@ -81,63 +72,18 @@ matrix:
       - COMPILER=clang++
       - GCOV=gcov
 
-before_install:
- - if [[ $TRAVIS_OS_NAME == "linux" ]]; then export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib64:/usr/local/lib64:/usr/local/lib/ ; fi
- - if [[ $TRAVIS_OS_NAME == "linux" ]]; then sudo apt-get -qq update ; fi
- - if [[ $TRAVIS_OS_NAME == "linux" ]]; then sudo apt-get install -y gcovr ruby-dev valgrind cmake libdw-dev libreadline-dev pkg-config bc ; fi
- - if [[ $TRAVIS_OS_NAME == "osx" ]]; then brew update ; fi
- # Report code coverage to github service coveralls
- - if [[ $TRAVIS_OS_NAME == "linux" ]]; then sudo gem install coveralls-lcov ; fi
- # Install the newer lcov (>= 1.14) because default lcov 1.13 does not support gcc >= 8
- - if [[ $TRAVIS_OS_NAME == "linux" ]]; then sudo apt-get install -y libjson-perl libperlio-gzip-perl ; fi
- - if [[ $TRAVIS_OS_NAME == "linux" ]]; then git clone https://github.com/linux-test-project/lcov.git --depth=1 ; fi
- - if [[ $TRAVIS_OS_NAME == "linux" ]]; then (cd lcov && sudo make install) ; fi
- # Use the correct gcov according to the GCC used
- - if [[ $TRAVIS_OS_NAME == "linux" ]]; then (cd /usr/bin && sudo ln -sf $GCOV gcov) ; fi
- # Install google test and google mock
- - sudo wget https://github.com/google/googletest/archive/release-1.10.0.tar.gz
- - sudo tar xf release-1.10.0.tar.gz
- - cd googletest-release-1.10.0
- - sudo CXX=$COMPILER cmake -DBUILD_SHARED_LIBS=ON .
- - sudo make install
- - cd "${TRAVIS_BUILD_DIR}"
-
-before_script:
- - function file_exists { test -e $1 && echo "The file $1 exists" || (echo "The file $1 does not exist" && exit 1) }
- - function dir_exists { test -d $1 && echo "The dir $1 exists" || (echo "The directory $1 does not exist" && exit 1) }
- - PROJECT_VERSION=`cat VERSION`
-
-script:
- # Download SimForth's thirdparts
- - V=1 make CXX=$COMPILER download-external-libs
- # Compile and install SimForth to /tmp
- - CI_DESTDIR=/tmp
- - V=1 make CXX=$COMPILER -j8
- - sudo make install DESTDIR=$CI_DESTDIR
- - file_exists $CI_DESTDIR/usr/bin/SimForth-$PROJECT_VERSION
- - file_exists $CI_DESTDIR/usr/lib/libsimforth.a
- - if [[ $TRAVIS_OS_NAME == "linux" ]]; then file_exists $CI_DESTDIR/usr/lib/libsimforth.so ; fi
- - if [[ $TRAVIS_OS_NAME == "linux" ]]; then file_exists $CI_DESTDIR/usr/lib/libsimforth.so.$PROJECT_VERSION ; fi
- - if [[ $TRAVIS_OS_NAME == "osx" ]]; then file_exists $CI_DESTDIR/usr/lib/libsimforth.dylib ; fi
- - if [[ $TRAVIS_OS_NAME == "osx" ]]; then file_exists $CI_DESTDIR/usr/lib/libsimforth.dylib.$PROJECT_VERSION ; fi
- - file_exists $CI_DESTDIR/usr/lib/pkgconfig/simforth.pc
- - file_exists $CI_DESTDIR/usr/lib/pkgconfig/simforth-$PROJECT_VERSION.pc
- - dir_exists $CI_DESTDIR/usr/share/SimForth/$PROJECT_VERSION
- - dir_exists $CI_DESTDIR/usr/share/SimForth/$PROJECT_VERSION/core
- - dir_exists $CI_DESTDIR/usr/share/SimForth/$PROJECT_VERSION/doc
- # Perform non-regression tests
- - if [[ $TRAVIS_OS_NAME == "linux" && "$COMPILER" != "clang++" ]]; then V=1 make check CXX=$COMPILER -j8 ; fi
- - if [[ $TRAVIS_OS_NAME == "linux" && "$COMPILER" == "clang++" ]]; then (cd tests && V=1 make CXX=$COMPILER -j8 && ./build/SimForth-UnitTest) ; fi
- # Check if libSimForth can be used
- - export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$CI_DESTDIR/usr/lib/pkgconfig
- - git clone https://github.com/Lecrapouille/LinkAgainstMyLibs.git --recurse-submodules --depth=1
- - (cd LinkAgainstMyLibs/Forth && make CXX=$COMPILER -j8 && ./build/Forth)
-
-after_success:
- - if [[ $TRAVIS_OS_NAME == "linux" && "$CXX" == "g++" ]]; then make coverall ; fi
- - if [[ $TRAVIS_OS_NAME == "linux" && "$CXX" == "g++" ]]; then bash <(curl -s https://codecov.io/bash) ; fi
-
 branches:
   only:
     - master
 
+before_install:
+ - cd "${TRAVIS_BUILD_DIR}"
+ - set SUDO=sudo
+ - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./.integration/travis-install-linux.sh ; fi
+ - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./.integration/travis-install-osx.sh ; fi
+
+script:
+ - ./.integration/travis-run-tests.sh
+
+after_success:
+  - if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" ]]; then ./.integration/travis-deploy.sh" ; fi

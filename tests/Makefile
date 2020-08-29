@@ -26,7 +26,6 @@ TARGET = $(PROJECT)-UnitTest
 DESCRIPTION = Unit tests for $(PROJECT)
 BUILD_TYPE = debug
 USE_COVERAGE = 1
-DEFINES += -Wno-unused-function
 
 ###################################################
 # Location of the project directory and Makefiles
@@ -46,7 +45,8 @@ OBJS  = Exception.o File.o ILogger.o Logger.o Path.o LibC.o \
 ###################################################
 # Project defines
 #
-DEFINES += -Wno-undef -Wno-keyword-macro -Wno-float-equal
+DEFINES += -Wno-unused-function -Wno-undef -Wno-keyword-macro -Wno-float-equal \
+  -DPROJECT_DATA_PATH=\"$(PROJECT_DATA_ROOT)/core\"
 
 ###################################################
 # Compilation options.

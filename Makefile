@@ -54,7 +54,8 @@ OBJS += Exception.o File.o ILogger.o Logger.o Path.o Utils.o Exceptions.o LibC.o
 ###################################################
 # Project defines
 #
-DEFINES +=
+DEFINES += \
+  -DPROJECT_DATA_PATH=\"$(PWD)/core:$(PROJECT_DATA_ROOT)/core\"
 
 ###################################################
 # Set Libraries:

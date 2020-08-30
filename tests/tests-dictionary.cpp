@@ -176,7 +176,7 @@ TEST(Dico, LoadFuzzingData)
     StreamStack streams;
     Interpreter interpreter(dictionary, streams);
 
-    ASSERT_EQ(system("rm -fr /tmp/fuzzy.hex; head -c 64k </dev/urandom >/tmp/fuzzy.hex"), 0);
+    ASSERT_EQ(system("rm -fr /tmp/fuzzy.hex; head -c 65536 </dev/urandom >/tmp/fuzzy.hex"), 0);
     bool ret = dictionary.load("/tmp/fuzzy.hex", true);
     ASSERT_EQ(ret, true);
     ASSERT_STREQ(dictionary.error().c_str(), "");

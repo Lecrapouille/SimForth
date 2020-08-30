@@ -252,7 +252,11 @@ END-C-LIB)FORTH";
     ASSERT_EQ(forth.interpretFile("/tmp/f1.fth"), false);
     std::cerr.rdbuf(old);
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("[ERROR]"));
+#ifdef __APPLE__
+    EXPECT_THAT(buffer.str().c_str(), HasSubstr("Symbol not found: _pppprintf"));
+#else
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("undefined symbol: pppprintf"));
+#endif
     ASSERT_EQ(forth.dataStack().depth(), 0);
 
     // Run
@@ -288,7 +292,11 @@ END-C-LIB)FORTH";
     ASSERT_EQ(forth.interpretFile("/tmp/f1.fth"), false);
     std::cerr.rdbuf(old);
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("[ERROR]"));
+#ifdef __APPLE__
+    EXPECT_THAT(buffer.str().c_str(), HasSubstr("Symbol not found: _bad"));
+#else
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("undefined symbol: bad"));
+#endif
     ASSERT_EQ(forth.dataStack().depth(), 0);
 
     // Run

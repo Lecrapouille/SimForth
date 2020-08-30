@@ -62,7 +62,12 @@ DEFINES += \
 # -lreadline: for interactive prompt
 # -ldl: for loading symbols in shared libraries
 #
+ifeq ($(ARCHI),Windows)
+PKG_LIBS += readline
+NOT_PKG_LIBS += -ldl
+else
 NOT_PKG_LIBS += -lreadline -ldl
+endif
 
 ###################################################
 # Compile the project

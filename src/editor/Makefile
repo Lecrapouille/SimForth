@@ -56,6 +56,9 @@ OBJS = BaseWindow.o Application.o CloseLabel.o TextDocument.o \
 # Project defines
 #
 
+DEFINES += \
+  -DPROJECT_DATA_PATH=\"$(PWD)/core:$(PROJECT_DATA_ROOT)/core\"
+
 # Disable ugly gtkmm compilation warnings
 DEFINES += -DGTK_SOURCE_H_INSIDE -DGTK_SOURCE_COMPILATION
 DEFINES += -Wno-float-equal -Wno-pedantic -Wno-sign-conversion

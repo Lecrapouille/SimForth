@@ -185,7 +185,7 @@ FALSE value opengl-exit-flag
    \ Reset the matrix
    gl-load-identity
    \ Set our perspective - the F/ calcs the aspect ratio of w/h
-   45.0 screen-width >FLOAT screen-height >FLOAT F/ 0.1 100.0 glu-perspective
+   45.0 screen-width >FLOAT screen-height >FLOAT / 0.1 100.0 glu-perspective
    \ Make sure we are changing the model view and not the projection
    GL_MODELVIEW gl-matrix-mode
    \ Reset the matrix

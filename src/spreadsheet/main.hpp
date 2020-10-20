@@ -35,7 +35,7 @@
 #include <map>
 #include <iostream>
 #include <SimForth/SimForth.hpp>
-#include "config.hpp"
+#include "project_info.hpp"
 
 #define COLUMNS 4
 #define ROWS 4

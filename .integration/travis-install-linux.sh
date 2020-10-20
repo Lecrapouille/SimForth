@@ -4,7 +4,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib64:/usr/local/lib64:/usr/local/l
 sudo apt-get -qq update
 
 ### Install global packages
-sudo apt-get install -y git cmake make libdw-dev pkg-config bc libreadline-dev
+sudo apt-get install -y git cmake make libdw-dev pkg-config bc libreadline-dev libgtksourceviewmm-3.0-dev
 
 ### Install the code coverage reporter (GitHub service coveralls)
 sudo gem install coveralls-lcov

@@ -1,5 +1,13 @@
 # SimForth
 
+## SimForth class diagram
+
+![alt tag](img/simforth.png)
+
+A Forth is made of an interpreter (to read script or byte code), a dictionary (to store byte code) and a class
+helping the interpreter to read streams (file, string or from interactive mode). SimForth interpreter uses the
+traditional data and return stack plus an auxiliary stack.
+
 ## SimForth file extension convention
 
 SimForth files are pure ASCII files. You can use the extension you desired:

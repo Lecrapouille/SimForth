@@ -1,0 +1,53 @@
+@startuml
+
+class Stream {
++ {abstract} split()
++ {abstract} word(): string
++ {abstract} skipLine()
++ {abstract} skipFile()
+}
+
+class Interpreter {
++ interactive()
++ interpretString(string: script);
++ interpretFile(string: path);
+}
+
+class Dictionary {
++ load(string: path)
++ save(string: path)
++ createEntry(token: xt, string: name, flags)
++ append(token: xt)
++ find(string: word): xt,flags
++ autocomplete(string: partialword)
++ display()
++ see(string: word)
++ last(): xt
++ here(): xt
+- memory: bytes[64k]
+- here: xt
+- last: xt
+}
+
+class Stack {
++ push()
++ pop()
++ dup()
++ drop()
+}
+
+Forth -> "1" Interpreter
+Forth -> "1" Dictionary
+Forth --> "*" Stream
+
+Interpreter ..> Dictionary
+Interpreter --> "3" Stack
+Stream <|-- StringStream
+Stream <|-- FileStream
+Stream <|-- InteractiveStream
+
+Stack <|.. DataStack
+Stack <|.. AuxStack
+Stack <|.. ReturnStack
+
+@enduml

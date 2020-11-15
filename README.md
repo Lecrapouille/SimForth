@@ -9,29 +9,42 @@
 |master     |[![Build Status](https://travis-ci.org/Lecrapouille/SimForth.svg?branch=master)](https://travis-ci.org/Lecrapouille/SimForth)|[![Build status](https://ci.appveyor.com/api/projects/status/github/lecrapouille/SimForth?svg=true)](https://ci.appveyor.com/project/Lecrapouille/SimForth)|
 |development|[![Build Status](https://travis-ci.org/Lecrapouille/SimForth.svg?branch=dev-refacto)](https://travis-ci.org/Lecrapouille/SimForth)||
 
-SimForth is a personal [Forth interpreter](https://www.forth.com/starting-forth/)
-originally used in my work-in-progress project named
-[SimTaDyn](https://github.com/Lecrapouille/SimTaDyn) which is a Geographic
-Information System (GIS) in which maps can be manipulated as a spreadsheet and
-where Forth replaces the Excel's Visual Basic, the scripting language for formulas
-stored in spreadsheet cells.
-
-I am currently moving apart SimTaDyn modules and the Forth interpreter
-is one of these modules. Now, SimForth has its own git repo and I hope have it's own
-life. SimForth is compiled as:
+[SimForth](https://github.com/Lecrapouille/SimForth) is a personal [Forth
+interpreter](https://www.forth.com/starting-forth/) made in C++, in the category
+of [token forth](http://www.bradrodriguez.com/papers/moving1.htm]). SimForth is
+compiled as:
 - a basic [standalone Forth
   interpreter](https://github.com/Lecrapouille/SimForth/blob/master/doc/standalone.md)
-  (in the same way than gforth, pforth, ...) offering you the choice, through the command
-  line, between an interactive prompt or interpreting scripts (from files or string).
-- and a shared library that allows you to embed a Forth interpreter in your personal C++
-  projects like demonstrated in this complete [example](https://github.com/Lecrapouille/LinkAgainstMyLibs/blob/master/Forth/src/main.cpp).
+  (in the same way than gforth, pforth, ...) offering you the choice between an
+  interactive prompt or interpreting scripts (from files or string).
+- a shared library that allows you to embed a Forth interpreter in your personal
+  C++ projects like shown in this
+  [example](https://github.com/Lecrapouille/LinkAgainstMyLibs/blob/master/Forth/src/main.cpp).
+- some proof of concept standalone are also given: -- a tiny spreadsheet tool using
+  Forth instead of VisulaBasic and made in GTK+; -- a Forth IDE made in GTK+.
 
-SimForth is not a Forth conceived to be embedded into micro-controlers. It is a [token threaded forth](https://www.bradrodriguez.com/papers/moving1.htm)  developed in C++ and token threaded forth makes the slower Forth interpreters. SimForth will offering GIS and spreadsheet extensions (still in gestation). The core of SimForth is for the moment not complete and
-some words are currently in development. As consequence, SimForth is not 100% compliant to
+SimForth was originally used in my project named
+[SimTaDyn](https://github.com/Lecrapouille/SimTaDyn) which is a Geographic
+Information System (GIS) in which maps can be manipulated as a spreadsheet and
+where Forth replaces the Excel's Visual Basic, the scripting language for
+formulas stored in spreadsheet cells. I am currently moving apart SimTaDyn code
+as modules and the Forth interpreter is one of these external parts. SimTaDyn is
+still a work in progress project but now, SimForth has its own git repo and I
+hope have it's own life and used for my other projects.
+
+SimForth is not a Forth conceived to be embedded into micro-controlers. It is a
+[token threaded forth](https://www.bradrodriguez.com/papers/moving1.htm)
+developed in C++ and token threaded forth makes the slower Forth
+interpreters. SimForth will offering GIS and spreadsheet extensions (still in
+gestation). The core of SimForth is for the moment not complete and some words
+are currently in development. As consequence, SimForth is not 100% compliant to
 [ANSI-Forth 2012](https://forth-standard.org/standard/words).
-As a Forth beginner, SimForth has its own personal touch concerning the
-implemention of the interpreter, dictionary, input buffer, and some features have been discarded (source
-editor, user variable, vocabulary) and probably purists will not agree with this way of implementing the interpreter.
+
+I am a Forth noob, SimForth has its own personal touch concerning the
+implemention of the interpreter, dictionary, input buffer, some features have
+been discarded (source editor, user variable, vocabulary) and some problematic
+design issues are still present. Certainly, purists will not agree with my way
+of implementing the interpreter.
 
 ## Installation
 
@@ -44,42 +57,41 @@ interpreter, does not have a complete library of words and does not follow
 completely the Forth 2012 standard. See [deviations](doc/deviation.md).
 
 Implemented:
-- Standalone Forth. See [here](src/standalone/).
+- Standalone Forth. See [sub-project](src/standalone/).
 - Shared library for your C++ project desiring to embed a Forth interpreter.
-- No Return-Stack manipulation but auxiliary stack manipulation.
-- Data-Stack mixing integer and floatting-point values: no separated floating point stack, no floatting-point words.
-- Can import C code and interface C functions from external libraries.
-- Minimal Forth system [Glossary](doc/glossary.md), [here](core/System/Core.fth).
+- No Return-Stack manipulation but auxiliary stack manipulation (makes Forth
+  less crashy).
+- The Sata-Stack is mixing integer and floatting-point values: no separated
+  floating point stack, no floatting-point words. Standard words such addition
+  or times will use floatting point when needed. I did not want floatting-point
+  words since this increase the number of primitives and make the code less
+  readable.
+- Can import C code and interface C functions from external libraries. See [documentation](doc/Cfunc.md).
+- Minimal Forth system Glossary [doc: ](doc/glossary.md), [code: ](core/System/Core.fth).
 - Display colorful and human-friendly error messages (more than gforth).
-- Display colorful dictionary. See [here](doc/img/Dictionary.png).
-- Basic colorful debugger. See [here](doc/img/Debugger.png).
+- Display colorful dictionary. See [screenshot](doc/img/Dictionary.png).
+- Basic colorful debugger. See [screenshot](doc/img/Debugger.png).
 - Interactive mode, interpret files and C++ strings.
 - Auto-completion of words in the interactive mode.
 - History of commands in the interactive mode.
 - (WIP) Basic GTK+ IDE (auto-completion, color, dictionary and stack display). See git branch dev-IDE.
-- Basic GTK+ spreadsheet standalone using SimForth instead of Visual Basic. See [here](src/spreadsheet/).
-- Basic self-tests made in Forth. See [here](core/SelfTests/tests-core.fth).
-- Can execute basic Legacy OpenGL code. See [here](core/OpenGL/OpenGL.fth).
+- Basic GTK+ spreadsheet standalone using SimForth instead of Visual Basic. See [sub-project](src/spreadsheet/).
+- Basic self-tests made in Forth. See [code](core/SelfTests/tests-core.fth). Continuous integration scripts.
+- Can execute basic Legacy OpenGL code. See [code](core/OpenGL/OpenGL.fth).
 - Data-Stack mixing integer and float values (no separated floating point stack).
-- No Return-Stack manipulation but Auxiliary-Stack manipulation).
-- Can import C code and interface C functions from external libraries.
-- Display colorful and human-friendly error messages (more than gforth).
-- Display colorful dictionary. See [here](img/Dictionary.png).
-- Basic colorful debugger. See [here](img/Debugger.png).
 - Max number of characters for a word is 32. Unicode words can be accepted while this feature is not really tested.
 - Save and load dump dictionary.
-- Unit tests and continuous integration scripts.
 
-To be done / Work in progress:
-- See [here](https://github.com/Lecrapouille/SimForth/issues/1)
-- Missing words (in gestation): locals, throw, catch, multi-tasking ...
-- Forth structures not compatible with C structure.
+To be fixed / Work in progress:
+- See [issue](https://github.com/Lecrapouille/SimForth/issues/1)
+- Words to be implemented: locals, throw, catch, multi-tasking ...
+- Forth structures are not compatible with C structure.
 - Little/Big endian compatibility when dictionary is saved. For the moment only
 AMD64-style architecture is managed.
 
 Known issues:
 - Disastrous dictionary byte manipulation.
-- Save/load dictionnary content having C functions loaded from sahred libraries.
+- Dictionnary having C functions loaded from shared libraries cannot be saved/loaded since pointers are not exported.
 
 ## Why SimForth?
 
@@ -119,15 +131,16 @@ Known issues:
 
 SimForth is the scripting language for SimTaDyn and should be used from SimTaDyn.
 SimForth, used as standalone, is less powerful than any serious Forth interpreter
-and it is two times slower than pforth because it is based on tokens. See [benchmark](tests/bench).
+and it is two times slower than pforth, five compared to gforth. See [benchmark](tests/bench).
 In my opinion, SimForth used as shared library, offers a simpler API than gforth.
 
 ## Documentation and Inspiration
 
-SimForth has some documentation inside the folder [docs](doc):
+SimForth comes with some documentation inside the folder [docs](doc):
 * [doc/install.md](doc/install.md) shows how to compile, install and use SimForth.
-* [docs/standalone.md](doc/standalone.md) show how to use the standalone binary.
-* [docs/libsimforth.md](doc/libsimforth.md) show how to use the libsimforth library.
-* [docs/learning.md](doc/learning.md) links for learning Forth.
-* [docs/simforth.md](doc/simforth.md) learning SimForth.
-* [docs/deviation.md](doc/deviation.md) shows deviation from ANSI-Forth.
+* [doc/standalone.md](doc/standalone.md) show how to use the standalone binary.
+* [doc/libsimforth.md](doc/libsimforth.md) show how to use the libsimforth library.
+* [doc/learning.md](doc/learning.md) links for learning Forth.
+* [doc/simforth.md](doc/simforth.md) learning SimForth.
+* [doc/deviation.md](doc/deviation.md) shows deviation from ANSI-Forth.
+* [doc/Cfunc.md](doc/Cfunc.md) shows how to interface C code with SimForth.

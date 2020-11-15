@@ -56,8 +56,8 @@ public:
     //! is used for error messages and logs.
     //! \param[in] name_ the name of the stack (debug purpose only).
     //--------------------------------------------------------------------------
-    Stack(const char *name_)
-        : sp(sp0), m_name(name_)
+    Stack(const char *name_ = typeid(T).name())
+        : m_name(name_)
     {
         // TODO init security_margin with canari values
     }
@@ -239,7 +239,7 @@ private:
     //--------------------------------------------------------------------------
     //! \brief Stack pointer (refers to the top element of the stack).
     //--------------------------------------------------------------------------
-    T* sp;
+    T* sp = sp0;
 
     //--------------------------------------------------------------------------
     //! \brief Name of the stack for logs and c++ exceptions.

@@ -20,3 +20,13 @@ April 2020: version 0.2
 	* More system words have been added such as ."
 	* Are not managed: words such as DOES> CONSTANT, structures.
 	* Regressions: little/big endian compatibility. Cannot store bytes directly in the dictionary.
+
+??? : version 0.3
+	* Minimalist core system such as <BUILDS DOES> VALUE DEFER FORK.
+	* Follow standard: check words before numbers.
+	* Update compilation for MacOS X, Msys2.
+	* Remove utils folder: use git clone instead.
+	* Add GTK+ IDE, add spreadsheet using Forth instead of Basic.
+	* API evolution, show dictionary and tracer.
+        * Fix multilines paste and Windows carriage return.
+	* Fix upper/lower cases (numbers, auto-completion).

@@ -37,8 +37,8 @@ include $(M)/Makefile.header
 ###################################################
 # List of files to compile.
 #
-OBJS  = Exception.o File.o ILogger.o Logger.o Path.o LibC.o \
-  Exceptions.o Utils.o Primitives.o Dictionary.o Display.o Interpreter.o Streams.o Forth.o \
+OBJS  = Exception.o File.o ILogger.o Logger.o Path.o Options.o LibC.o \
+  Exceptions.o Utils.o Primitives.o Dictionary.o Display.o Interpreter.o Streams.o SimForth.o \
   tests-utils.o tests-stack.o tests-dictionary.o tests-streams.o tests-interpreter.o \
   tests-core.o tests-clib.o main.o
 

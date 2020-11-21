@@ -334,7 +334,7 @@ TEST(Utils, CheckFromAscii)
 //------------------------------------------------------------------------------
 TEST(Utils, CheckBigNumber)
 {
-    forth::Forth forth;
+    SimForth forth;
     forth::Cell number;
     bool ret;
 
@@ -355,15 +355,15 @@ TEST(Utils, CheckBigNumber)
     }
 
     // Integer out of range error: convert to float
-    ASSERT_EQ(forth.interpreter.m_base, 10);
-    ret = forth.interpreter.toNumber("92233720368547758078", number);
+    ASSERT_EQ(forth.interpreter().m_base, 10);
+    ret = forth.interpreter().toNumber("92233720368547758078", number);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(number.isReal(), true);
     ASSERT_EQ(number.real(), 92233720368547758080.000);
 
     // Real conversion: no integer out of range error
-    ASSERT_EQ(forth.interpreter.m_base, 10);
-    ret = forth.interpreter.toNumber("92233720368547758078.0", number);
+    ASSERT_EQ(forth.interpreter().m_base, 10);
+    ret = forth.interpreter().toNumber("92233720368547758078.0", number);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(number.isReal(), true);
     ASSERT_EQ(number.real(), 92233720368547758080.000);
@@ -372,17 +372,17 @@ TEST(Utils, CheckBigNumber)
 //------------------------------------------------------------------------------
 TEST(Utils, ChecktoNumberRealWord)
 {
-    forth::Forth forth;
-    QUIET(forth.interpreter);
+    forth::Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
     ASSERT_EQ(forth.boot(), true);
 
     ASSERT_EQ(forth.interpretString("-$7B"), true);
-    ASSERT_EQ(forth.interpreter.DS.depth(), 1);
-    ASSERT_EQ(forth.interpreter.DS.pick(0).isInteger(), true);
-    ASSERT_EQ(forth.interpreter.DS.pick(0).integer(), -123);
+    ASSERT_EQ(forth.interpreter().DS.depth(), 1);
+    ASSERT_EQ(forth.interpreter().DS.pick(0).isInteger(), true);
+    ASSERT_EQ(forth.interpreter().DS.pick(0).integer(), -123);
 
     ASSERT_EQ(forth.interpretString("DROP $-7E"), true);
-    ASSERT_EQ(forth.interpreter.DS.depth(), 1);
-    ASSERT_EQ(forth.interpreter.DS.pick(0).isInteger(), true);
-    ASSERT_EQ(forth.interpreter.DS.pick(0).integer(), -126);
+    ASSERT_EQ(forth.interpreter().DS.depth(), 1);
+    ASSERT_EQ(forth.interpreter().DS.pick(0).isInteger(), true);
+    ASSERT_EQ(forth.interpreter().DS.pick(0).integer(), -126);
 }

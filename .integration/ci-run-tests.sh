@@ -59,6 +59,7 @@ file_exists $CI_DESTDIR/usr/include/$EXEC-$VERSION/$EXEC/$EXEC.hpp || exit 1
 # Check if the library can be linked against a project
 git clone https://github.com/Lecrapouille/LinkAgainstMyLibs.git --recurse-submodules --depth=1
 (cd LinkAgainstMyLibs/Forth && V=1 make CXX=$COMPILER $JCORES && ./build/Forth)
+(cd LinkAgainstMyLibs/ExtendedForth && V=1 make CXX=$COMPILER $JCORES && ./build/Forth)
 
 # Compile spreadsheet demo
 (cd src/spreadsheet && V=1 make $JCORES) || exit 1

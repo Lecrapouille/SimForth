@@ -37,7 +37,7 @@ int main()
     //std::streambuf* old_cerr = std::cerr.rdbuf(buffer_cerr.rdbuf());
 
     // Start Forth
-    forth::Forth simforth;
+    SimForth simforth;
     if (!simforth.boot())
         return EXIT_FAILURE;
 

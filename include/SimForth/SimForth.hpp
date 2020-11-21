@@ -21,18 +21,15 @@
 #ifndef CONCRETE_FORTH_HPP
 #  define CONCRETE_FORTH_HPP
 
-#  include "SimForth/IForth.hpp"
+#  include "SimForth/Facade.hpp"
 #  include "Interpreter.hpp"
 
-//namespace sim {
-namespace forth {
-
 //******************************************************************************
-//! \brief Interface class hiding the complexity of other classes such as the
+//! \brief Facade class hiding the complexity of other classes such as the
 //! interpreter, the dictionnary, input streams ... This class is ideal when you
 //! want to use a Forth interpreter inside a C++ program.
 //******************************************************************************
-class Forth: public IForth // TODO: public Path
+class SimForth: public forth::ForthFacade
 {
 public:
 
@@ -40,7 +37,22 @@ public:
     //! \brief Constructor. Basic initialization of states. No ations are made
     //! here. Dictionary is totally empty.
     //--------------------------------------------------------------------------
-    Forth();
+    SimForth(forth::Options const& options = forth::Options())
+    {
+        m_dictionary = std::make_unique<forth::Dictionary>();
+        m_interpreter = std::make_unique<forth::Interpreter>(*m_dictionary, options);
+        m_interpreter->path().add(options.path);
+        m_dictionary->setCountPrimitives(m_interpreter->countPrimitives());
+    }
+
+    template<class D, class I>
+    void extend(forth::Options const& options = forth::Options())
+    {
+        m_dictionary = std::make_unique<D>();
+        m_interpreter = std::make_unique<I>(*m_dictionary, options);
+        m_interpreter->path().add(options.path);
+        m_dictionary->setCountPrimitives(m_interpreter->countPrimitives());
+    }
 
     //--------------------------------------------------------------------------
     //! \brief Start a basic Forth system.
@@ -93,7 +105,7 @@ public:
     //! method is ideal when you want to interface your C++ program with a Forth
     //! interpreter.
     //--------------------------------------------------------------------------
-    virtual DataStack& dataStack() override;
+    virtual forth::DataStack& dataStack() override;
 
     //--------------------------------------------------------------------------
     //! \brief Return the data stack of the Forth interprete in read-only mode.
@@ -102,7 +114,7 @@ public:
     //! interpreter. This method is ideal when you want to interface your C++
     //! program with a Forth interpreter.
     //--------------------------------------------------------------------------
-    virtual DataStack const& dataStack() const override;
+    virtual forth::DataStack const& dataStack() const override;
 
     //--------------------------------------------------------------------------
     //! \brief Load a dictionary from a binary file, append or replace the old
@@ -147,7 +159,7 @@ public:
     //! \return true if the word has been found, else return false.
     //! \note Smudged words are ignored.
     //--------------------------------------------------------------------------
-    virtual bool find(std::string const& word, Token& xt, bool& immediate) const override;
+    virtual bool find(std::string const& word, forth::Token& xt, bool& immediate) const override;
 
     //--------------------------------------------------------------------------
     //! \brief Check for if a Forth word is stored inside the dictionary.
@@ -166,7 +178,7 @@ public:
     //! last().
     //! \return true if a word has been find completing word.
     //--------------------------------------------------------------------------
-    virtual const char* autocomplete(std::string const& word, Token& start) const override;
+    virtual const char* autocomplete(std::string const& word, forth::Token& start) const override;
 
     //--------------------------------------------------------------------------
     //! \brief Return the current base used for displaying values.
@@ -185,17 +197,41 @@ public:
     //--------------------------------------------------------------------------
     virtual Path const& path() const override;
 
-    virtual Options& options() override;
+    virtual forth::Options& options() override;
 
-// TODO
-//protected:
+    template<class D = forth::Dictionary>
+    D& dictionary() { return *(static_cast<D*>(m_dictionary.get())); }
 
-    Dictionary dictionary;
-    StreamStack streams;
-    Interpreter interpreter;
+    template<class I = forth::Interpreter>
+    I& interpreter() { return *(static_cast<I*>(m_interpreter.get())); }
+
+    template<class D = forth::Dictionary>
+    D const& dictionary() const { return *(static_cast<D*>(m_dictionary.get())); }
+
+    template<class I = forth::Interpreter>
+    I const& interpreter() const { return *(static_cast<const I*>(m_interpreter.get())); }
+
+protected:
+
+    virtual void bootCore();
+    virtual bool bootThirdParts();
+
+protected:
+
+    std::unique_ptr<forth::Dictionary> m_dictionary;
+    std::unique_ptr<forth::Interpreter> m_interpreter;
 };
 
-//}
-} // namespace sim::forth
+template<>
+inline forth::Interpreter& SimForth::interpreter() { return *m_interpreter; }
+
+template<>
+inline forth::Dictionary& SimForth::dictionary() { return *m_dictionary; }
+
+template<>
+inline forth::Interpreter const& SimForth::interpreter() const { return *m_interpreter; }
+
+template<>
+inline forth::Dictionary const& SimForth::dictionary() const { return *m_dictionary; }
 
 #endif // CONCRETE_FORTH_HPP

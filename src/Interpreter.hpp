@@ -23,6 +23,8 @@
 
 #  include "SimForth/Options.hpp"
 #  include "SimForth/Stack.hpp"
+#  include "Primitives.hpp" // FIXME should be in the Interpreter.cpp but we need
+                            // some symbols when using Forth inheritance
 #  include "Dictionary.hpp"
 #  include "Utils.hpp"
 #  include "LibC.hpp"
@@ -112,12 +114,9 @@ public:
     //! actions.
     //! \param[inout] dico the dictionary where are stored word entris and byte
     //! code.
-    //! \param[inout] streams a stack for memorizing streams when executing the
-    //! word INCLUDE (reading a new file).
     //! \param[in] options TODO to be defined. Define behavior of the interperter
     //--------------------------------------------------------------------------
-    Interpreter(Dictionary& dico, StreamStack& streams,
-                Options const& options = Options());
+    Interpreter(Dictionary& dico, Options const& options = Options());
 
     //--------------------------------------------------------------------------
     //! \brief Destructor. Unstack and close opened streams.
@@ -130,10 +129,7 @@ public:
     //--------------------------------------------------------------------------
     void abort();
 
-    //--------------------------------------------------------------------------
-    //! \brief TODO to be defined
-    //--------------------------------------------------------------------------
-    void setOptions(Options const& options);
+    Options& getOptions() { return m_options; }
 
     //--------------------------------------------------------------------------
     //! \brief Execute a Forth script file from the given path.
@@ -228,7 +224,15 @@ public:
     //--------------------------------------------------------------------------
     bool toNumber(std::string const& word, Cell& number);
 
-private:
+    inline Dictionary& dictionary() { return m_dictionary; }
+    inline StreamStack& streams() { return SS; }
+
+    //--------------------------------------------------------------------------
+    //! \brief Return the number of Forth primitives
+    //--------------------------------------------------------------------------
+    virtual Token countPrimitives() const;
+
+protected:
 
     //--------------------------------------------------------------------------
     //! \brief Display the result of interpret().
@@ -255,7 +259,7 @@ private:
     //! \brief Switch case of primitives to execute. In classic Forth this part
     //! calls assembly.
     //--------------------------------------------------------------------------
-    void executePrimitive(Token const xt);
+    virtual void executePrimitive(Token const xt);
 
     //--------------------------------------------------------------------------
     //! \brief Main algorithm executing the code of primitive or secondary word
@@ -268,14 +272,6 @@ private:
     //! secondary word.
     //--------------------------------------------------------------------------
     void executeToken(Token const xt);
-
-    //--------------------------------------------------------------------------
-    //! \brief Return the number of Forth primitives
-    //--------------------------------------------------------------------------
-    //virtual Token nbPrimitives()
-    //{
-    //    return Primitives::MAX_PRIMITIVES_;
-    //}
 
     void included();
 
@@ -357,14 +353,16 @@ protected:
 
     //! \brief Forth dictionary holding word entried and byte code (compiled
     //! words).
-    Dictionary& dictionary;
+    Dictionary&    m_dictionary;
+    //! \brief Configure the behvaior
+    Options        m_options;
     //! \brief the path manager for searching files in the same idea than Unix
     //! path $PATH.
-    Path m_path;
+    Path           m_path;
     //! \brief Current state of the interpreter.
-    State m_state = State::Interprete;
+    State          m_state = State::Interprete;
     //! \brief Current base for displaying numbers
-    int   m_base = 10;
+    int            m_base = 10;
     //! \brief Instruction Pointer. Refers to the position of the token to
     //! execute.
     Token          IP;
@@ -387,7 +385,7 @@ protected:
     //! \brief Loop iterator (word J).
     Cell           J;
     //! \brief Stack of opened streams
-    StreamStack&   SS;
+    StreamStack    SS;
     //! \brief Data Stack (aka Parameter Stack).
     DataStack      DS;
     //! \brief Secondary data stack.
@@ -409,7 +407,6 @@ public: // FIXME
     //! \brief if true Forth interpreter runs inside an interactive prompt
     //! else eats file or std::string holding Forth code.
     bool        m_interactive = false;
-    Options     options;
 };
 
 } // namespace forth

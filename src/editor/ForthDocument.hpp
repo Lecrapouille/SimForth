@@ -37,10 +37,10 @@ public:
 
     //--------------------------------------------------------------------------
     //! \brief Constructor.
-    //! \param[inout] forth reference to the Forth interpreter.
+    //! \param[inout] forth reference to the Forth interpreter->
     //! \param[inout] language Gtksourceview lnagage for syntax colorization.
     //--------------------------------------------------------------------------
-    ForthDocument(forth::Forth& forth, Glib::RefPtr<Gsv::Language> language);
+    ForthDocument(SimForth& forth, Glib::RefPtr<Gsv::Language> language);
 
     //--------------------------------------------------------------------------
     //! \brief Auto-complete the Forth word refered by the document cursor (the
@@ -92,10 +92,10 @@ protected:
 
 private:
 
-    //! \brief Reference to the Forth interpreter.
-    forth::Forth& m_forth;
+    //! \brief Reference to the Forth interpreter->
+    SimForth& m_forth;
     //! \brief Gtk tag in textbuffer for highlighting Forth words not present in the
-    //! dictionary.
+    //! dictionary->
     Glib::RefPtr<Gtk::TextTag> m_tag_unknown_word;
     //! \brief Gtk tag in textbuffer for highlighting primitive Forth words.
     Glib::RefPtr<Gtk::TextTag> m_tag_primitive_word;

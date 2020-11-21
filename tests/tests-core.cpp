@@ -40,8 +40,8 @@ TEST(CheckForth, Size)
 // Check skipping comments
 TEST(CheckForth, Comments)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
     ASSERT_EQ(forth.boot(), true);
 
     ASSERT_EQ(forth.interpretString("( ( 1 2 + ) 3 + )"), true);
@@ -70,8 +70,9 @@ TEST(CheckForth, Comments)
 // Literals
 TEST(CheckForth, Literals)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
     ASSERT_EQ(forth.boot(), true);
 
     ASSERT_EQ(forth.interpretString(": FOO -42 ; FOO"), true);
@@ -90,8 +91,9 @@ TEST(CheckForth, Literals)
 // Check if changing base works
 TEST(CheckForth, CheckBase)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
 
     ASSERT_EQ(forth.boot(), true);
     ASSERT_EQ(forth.interpretString("16 BASE! BASE 0x0a BASE! BASE"), true);
@@ -103,8 +105,9 @@ TEST(CheckForth, CheckBase)
 // Check if hidding word definitions works
 TEST(CheckForth, CheckSmudge)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
     ASSERT_EQ(forth.boot(), true);
 
     // Define a first definition
@@ -131,8 +134,9 @@ TEST(CheckForth, CheckSmudge)
 // Check the word TICK
 TEST(CheckForth, CheckExec)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
 
     // Define a first definition
     ASSERT_EQ(forth.boot(), true);
@@ -157,8 +161,9 @@ TEST(CheckForth, CheckExec)
 // Execute plenty of words that at final cancel each others
 TEST(CheckForth, StackManipIdentity)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
 
     ASSERT_EQ(forth.boot(), true);
     ASSERT_EQ(forth.interpretString("42   DUP DROP   DUP DUP   2>R 2R>   2DROP "
@@ -174,8 +179,9 @@ TEST(CheckForth, StackManipIdentity)
 // Check if division by 0 throw an error.
 TEST(CheckForth, DivByZero)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
 
     ASSERT_EQ(forth.boot(), true);
     ASSERT_EQ(forth.interpretString("0 1 /"), true);
@@ -192,8 +198,9 @@ TEST(CheckForth, DivByZero)
 // Check Variables
 TEST(CheckForth, Variables)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
     ASSERT_EQ(forth.boot(), true);
 
     std::stringstream buffer;
@@ -264,8 +271,9 @@ TEST(CheckForth, Variables)
 // Check Values
 TEST(CheckForth, Values)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
     ASSERT_EQ(forth.boot(), true);
 
     ASSERT_EQ(forth.interpretString("-20 VALUE TOTO"), true);
@@ -308,8 +316,9 @@ TEST(CheckForth, Values)
 // Check Defer
 TEST(CheckForth, Defer)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
     ASSERT_EQ(forth.boot(), true);
 
     // Interpretation mode
@@ -344,8 +353,9 @@ TEST(CheckForth, Defer)
 // Check includes
 TEST(CheckForth, Includes)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
 
     ASSERT_EQ(forth.boot(), true);
     ASSERT_EQ(system("echo \"INCLUDE /tmp/f2.fth\n3 FOO\" > /tmp/f1.fth"), 0);
@@ -360,25 +370,26 @@ TEST(CheckForth, Includes)
 // Check immediate
 TEST(CheckForth, Immediate)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
 
     ASSERT_EQ(forth.boot(), true);
     std::stringstream buffer;
     std::streambuf* old = std::cerr.rdbuf(buffer.rdbuf());
     ASSERT_EQ(forth.interpretString(": FOO 42 ; IMMEDIATE"), true);
-    Token here = forth.dictionary.here();
-    Token last = forth.dictionary.last();
+    Token here = forth.dictionary().here();
+    Token last = forth.dictionary().last();
     ASSERT_EQ(forth.interpretString(": BAR FOO ;"), false);
     std::cerr.rdbuf(old);
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("[ERROR]"));
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("tack depth changed"));
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("BAR"));
     ASSERT_EQ(forth.dataStack().depth(), 0);
-    ASSERT_EQ(forth.dictionary.has("BAR"), false);
-    ASSERT_EQ(forth.dictionary.has("FOO"), true);
-    ASSERT_EQ(here, forth.dictionary.here());
-    ASSERT_EQ(last, forth.dictionary.last());
+    ASSERT_EQ(forth.dictionary().has("BAR"), false);
+    ASSERT_EQ(forth.dictionary().has("FOO"), true);
+    ASSERT_EQ(here, forth.dictionary().here());
+    ASSERT_EQ(last, forth.dictionary().last());
 
     // Check if an error does not remove the last word entry
     buffer.str(std::string());
@@ -387,9 +398,9 @@ TEST(CheckForth, Immediate)
     std::cerr.rdbuf(old);
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("[ERROR]"));
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("Unknown word POUET"));
-    ASSERT_EQ(forth.dictionary.has("FOO"), true);
-    ASSERT_EQ(here, forth.dictionary.here());
-    ASSERT_EQ(last, forth.dictionary.last());
+    ASSERT_EQ(forth.dictionary().has("FOO"), true);
+    ASSERT_EQ(here, forth.dictionary().here());
+    ASSERT_EQ(last, forth.dictionary().last());
 
     //
     old = std::cerr.rdbuf(buffer.rdbuf());
@@ -399,7 +410,7 @@ TEST(CheckForth, Immediate)
     ASSERT_EQ(forth.dataStack().pop().integer(), 84);
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("[WARNING]"));
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("Redefining FOO"));
-    ASSERT_EQ(forth.dictionary.has("BAR"), true);
+    ASSERT_EQ(forth.dictionary().has("BAR"), true);
 
     //
     ASSERT_EQ(forth.interpretString(": VERIF-PILE .S ; IMMEDIATE"), true);
@@ -418,8 +429,9 @@ TEST(CheckForth, Immediate)
 // Check lambda function
 TEST(CheckForth, Lambda)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
 
     ASSERT_EQ(forth.boot(), true);
     ASSERT_EQ(forth.interpretString("1 2 3"), true);
@@ -433,8 +445,9 @@ TEST(CheckForth, Lambda)
 // Check HERE manipulation
 TEST(CheckForth, Here)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
     ASSERT_EQ(forth.boot(), true);
 
     // Initial position
@@ -479,8 +492,9 @@ TEST(CheckForth, Here)
 // Recursivity, IF THEN ELSE
 TEST(CheckForth, Recursivity)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
     ASSERT_EQ(forth.boot(), true);
 
     // TODO: Notation 1 is no longer accepted by SimForth after SHA1
@@ -507,8 +521,9 @@ TEST(CheckForth, Recursivity)
 // Store, fetch, comma
 TEST(CheckForth, StoreFetch)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
     ASSERT_EQ(forth.boot(), true);
 
     // Token
@@ -559,8 +574,9 @@ TEST(CheckForth, StoreFetch)
 // Test Compilation words
 TEST(CheckForth, Compile)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
 
     ASSERT_EQ(forth.boot(), true);
     std::stringstream buffer;
@@ -571,7 +587,7 @@ TEST(CheckForth, Compile)
     std::cerr.rdbuf(old);
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("[ERROR]"));
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("compile-only word ;"));
-    ASSERT_EQ(forth.dictionary.has("FOO"), false);
+    ASSERT_EQ(forth.dictionary().has("FOO"), false);
     ASSERT_EQ(forth.dataStack().depth(), 0);
 
     // Case 2
@@ -591,7 +607,7 @@ TEST(CheckForth, Compile)
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("Data-Stack depth changed"));
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("FOOBAR"));
     ASSERT_EQ(forth.dataStack().depth(), 0);
-    ASSERT_EQ(forth.dictionary.has("FOOBAR"), false);
+    ASSERT_EQ(forth.dictionary().has("FOOBAR"), false);
 
     // Case 4
     ASSERT_EQ(forth.interpretString(": FOOO [ 123 ] LITERAL ;"), true);
@@ -630,8 +646,9 @@ TEST(CheckForth, Compile)
 //
 TEST(CheckForth, DetectUnsecureCode)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
     ASSERT_EQ(forth.boot(), true);
 
     std::stringstream buffer;
@@ -652,8 +669,9 @@ TEST(CheckForth, DetectUnsecureCode)
 //
 TEST(CheckForth, ImmediateCompile)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
     ASSERT_EQ(forth.boot(), true);
 
     ASSERT_EQ(forth.interpretString(
@@ -680,8 +698,9 @@ TEST(CheckForth, ImmediateCompile)
 
 TEST(CheckForth, BinaryTree)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
     ASSERT_EQ(forth.boot(), true);
     ASSERT_EQ(forth.interpretFile("BinaryTree.fth"), true);
     ASSERT_EQ(forth.interpretString("7 LEAF 0      4 NODE\n"
@@ -721,7 +740,7 @@ TEST(CheckForth, BinaryTree)
 // Launch self tests written in Forth
 TEST(CheckForth, SelfTests)
 {
-    Forth forth;
+    SimForth forth;
     ASSERT_EQ(forth.boot(), true);
 
     std::stringstream buffer;

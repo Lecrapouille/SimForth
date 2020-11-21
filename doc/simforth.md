@@ -106,7 +106,7 @@ This way of debugging the dictionary is fastidious. The `-d` option (or the word
 displayed and markdown does not show colors). Here is a screenshot of what you
 can obtain (the image may be slightly different from your output).
 
-![alt tag](img/Dictionary.png)
+![img/Dictionary.png](img/Dictionary.png)
 
 Let explain this picture with a basic example:
 

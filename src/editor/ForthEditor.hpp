@@ -177,7 +177,7 @@ public:
     //! \brief Constructor: create all GTKmm widgets.
     //--------------------------------------------------------------------------
     ForthEditor(std::stringstream& buffer_cout, std::stringstream& buffer_cerr,
-                Gtk::Statusbar& statusbar, forth::Forth& forth);
+                Gtk::Statusbar& statusbar, SimForth& forth);
 
     //--------------------------------------------------------------------------
     //! \brief Destructor: Check for unsaved document when destroying the GTKmm
@@ -319,7 +319,7 @@ private:
 
     std::stringstream&     m_buffer_cout;
     std::stringstream&     m_buffer_cerr;
-    forth::Forth&          m_forth;
+    SimForth&              m_forth;
     Gtk::VPaned            m_vpaned;
     Gtk::HPaned            m_hpaned;
     Gtk::HBox              m_hbox;

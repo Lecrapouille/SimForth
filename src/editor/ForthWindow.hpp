@@ -26,13 +26,13 @@
 
 // *****************************************************************************
 //! \brief Concrete implementation of the BaseWindow Facade. This window holds
-//! the IDE for a Forth interpreter.
+//! the IDE for a Forth interpreter->
 // *****************************************************************************
 class ForthWindow : public BaseWindow
 {
 public:
 
-    ForthWindow(std::stringstream& buffer_cout, std::stringstream& buffer_cerr, forth::Forth& simforth);
+    ForthWindow(std::stringstream& buffer_cout, std::stringstream& buffer_cerr, SimForth& simforth);
 
     //--------------------------------------------------------------------------
     //! \brief Add a GTKmm button executing a Forth script.
@@ -82,7 +82,7 @@ private:
     std::stringstream&      m_buffer_cout;
     std::stringstream&      m_buffer_cerr;
     //! \brief Forth interpreter
-    forth::Forth&           m_forth;
+    SimForth&               m_forth;
     //! \brief Text editor specialized for Forth scripts
     Gtk::Statusbar          m_status_bar;
     ForthEditor             m_forth_editor;

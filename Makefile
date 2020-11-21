@@ -48,8 +48,8 @@ VPATH += $(P)/src $(P)/external/Exception $(P)/external/MyLogger/src	\
 ###################################################
 # Make the list of compiled files
 #
-OBJS += Exception.o File.o ILogger.o Logger.o Path.o Utils.o Exceptions.o LibC.o	\
-  Streams.o Dictionary.o Display.o Interpreter.o Primitives.o Forth.o
+OBJS += Exception.o File.o ILogger.o Logger.o Path.o Options.o Utils.o Exceptions.o LibC.o	\
+  Streams.o Dictionary.o Display.o Interpreter.o Primitives.o SimForth.o
 
 ###################################################
 # Project defines

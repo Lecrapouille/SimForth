@@ -34,7 +34,7 @@
         color = SMUDGED_WORD_COLOR;                                   \
     else if (immediate)                                               \
         color = IMMEDIATE_WORD_COLOR;                                 \
-    else if (xt < Primitives::MAX_PRIMITIVES_)                        \
+    else if (xt < max_primitives)                                     \
         color = PRIMITIVE_WORD_COLOR;                                 \
     else                                                              \
         color = SECONDARY_WORD_COLOR
@@ -44,7 +44,7 @@
         color = UNDERLINE_SMUDGED_WORD_COLOR;                         \
     else if (immediate)                                               \
         color = UNDERLINE_IMMEDIATE_WORD_COLOR;                       \
-    else if (xt < Primitives::MAX_PRIMITIVES_)                        \
+    else if (xt < max_primitives)                                     \
         color = UNDERLINE_PRIMITIVE_WORD_COLOR;                       \
     else                                                              \
         color = UNDERLINE_SECONDARY_WORD_COLOR
@@ -157,7 +157,8 @@ static void display_header()
 //! \param[in] base (hexa, decimal) for displaying literals.
 //----------------------------------------------------------------------------
 static void display(Token const *nfa, Dictionary const& dictionary,
-                    Token const* eod, int base, Token const *IP)
+                    Token const* eod, int base, Token const *IP,
+                    Token const max_primitives)
 {
     ForthConsoleColor color;
 
@@ -186,7 +187,7 @@ static void display(Token const *nfa, Dictionary const& dictionary,
               << COLUMN_SEPARATOR;
 
     // Show information concerning primitives
-    if (xt < Primitives::MAX_PRIMITIVES_)
+    if (xt < max_primitives)
     {
         TYPE_OF_PRIMITIVE();
         std::cout << WORD_INFO() << DEFAULT_COLOR << std::endl;
@@ -420,9 +421,10 @@ static void display(Token const *nfa, Dictionary const& dictionary,
 
 //----------------------------------------------------------------------------
 static bool policy_display_all(Token const *nfa, Dictionary const& dictionary,
-                               Token const** prev, int base, Token const *IP)
+                               Token const** prev, int base, Token const *IP,
+                               Token const max_primitives)
 {
-    display(nfa, dictionary, *prev - 1, base, IP);
+    display(nfa, dictionary, *prev - 1, base, IP, max_primitives);
     *prev = nfa;
     return false;
 }
@@ -430,14 +432,14 @@ static bool policy_display_all(Token const *nfa, Dictionary const& dictionary,
 //----------------------------------------------------------------------------
 static bool policy_display_once(Token const *nfa, Dictionary const& dictionary,
                                 Token const** prev, Token const *word,  int base,
-                                Token const *IP)
+                                Token const *IP, Token const max_primitives)
 {
     Token const *eod = *prev - 1;
 
     // Search for the NFA of the word inside the definition.
     if ((nfa <= word) && (word <= eod))
     {
-        display(nfa, dictionary, eod, base, IP);
+        display(nfa, dictionary, eod, base, IP, max_primitives);
         *prev = nfa;
         return true;
     }
@@ -450,12 +452,13 @@ static bool policy_display_once(Token const *nfa, Dictionary const& dictionary,
 
 //----------------------------------------------------------------------------
 static bool policy_see(Token const *nfa, Dictionary const& dictionary,
-                       Token const** prev, std::string const& word, int base)
+                       Token const** prev, std::string const& word, int base,
+                       Token const max_primitives)
 {
     if (word == NFA2Name(nfa))
     {
         display_header();
-        display(nfa, dictionary, *prev - 1, base, nullptr);
+        display(nfa, dictionary, *prev - 1, base, nullptr, max_primitives);
         *prev = nfa;
         return true;
     }
@@ -474,7 +477,8 @@ void Dictionary::display(int const base) const
               << COLORED_ADDRESS(DICO_ADDRESS_COLOR, m_last) << DOTS(26) << "LATEST\n";
     Token xt = m_last;
     Token const* prev = m_memory + m_here;
-    iterate(policy_display_all, xt, 0, *this, &prev, base, nullptr); // FIXME Primitives::DUP au lieu 0 => KO
+    iterate(policy_display_all, xt, 0, *this, &prev, base, nullptr, m_max_primitives);
+    // FIXME Primitives::DUP au lieu 0 => KO
 }
 
 //----------------------------------------------------------------------------
@@ -484,7 +488,8 @@ void Dictionary::display(Token const *nfa, int base, Token const IP)
 
     Token xt = m_last;
     Token const* prev = m_memory + m_here;
-    iterate(policy_display_once, xt, 0, *this, &prev, nfa, base, m_memory + IP);
+    iterate(policy_display_once, xt, 0, *this, &prev, nfa, base, m_memory + IP,
+            m_max_primitives);
 }
 
 //----------------------------------------------------------------------------
@@ -494,7 +499,7 @@ bool Dictionary::see(std::string const& word, int base)
     Token const* prev = m_memory + m_here;
     std::string w = word;
     toUpper(w);
-    return iterate(policy_see, xt, 0, *this, &prev, w, base);
+    return iterate(policy_see, xt, 0, *this, &prev, w, base, m_max_primitives);
 }
 
 } // namespace forth

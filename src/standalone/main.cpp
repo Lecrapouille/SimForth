@@ -22,6 +22,7 @@
 #include "MyLogger/Path.hpp"
 #include "MyLogger/File.hpp"
 #include "project_info.hpp"
+#include <cstdlib>
 
 static void usage(const char* fun)
 {
@@ -42,14 +43,7 @@ static void usage(const char* fun)
 
 int main(int argc,char *argv[])
 {
-    int opt;
-
     CONFIG_LOG(project::info);
-
-    forth::Forth forth;
-
-    // Set pathes to look for files (ie /usr/share/SimForth/0.1/data)
-    // forth.path().add(Config::instance().toString());
 
     // Enable/disable colorful text displayed on terminal
     termcolor::enable();
@@ -58,13 +52,17 @@ int main(int argc,char *argv[])
         if ((argv[i][0] == '-') && (argv[i][1] == 'h'))
         {
             usage(argv[0]);
-            return 1;
+            return EXIT_SUCCESS;
         }
         if ((argv[i][0] == '-') && (argv[i][1] == 'x'))
         {
             termcolor::disable();
         }
     }
+
+    SimForth forth; //TODO (options)
+    // Set pathes to look for files (ie /usr/share/SimForth/0.1/data)
+    // forth.path().add(Config::instance().toString());
 
     // Boot the default core. Even if the user will load
     // a dictionary instead
@@ -77,9 +75,10 @@ int main(int argc,char *argv[])
     if (1 == argc)
     {
         forth.interactive();
-        return 1;
+        return EXIT_SUCCESS;
     }
 
+    int opt;
     while ((opt = getopt(argc, argv, "hua:l:s:f:e:p:r:dix")) != -1)
     {
         switch (opt)
@@ -88,7 +87,7 @@ int main(int argc,char *argv[])
             case 'h':
             case 'u':
                 usage(argv[0]);
-                return 1;
+                return EXIT_SUCCESS;
 
                 // Load a dictionary
             case 'a':
@@ -155,5 +154,5 @@ int main(int argc,char *argv[])
         }
     }
 
-    return 0;
+    return EXIT_SUCCESS;
 }

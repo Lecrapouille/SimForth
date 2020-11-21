@@ -37,15 +37,19 @@
 using ::testing::HasSubstr;
 using namespace forth;
 
+//! \brief Append a new entry
+#define CREATE_ENTRY_(tok, name, immediate, visible)                           \
+    dictionary.createEntry(forth::Primitives::tok, name, immediate, visible)
+
 //------------------------------------------------------------------------------
 //! \brief Store a non-immediate primitive
 //------------------------------------------------------------------------------
-#define primitive(tok, name) CREATE_ENTRY(tok, name, false, true)
+#define PRIMITIVE_(tok, name) CREATE_ENTRY_(tok, name, false, true)
 
 //------------------------------------------------------------------------------
 //! \brief Store an immediate primitive
 //------------------------------------------------------------------------------
-#define immediate(tok, name) CREATE_ENTRY(tok, name, true, true)
+#define IMMEDIATE_(tok, name) CREATE_ENTRY_(tok, name, true, true)
 
 TEST(Dico, Config)
 {
@@ -55,19 +59,17 @@ TEST(Dico, Config)
 TEST(Dico, Dummy)
 {
     Dictionary dictionary;
-    StreamStack streams;
-    Interpreter interpreter(dictionary, streams);
 
     ASSERT_EQ(dictionary.here(), 0u);
     ASSERT_EQ(dictionary.last(), 0u);
     ASSERT_STREQ(dictionary.error().c_str(), "");
 
-    primitive(NOP, "NOP");
+    PRIMITIVE_(NOP, "NOP");
     ASSERT_EQ(dictionary.here(), 5u);
     ASSERT_EQ(dictionary.last(), 0u);
     ASSERT_STREQ(dictionary.error().c_str(), "");
 
-    primitive(BYE, "BYE");
+    PRIMITIVE_(BYE, "BYE");
     ASSERT_EQ(dictionary.here(), 10u);
     ASSERT_EQ(dictionary.last(), 5u);
     ASSERT_STREQ(dictionary.error().c_str(), "");
@@ -88,7 +90,7 @@ TEST(Dico, Dummy)
     ASSERT_EQ(dictionary.here(), 11u);
     ASSERT_EQ(dictionary.last(), 5u);
 
-    ASSERT_EQ(dictionary(), dictionary.m_memory);
+    //ASSERT_EQ(dictionary(), dictionary.m_memory);
 
     Dictionary const& d = dictionary;
     ASSERT_EQ(d(), d.m_memory);
@@ -98,11 +100,9 @@ TEST(Dico, Dummy)
 TEST(Dico, LoadSaveNominal)
 {
     Dictionary dictionary;
-    StreamStack streams;
-    Interpreter interpreter(dictionary, streams);
 
-    primitive(NOP, "NOP");
-    primitive(BYE, "BYE");
+    PRIMITIVE_(NOP, "NOP");
+    PRIMITIVE_(BYE, "BYE");
 
     bool ret = dictionary.save("dump1.hex");
     ASSERT_EQ(ret, true);
@@ -130,8 +130,6 @@ TEST(Dico, LoadSaveNominal)
 TEST(Dico, LoadDoesNotExist)
 {
     Dictionary dictionary;
-    StreamStack streams;
-    Interpreter interpreter(dictionary, streams);
 
     bool ret = dictionary.load("doesnotexist.hex", true);
     ASSERT_EQ(ret, false);
@@ -143,8 +141,6 @@ TEST(Dico, LoadDoesNotExist)
 TEST(Dico, LoadEmptyFile)
 {
     Dictionary dictionary;
-    StreamStack streams;
-    Interpreter interpreter(dictionary, streams);
 
     ASSERT_EQ(system("rm -fr /tmp/dummy.hex; touch /tmp/dummy.hex"), 0);
     bool ret = dictionary.load("/tmp/dummy.hex", true);
@@ -158,8 +154,6 @@ TEST(Dico, LoadEmptyFile)
 TEST(Dico, LoadFull)
 {
     Dictionary dictionary;
-    StreamStack streams;
-    Interpreter interpreter(dictionary, streams);
 
     ASSERT_EQ(system("rm -fr /tmp/full.hex; truncate -s 128k /tmp/full.hex"), 0);
     bool ret = dictionary.load("/tmp/full.hex", true);
@@ -173,8 +167,6 @@ TEST(Dico, LoadFull)
 TEST(Dico, LoadFuzzingData)
 {
     Dictionary dictionary;
-    StreamStack streams;
-    Interpreter interpreter(dictionary, streams);
 
     ASSERT_EQ(system("rm -fr /tmp/fuzzy.hex; head -c 65536 </dev/urandom >/tmp/fuzzy.hex"), 0);
     bool ret = dictionary.load("/tmp/fuzzy.hex", true);
@@ -188,12 +180,9 @@ TEST(Dico, LoadFuzzingData)
 TEST(Dico, SaveFailure)
 {
     Dictionary dictionary;
-    StreamStack streams;
-    Interpreter interpreter(dictionary, streams);
 
-
-    primitive(NOP, "NOP");
-    primitive(BYE, "BYE");
+    PRIMITIVE_(NOP, "NOP");
+    PRIMITIVE_(BYE, "BYE");
 
     bool ret = dictionary.save("/root/dump1.hex");
     ASSERT_EQ(ret, false);
@@ -265,10 +254,8 @@ TEST(Dico, CreateEntry)
 TEST(Dico, Smudge)
 {
     Dictionary dictionary;
-    StreamStack streams;
-    Interpreter interpreter(dictionary, streams);
 
-    primitive(NOP, "NOP");
+    PRIMITIVE_(NOP, "NOP");
 
     Token xt = Primitives::MAX_PRIMITIVES_;
     bool immediate = false;
@@ -284,8 +271,6 @@ TEST(Dico, Smudge)
 TEST(Dico, FindName)
 {
     Dictionary dictionary;
-    StreamStack streams;
-    Interpreter interpreter(dictionary, streams);
 
     Token xt = Primitives::MAX_PRIMITIVES_;
     bool immediate = false;
@@ -296,10 +281,10 @@ TEST(Dico, FindName)
     ASSERT_EQ(immediate, false);
     ASSERT_EQ(dictionary.has("NOP"), false);
 
-    primitive(NOP, "NOP");
-    primitive(BYE, "BYE");
-    immediate(ADD, "ADD");
-    primitive(MINUS, "MINUS");
+    PRIMITIVE_(NOP, "NOP");
+    PRIMITIVE_(BYE, "BYE");
+    IMMEDIATE_(ADD, "ADD");
+    PRIMITIVE_(MINUS, "MINUS");
 
     ret = dictionary.findWord("NOP", xt, immediate);
     ASSERT_EQ(ret, true);
@@ -332,17 +317,18 @@ TEST(Dico, FindName)
 TEST(Dico, DoubleEntry)
 {
     Dictionary dictionary;
+
     Token xt = Primitives::MAX_PRIMITIVES_;
     bool immediate = false;
     bool ret;
 
-    primitive(NOP, "NOP");
+    PRIMITIVE_(NOP, "NOP");
     ret = dictionary.findWord("NOP", xt, immediate);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(xt, Primitives::NOP);
     ASSERT_EQ(immediate, false);
 
-    immediate(BYE, "NOP");
+    IMMEDIATE_(BYE, "NOP");
     ret = dictionary.findWord("NOP", xt, immediate);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(xt, Primitives::BYE);
@@ -353,15 +339,13 @@ TEST(Dico, DoubleEntry)
 TEST(Dico, Token2Name)
 {
     Dictionary dictionary;
-    StreamStack streams;
-    Interpreter interpreter(dictionary, streams);
-    QUIET(interpreter);
+    Interpreter interpreter(dictionary);
 
-    primitive(NOP, "NOP");
-    primitive(BYE, "BYE");
-    primitive(COLON, ":");
-    immediate(SEMI_COLON, ";");
-    primitive(EXIT, "EXIT");
+    PRIMITIVE_(NOP, "NOP");
+    PRIMITIVE_(BYE, "BYE");
+    PRIMITIVE_(COLON, ":");
+    IMMEDIATE_(SEMI_COLON, ";");
+    PRIMITIVE_(EXIT, "EXIT");
 
     ASSERT_STREQ(dictionary.token2name(Primitives::NOP).c_str(), "NOP");
     ASSERT_STREQ(dictionary.token2name(Primitives::BYE).c_str(), "BYE");
@@ -385,14 +369,12 @@ TEST(Dico, Token2Name)
 TEST(Dico, AutoComplete)
 {
     Dictionary dictionary;
-    StreamStack streams;
-    Interpreter interpreter(dictionary, streams);
 
-    primitive(NOP, "NOP");
-    primitive(ADD, "NOOP");
-    primitive(MINUS, "FOO");
-    primitive(EXIT, "FONOP");
-    primitive(DOT, "NOPNOP");
+    PRIMITIVE_(NOP, "NOP");
+    PRIMITIVE_(ADD, "NOOP");
+    PRIMITIVE_(MINUS, "FOO");
+    PRIMITIVE_(EXIT, "FONOP");
+    PRIMITIVE_(DOT, "NOPNOP");
 
     const char* complete;
     Token xt = dictionary.last();
@@ -434,10 +416,10 @@ TEST(Dico, Display)
     ASSERT_STRNE(buffer.str().c_str(), "");
     buffer.clear();
 
-    Forth forth;
-    QUIET(forth.interpreter);
-    ASSERT_EQ(forth.boot(), true);
+    forth::Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
 
+    ASSERT_EQ(forth.boot(), true);
     ASSERT_EQ(forth.interpretString(": foo + + ;"), true);
     ASSERT_EQ(forth.interpretString(": foobar + + ; HIDE foobar"), true);
     ASSERT_EQ(forth.interpretString("VARIABLE bar 0xffff bar !"), true);
@@ -454,10 +436,10 @@ TEST(Dico, Display)
 
 TEST(Dico, See)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
-    ASSERT_EQ(forth.boot(), true);
+    forth::Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
 
+    ASSERT_EQ(forth.boot(), true);
     ASSERT_EQ(forth.interpretString(": foo + + ;"), true);
     ASSERT_EQ(forth.interpretString(": foobar + + ; HIDE foobar"), true);
     ASSERT_EQ(forth.interpretString("VARIABLE bar 0xffff bar !"), true);
@@ -468,14 +450,14 @@ TEST(Dico, See)
 
     std::stringstream buffer;
     std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
-    ASSERT_EQ(forth.dictionary.see("gggg", 10), true);
+    ASSERT_EQ(forth.dictionary().see("gggg", 10), true);
     std::cout.rdbuf(old);
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("Address"));
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("GGGG"));
 
     buffer.str(std::string());
     old = std::cerr.rdbuf(buffer.rdbuf());
-    ASSERT_EQ(forth.dictionary.see("NNNNN", 10), false);
+    ASSERT_EQ(forth.dictionary().see("NNNNN", 10), false);
     std::cerr.rdbuf(old);
     ASSERT_STREQ(buffer.str().c_str(), "");
 }

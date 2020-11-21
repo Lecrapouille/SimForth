@@ -42,8 +42,9 @@ static void toString(const char* filename, std::string const script)
 // Check Call C function no input and no output
 TEST(CheckForth, CLib_)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
     ASSERT_EQ(forth.boot(), true);
 
     // Compile
@@ -73,8 +74,9 @@ END-C-LIB)FORTH";
 // Check Call C function single input and no output
 TEST(CheckForth, CLibN_)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
     ASSERT_EQ(forth.boot(), true);
 
     // Compile
@@ -104,8 +106,9 @@ END-C-LIB)FORTH";
 // Check Call C function returning an output
 TEST(CheckForth, CLib_N)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+        Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
     ASSERT_EQ(forth.boot(), true);
 
     // Compile
@@ -137,8 +140,9 @@ END-C-LIB)FORTH";
 // Check Call C function with single input and a single output
 TEST(CheckForth, CLibN_N)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+        Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
     ASSERT_EQ(forth.boot(), true);
 
     // Compile
@@ -168,8 +172,9 @@ END-C-LIB)FORTH";
 // Check Call C function with two inputs and a single output
 TEST(CheckForth, CLibNN_N)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+        Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
     ASSERT_EQ(forth.boot(), true);
 
     // Compile
@@ -200,8 +205,9 @@ END-C-LIB)FORTH";
 // Check Call C function with two inputs and a single output
 TEST(CheckForth, CLibFN_F)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+        Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
     ASSERT_EQ(forth.boot(), true);
 
     // Compile
@@ -232,8 +238,9 @@ END-C-LIB)FORTH";
 // Try to compile a C code containing errors
 TEST(CheckForth, BadCLib)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+        Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
     ASSERT_EQ(forth.boot(), true);
 
     // C Code
@@ -272,8 +279,9 @@ END-C-LIB)FORTH";
 // Try to compile a C code but look for the wrong symbol
 TEST(CheckForth, BadSymbol)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+        Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
     ASSERT_EQ(forth.boot(), true);
 
     // C Code

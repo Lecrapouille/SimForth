@@ -38,7 +38,7 @@ using namespace forth;
 // Check the minimal Forth system can boot
 TEST(CheckInterpreter, BootableSystem)
 {
-    Forth forth;
+    SimForth forth;
 
     std::stringstream buffer;
     std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
@@ -51,8 +51,9 @@ TEST(CheckInterpreter, BootableSystem)
 // Reboot Forth system. Check initial states point of view the user.
 TEST(CheckInterpreter, Reseting)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
 
     // Boot Forth system. Check initial states
     ASSERT_EQ(forth.boot(), true);
@@ -72,8 +73,8 @@ TEST(CheckInterpreter, Reseting)
 // This is the way to use SimForth inside a C program.
 TEST(CheckInterpreter, PassingParameters)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
     ASSERT_EQ(forth.boot(), true);
 
     ASSERT_EQ(forth.dataStack().depth(), 0);
@@ -115,8 +116,11 @@ TEST(CheckInterpreter, PassingParameters)
 //
 TEST(CheckInterpreter, Path)
 {
-    Forth forth;
-    ASSERT_STREQ(forth.path().toString().c_str(), "");
+    forth::Options options;
+    options.path = "bar";
+
+    SimForth forth(options);
+    ASSERT_STREQ(forth.path().toString().c_str(), ".:bar:");
     forth.path().add("/home/foo");
     EXPECT_THAT(forth.path().toString().c_str(), HasSubstr(":"));
     EXPECT_THAT(forth.path().toString().c_str(), HasSubstr("/home/foo"));
@@ -128,8 +132,9 @@ TEST(CheckInterpreter, Path)
 // Check if the interpret can interpret a script file
 TEST(CheckInterpreter, InterpretFile)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
     ASSERT_EQ(forth.boot(), true);
 
     ASSERT_EQ(system("echo \"  1\n2         +   \n\n\n\t     3 +\" > /tmp/foo.fth"), 0);
@@ -142,8 +147,9 @@ TEST(CheckInterpreter, InterpretFile)
 // Perform some arithmetic operations
 TEST(CheckInterpreter, ArithmOperators)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
     ASSERT_EQ(forth.boot(), true);
 
     // Small positive numbers (< 65535)
@@ -190,14 +196,15 @@ TEST(CheckInterpreter, ArithmOperators)
 // Check if secondary words can be created and well executed
 TEST(CheckInterpreter, SecondaryWords)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
     ASSERT_EQ(forth.boot(), true);
 
     ASSERT_EQ(forth.interpretString(": foo + + ;"), true);
     ASSERT_EQ(forth.dataStack().depth(), 0);
-    ASSERT_EQ(forth.dictionary.has("FOO"), true);
-    //FIXME ASSERT_EQ(forth.dictionary.has("foo"), true);
+    ASSERT_EQ(forth.dictionary().has("FOO"), true);
+    //FIXME ASSERT_EQ(forth.dictionary().has("foo"), true);
     ASSERT_EQ(forth.interpretString("1 2 3 foo"), true);
     ASSERT_EQ(forth.dataStack().depth(), 1);
     ASSERT_EQ(forth.dataStack().pick(0).integer(), 6);
@@ -206,9 +213,9 @@ TEST(CheckInterpreter, SecondaryWords)
     ASSERT_EQ(forth.interpretString(": foo + + ;"), true);
     ASSERT_EQ(forth.interpretString(": bar foo ;"), true);
     ASSERT_EQ(forth.dataStack().depth(), 0);
-    ASSERT_EQ(forth.dictionary.has("FOO"), true);
-    ASSERT_EQ(forth.dictionary.has("BAR"), true);
-    //FIXME ASSERT_EQ(forth.dictionary.has("bar"), true);
+    ASSERT_EQ(forth.dictionary().has("FOO"), true);
+    ASSERT_EQ(forth.dictionary().has("BAR"), true);
+    //FIXME ASSERT_EQ(forth.dictionary().has("bar"), true);
     ASSERT_EQ(forth.interpretString("3 4 5 bar"), true);
     ASSERT_EQ(forth.dataStack().depth(), 1);
     ASSERT_EQ(forth.dataStack().pick(0).integer(), 12);
@@ -216,8 +223,8 @@ TEST(CheckInterpreter, SecondaryWords)
     ASSERT_EQ(forth.boot(), true);
     ASSERT_EQ(forth.interpretString(": foo + + ;"), true);
     ASSERT_EQ(forth.interpretString(": bar 4 5 6 foo ;"), true);
-    ASSERT_EQ(forth.dictionary.has("FOO"), true);
-    ASSERT_EQ(forth.dictionary.has("BAR"), true);
+    ASSERT_EQ(forth.dictionary().has("FOO"), true);
+    ASSERT_EQ(forth.dictionary().has("BAR"), true);
     ASSERT_EQ(forth.interpretString("bar"), true);
     ASSERT_EQ(forth.dataStack().depth(), 1);
     ASSERT_EQ(forth.dataStack().pick(0).integer(), 15);
@@ -225,8 +232,8 @@ TEST(CheckInterpreter, SecondaryWords)
     ASSERT_EQ(forth.boot(), true);
     ASSERT_EQ(forth.interpretString(": foo + + ;"), true);
     ASSERT_EQ(forth.interpretString(": bar 4 5 6 foo . ;"), true);
-    ASSERT_EQ(forth.dictionary.has("FOO"), true);
-    ASSERT_EQ(forth.dictionary.has("BAR"), true);
+    ASSERT_EQ(forth.dictionary().has("FOO"), true);
+    ASSERT_EQ(forth.dictionary().has("BAR"), true);
     std::stringstream buffer;
     std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
     ASSERT_EQ(forth.interpretString("bar"), true);
@@ -238,8 +245,9 @@ TEST(CheckInterpreter, SecondaryWords)
 // Check if secondary words with 32 chars (max number of chars) are allowed
 TEST(CheckInterpreter, MaxChars)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
     ASSERT_EQ(forth.boot(), true);
 
     const char* script = ": AOOOOOOOOOOOOOOOOOOOOOOOOOOOOOB + + ; 1 2 3 AOOOOOOOOOOOOOOOOOOOOOOOOOOOOOB";
@@ -254,18 +262,19 @@ TEST(CheckInterpreter, MaxChars)
 // chars in the Forth word.
 TEST(CheckInterpreter, AlignedCodeFieldAddress)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
 
     // Note FOOBAR with an extra R
     ASSERT_EQ(forth.boot(), true);
     ASSERT_EQ(forth.interpretString(": foo 4 + ;"), true);
     ASSERT_EQ(forth.interpretString(": bar 5 + ;"), true);
     ASSERT_EQ(forth.interpretString(": foobarr 6 foo bar ;"), true);
-    ASSERT_EQ(forth.dictionary.has("WORDS"), true);
-    ASSERT_EQ(forth.dictionary.has("FOO"), true);
-    ASSERT_EQ(forth.dictionary.has("BAR"), true);
-    ASSERT_EQ(forth.dictionary.has("FOOBARR"), true);
+    ASSERT_EQ(forth.dictionary().has("WORDS"), true);
+    ASSERT_EQ(forth.dictionary().has("FOO"), true);
+    ASSERT_EQ(forth.dictionary().has("BAR"), true);
+    ASSERT_EQ(forth.dictionary().has("FOOBARR"), true);
     ASSERT_EQ(forth.interpretString("foobarr"), true);
     ASSERT_EQ(forth.dataStack().depth(), 1);
     ASSERT_EQ(forth.dataStack().pick(0).integer(), 15);
@@ -275,10 +284,10 @@ TEST(CheckInterpreter, AlignedCodeFieldAddress)
     ASSERT_EQ(forth.interpretString(": foo 4 + ;"), true);
     ASSERT_EQ(forth.interpretString(": bar 5 + ;"), true);
     ASSERT_EQ(forth.interpretString(": foobar 6 foo bar ;"), true);
-    ASSERT_EQ(forth.dictionary.has("WORDS"), true);
-    ASSERT_EQ(forth.dictionary.has("FOO"), true);
-    ASSERT_EQ(forth.dictionary.has("BAR"), true);
-    ASSERT_EQ(forth.dictionary.has("FOOBAR"), true);
+    ASSERT_EQ(forth.dictionary().has("WORDS"), true);
+    ASSERT_EQ(forth.dictionary().has("FOO"), true);
+    ASSERT_EQ(forth.dictionary().has("BAR"), true);
+    ASSERT_EQ(forth.dictionary().has("FOOBAR"), true);
     ASSERT_EQ(forth.interpretString("foobar"), true);
     ASSERT_EQ(forth.dataStack().depth(), 1);
     ASSERT_EQ(forth.dataStack().pick(0).integer(), 15);
@@ -287,8 +296,9 @@ TEST(CheckInterpreter, AlignedCodeFieldAddress)
 // Check if empty dictionary detects undefined words
 TEST(CheckInterpreter, UnknowWordInterpret)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
 
     std::stringstream buffer;
     std::streambuf* old = std::cerr.rdbuf(buffer.rdbuf());
@@ -301,8 +311,9 @@ TEST(CheckInterpreter, UnknowWordInterpret)
 // Try to compile an undefined word
 TEST(CheckInterpreter, UnknowWordCompil)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
     ASSERT_EQ(forth.boot(), true);
 
     std::stringstream buffer;
@@ -311,39 +322,41 @@ TEST(CheckInterpreter, UnknowWordCompil)
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("[ERROR]"));
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("Unknown word POUET"));
     std::cerr.rdbuf(old);
-    ASSERT_EQ(forth.dictionary.has("FOO"), false);
+    ASSERT_EQ(forth.dictionary().has("FOO"), false);
 }
 
 // Check if the latest entry is not removed when trying to compile an odd
 // definition
 TEST(CheckInterpreter, LastEntryRemoved)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
     ASSERT_EQ(forth.boot(), true);
 
     ASSERT_EQ(forth.interpretString(": BAR ;"), true);
-    ASSERT_EQ(forth.dictionary.has("BAR"), true);
+    ASSERT_EQ(forth.dictionary().has("BAR"), true);
 
-    Token last = forth.dictionary.last();
-    Token here = forth.dictionary.here();
+    Token last = forth.dictionary().last();
+    Token here = forth.dictionary().here();
     std::stringstream buffer;
     std::streambuf* old = std::cerr.rdbuf(buffer.rdbuf());
     ASSERT_EQ(forth.interpretString(": FOO POUET ;"), false);
     std::cerr.rdbuf(old);
-    ASSERT_EQ(forth.dictionary.has("BAR"), true);
+    ASSERT_EQ(forth.dictionary().has("BAR"), true);
 
     // Check if dictionary has restored states
-    ASSERT_EQ(forth.dictionary.last(), last);
-    ASSERT_EQ(forth.dictionary.here(), here);
+    ASSERT_EQ(forth.dictionary().last(), last);
+    ASSERT_EQ(forth.dictionary().here(), here);
 }
 
 // End of file reached while the compilation of a secondary word
 // is not ended.
 TEST(CheckInterpreter, UnfinishedStream)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
     ASSERT_EQ(forth.boot(), true);
 
     std::stringstream buffer;
@@ -352,14 +365,15 @@ TEST(CheckInterpreter, UnfinishedStream)
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("[ERROR]"));
     EXPECT_THAT(buffer.str().c_str(), HasSubstr("reached EOF"));
     std::cerr.rdbuf(old);
-    ASSERT_EQ(forth.dictionary.has("FOO"), false);
+    ASSERT_EQ(forth.dictionary().has("FOO"), false);
 }
 
 // Check verbose mode
 TEST(CheckInterpreter, Verbose)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
     ASSERT_EQ(forth.boot(), true);
 
     std::stringstream buffer;
@@ -400,8 +414,9 @@ TEST(CheckInterpreter, Verbose)
 // Check newer definition
 TEST(CheckInterpreter, DoubleEntry)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
     ASSERT_EQ(forth.boot(), true);
 
     ASSERT_EQ(forth.interpretString(": foo 42 ; foo"), true);
@@ -427,8 +442,9 @@ TEST(CheckInterpreter, DoubleEntry)
 // Note: this is a desired deviation from classic forth.
 TEST(CheckInterpreter, RedefineInteger)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
     ASSERT_EQ(forth.boot(), true);
 
     ASSERT_EQ(forth.interpretString(": 42 66 ; 42"), true);
@@ -439,8 +455,9 @@ TEST(CheckInterpreter, RedefineInteger)
 // Huge number are converted to float
 TEST(CheckInterpreter, IntegerOverflow)
 {
-    Forth forth;
-    QUIET(forth.interpreter);
+    Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
+
     ASSERT_EQ(forth.boot(), true);
 
     // No integer out of range error

@@ -46,14 +46,14 @@ public:
 //******************************************************************************
 //! \brief Interface class for implementing a Forth language.
 //******************************************************************************
-class IForth
+class ForthFacade
 {
 public:
 
     //--------------------------------------------------------------------------
     //! \brief Virtual destructor needed because of virtual methods.
     //--------------------------------------------------------------------------
-    virtual ~IForth() = default;
+    virtual ~ForthFacade() = default;
 
     //--------------------------------------------------------------------------
     //! \brief Start the forth system.

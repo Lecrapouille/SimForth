@@ -489,46 +489,46 @@ TEST(StringStream, SkipLine)
 TEST(StringStream, PushPopStreams)
 {
 #if 0
-    Forth forth;
+    SimForth forth;
     ASSERT_EQ(system("rm -fr /tmp/f1.fth /tmp/f2.fth /tmp/f3.fth; "
            "echo \"include /tmp/f2.fth\" > /tmp/f1.fth; "
            "echo \"include /tmp/f3.fth\" > /tmp/f2.fth; "
            "echo \"1 2 + .\" > /tmp/f3.fth; "), 0); // TODO + failure
-    forth.interpreter;
+    forth.interpreter();
 #endif
 
     LOGI("StringStream, PushPopStreams");
     ASSERT_EQ(system("rm -fr /tmp/f1.fth /tmp/f2.fth"), 0);
 
-    Forth forth;
+    SimForth forth;
     forth::InputStream* is;
 
     // Push 1 and 2
-    forth.interpreter.pushStream<FileStream>("/tmp/f1.fth");
-    forth.interpreter.m_base = 16;
-    forth.interpreter.pushStream<FileStream>("/tmp/f2.fth");
+    forth.interpreter().pushStream<FileStream>("/tmp/f1.fth");
+    forth.interpreter().m_base = 16;
+    forth.interpreter().pushStream<FileStream>("/tmp/f2.fth");
 
     // Check stack of streams
-    ASSERT_EQ(forth.interpreter.SS.depth(), 2);
+    ASSERT_EQ(forth.interpreter().SS.depth(), 2);
     is = reinterpret_cast<forth::InputStream*>(
-        forth.interpreter.SS.pick(0).get());
+        forth.interpreter().SS.pick(0).get());
     ASSERT_EQ(is->m_base, 16);
     ASSERT_STREQ(is->m_name.c_str(), "/tmp/f2.fth");
 
     is = reinterpret_cast<forth::InputStream*>(
-        forth.interpreter.SS.pick(1).get());
+        forth.interpreter().SS.pick(1).get());
     ASSERT_EQ(is->m_base, 10);
     ASSERT_STREQ(is->m_name.c_str(), "/tmp/f1.fth");
 
     // Pop 1
-    forth.interpreter.popStream();
-    ASSERT_EQ(forth.interpreter.SS.depth(), 1);
+    forth.interpreter().popStream();
+    ASSERT_EQ(forth.interpreter().SS.depth(), 1);
     ASSERT_EQ(is->m_base, 10);
     ASSERT_STREQ(is->m_name.c_str(), "/tmp/f1.fth");
 
     // Pop 0
-    forth.interpreter.popStream();
-    ASSERT_EQ(forth.interpreter.SS.depth(), 0);
+    forth.interpreter().popStream();
+    ASSERT_EQ(forth.interpreter().SS.depth(), 0);
 }
 
 // Check special comment discarding the current stream.
@@ -540,10 +540,10 @@ TEST(StringStream, SkipFile)
     ASSERT_EQ(system("echo \"1 2 + \n\\EOF\n2 3 +\" > /tmp/f2.fth"), 0);
     ASSERT_EQ(system("echo \"include /tmp/f2.fth\n4 5 +\" > /tmp/f1.fth"), 0);
 
-    Forth forth;
-    QUIET(forth.interpreter);
-    ASSERT_EQ(forth.boot(), true);
+    forth::Options options; options.show_stack = false; options.quiet = true;
+    SimForth forth(options);
 
+    ASSERT_EQ(forth.boot(), true);
     ASSERT_EQ(forth.interpretFile("/tmp/f1.fth"), true);
     ASSERT_EQ(forth.dataStack().depth(), 2);
     ASSERT_EQ(forth.dataStack().pop().i, 9);

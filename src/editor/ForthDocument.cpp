@@ -2,7 +2,7 @@
 #include "IDEOptions.hpp"
 
 //------------------------------------------------------------------------------
-ForthDocument::ForthDocument(forth::Forth& forth, Glib::RefPtr<Gsv::Language> language)
+ForthDocument::ForthDocument(SimForth& forth, Glib::RefPtr<Gsv::Language> language)
     : TextDocument(language), // TODO option: either no arg => my color, else => their color
       m_forth(forth)
 {
@@ -92,11 +92,11 @@ void ForthDocument::completeForthName(bool const reset)
     {
         // Extract the previous partial word for its auto-completion
         m_partial_word = m_buffer->get_text(back, cursor).raw();
-        m_iter = m_forth.dictionary.last();
+        m_iter = m_forth.dictionary().last();
     }
 
     // Look for the partial word inside the dictionary entries
-    const char* completed_word = m_forth.dictionary.autocomplete(m_partial_word, m_iter);
+    const char* completed_word = m_forth.dictionary().autocomplete(m_partial_word, m_iter);
     if (NULL == completed_word)
     {
         // No Forth word found: abort
@@ -104,8 +104,8 @@ void ForthDocument::completeForthName(bool const reset)
             return ;
 
         // No Forth word found: check for words not searched stored before m_iter
-        m_iter = m_forth.dictionary.last();
-        completed_word = m_forth.dictionary.autocomplete(m_partial_word, m_iter);
+        m_iter = m_forth.dictionary().last();
+        completed_word = m_forth.dictionary().autocomplete(m_partial_word, m_iter);
         if (NULL == completed_word)
             return ;
     }
@@ -113,7 +113,7 @@ void ForthDocument::completeForthName(bool const reset)
     // Found: write the found word int the text buffer
     if (NULL != completed_word)
     {
-        // A Forth word has been found in the dictionary. Replace the
+        // A Forth word has been found in the dictionary-> Replace the
         // partial word in the gtk buffer.
         m_buffer->erase(back, cursor);
         cursor = m_buffer->get_iter_at_mark(m_buffer->get_insert());
@@ -202,7 +202,7 @@ void ForthDocument::colorize(Gtk::TextBuffer::iterator const& cursor)
     {
         // Known words from the dictionary can be primitive, secondary
         // immediate primitive or immediate secondary.
-        bool const primitive = m_forth.interpreter.isPrimitive(token);
+        bool const primitive = m_forth.interpreter().isPrimitive(token);
 
         if (!immediate)
         {
@@ -215,7 +215,7 @@ void ForthDocument::colorize(Gtk::TextBuffer::iterator const& cursor)
     }
 
     // Else can be a number (integer in a given base or floatting point value)
-    else if (m_forth.interpreter.toNumber(word, number))
+    else if (m_forth.interpreter().toNumber(word, number))
     {
         tag = m_tag_number;
     }
@@ -223,7 +223,7 @@ void ForthDocument::colorize(Gtk::TextBuffer::iterator const& cursor)
     // Unknown word from the dictionary: can be a real unknown word (the
     // developer made a typo) or a word currently defining ie : FOO ... ; where
     // FOO is not yet known. Same idea with word suach as 0 VALUE FOO.
-    else if (!m_forth.interpreter.toNumber(word, number))
+    else if (!m_forth.interpreter().toNumber(word, number))
     {
 #if 1
         tag = m_tag_unknown_word;

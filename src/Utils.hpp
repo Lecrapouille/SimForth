@@ -157,7 +157,6 @@ static inline std::string& toUpper(std::string& s)
 }
 
 // ***************************************************************************
-//
 // Word entry: <NFA> <LFA> <CFA> <PFA>
 //  - NFA: Name Field Adress: adress of the begining of the word entry.
 //  - LFA: Link Field Address: relative adress to previous the NFA.
@@ -197,9 +196,12 @@ static inline std::string& toUpper(std::string& s)
 #  define MASK_FORTH_NAME_SIZE  uint8_t(0x1F)
 //! \brief Mask the length information. Let show flags.
 #  define MASK_FORTH_FLAGS      uint8_t(0x7F)
+
+//------------------------------------------------------------------------------
 //! \brief Append a new entry
-#define CREATE_ENTRY(tok, name, immediate, visible)                           \
-    dictionary.createEntry(forth::Primitives::tok, name, immediate, visible)
+//------------------------------------------------------------------------------
+#define CREATE_ENTRY(tok, name, immediate, visible)                            \
+    m_dictionary->createEntry(tok, name, immediate, visible)
 
 #  pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored "-Wconversion"

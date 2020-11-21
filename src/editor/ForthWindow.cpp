@@ -22,7 +22,7 @@
 #include "IDEOptions.hpp"
 #include "Application.hpp"
 
-ForthWindow::ForthWindow(std::stringstream& buffer_cout, std::stringstream& buffer_cerr, forth::Forth& simforth)
+ForthWindow::ForthWindow(std::stringstream& buffer_cout, std::stringstream& buffer_cerr, SimForth& simforth)
     : BaseWindow(Application::application()),
       m_buffer_cout(buffer_cout),
       m_buffer_cerr(buffer_cerr),

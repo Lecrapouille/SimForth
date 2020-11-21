@@ -18,10 +18,16 @@
 // along with SimForth.  If not, see <http://www.gnu.org/licenses/>.
 //==============================================================================
 
-#ifndef MAIN_HPP
-#  define MAIN_HPP
+#include "SimForth/Options.hpp"
 
-#  include <gmock/gmock.h>
-#  include <gtest/gtest.h>
+namespace forth
+{
 
-#endif // MAIN_HPP
+Options::Options()
+    : quiet(false),
+      show_stack(true),
+      traces(false),
+      path(PROJECT_DATA_PATH)
+{}
+
+} // namespace forth

@@ -416,6 +416,11 @@ public:
         return false;
     }
 
+    void setCountPrimitives(Token const max_primitives)
+    {
+        m_max_primitives = max_primitives;
+    }
+
 private:
 
     //-------------------------------------------------------------------------
@@ -457,6 +462,8 @@ private:
     //! \brief Hold the last error message.
     //--------------------------------------------------------------------------
     std::string m_errno;
+
+    Token m_max_primitives = 0u;
 
 public:
 

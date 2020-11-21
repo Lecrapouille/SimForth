@@ -21,7 +21,7 @@
 #ifndef FORTH_LIBC_HPP
 #  define FORTH_LIBC_HPP
 
-#  include "SimForth/IForth.hpp"
+#  include "SimForth/Facade.hpp"
 #  include "Dictionary.hpp"
 #  include "Streams.hpp"
 #  include "MyLogger/Path.hpp"

@@ -19,7 +19,7 @@
 //==============================================================================
 
 #include "Interpreter.hpp"
-#include "Primitives.hpp"
+//#include "Primitives.hpp"
 #include "Exceptions.hpp"
 #include "Streams.hpp"
 #include "Utils.hpp"
@@ -27,28 +27,26 @@
 namespace forth
 {
 
-#define CHECK_UNDERFLOW(S, xt)                              \
-    if (S.hasUnderflowed()) {                               \
-        THROW(S.name() + "-Stack underflow caused by word " \
-              + dictionary.token2name(xt));                 \
+#define CHECK_UNDERFLOW(S, xt)                                                 \
+    if (S.hasUnderflowed()) {                                                  \
+        THROW(S.name() + "-Stack underflow caused by word "                    \
+              + m_dictionary.token2name(xt));                                  \
     }
 
-#define CHECK_OVERFLOW(S, xt)                               \
-    if (S.hasOverflowed()) {                                \
-        THROW(S.name() + "-Stack overflow caused by word "  \
-              + dictionary.token2name(xt));                 \
+#define CHECK_OVERFLOW(S, xt)                                                  \
+    if (S.hasOverflowed()) {                                                   \
+        THROW(S.name() + "-Stack overflow caused by word "                     \
+              + m_dictionary.token2name(xt));                                  \
     }
 
-//----------------------------------------------------------------------------
-Interpreter::Interpreter(Dictionary& dico, StreamStack& streams,
-                         Options const& options_)
-    : dictionary(dico),
-      SS(streams),
-      m_clibs(m_path),
-      options(options_)
+//------------------------------------------------------------------------------
+Interpreter::Interpreter(Dictionary& dico, Options const& options)
+    : m_dictionary(dico),
+      m_options(options),
+      m_clibs(m_path)
 {}
 
-//----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 Interpreter::~Interpreter()
 {
     //FIXME SS.reset();
@@ -56,11 +54,17 @@ Interpreter::~Interpreter()
         popStream();
 }
 
-//----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+Token Interpreter::countPrimitives() const
+{
+    return Primitives::MAX_PRIMITIVES_;
+}
+
+//------------------------------------------------------------------------------
 void Interpreter::abort()
 {
     m_state = State::Interprete;
-    dictionary.restore();
+    m_dictionary.restore();
     DS.reset();
     AS.reset();
     RS.reset();
@@ -69,18 +73,12 @@ void Interpreter::abort()
     restoreOutStates();
 }
 
-//----------------------------------------------------------------------------
-void Interpreter::setOptions(Options const& options_)
-{
-    options = options_;
-}
-
-//----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool Interpreter::ok(Result const& result)
 {
     if (result.res)
     {
-        if (!options.quiet)
+        if (!m_options.quiet)
         {
             std::cout << FORTH_SUCESS_COLOR << result.msg
                       << DEFAULT_COLOR << std::endl;
@@ -98,7 +96,7 @@ bool Interpreter::ok(Result const& result)
         abort();
     }
 
-    if (!options.quiet && options.show_stack)
+    if (!m_options.quiet && m_options.show_stack)
     {
         DS.display(std::cout, m_base);
         AS.display(std::cout, m_base);
@@ -107,7 +105,7 @@ bool Interpreter::ok(Result const& result)
     return result.res;
 }
 
-//----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool Interpreter::toNumber(std::string const& word, Cell& number)
 {
     try
@@ -132,7 +130,7 @@ bool Interpreter::toNumber(std::string const& word, Cell& number)
     }
 }
 
-//----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 Result Interpreter::interpret()
 {
     using namespace std::chrono;
@@ -149,7 +147,7 @@ Result Interpreter::interpret()
             std::string word = STREAM.word();
             std::string upper_word = toUpper(STREAM.word());
 
-            if (options.traces)
+            if (m_options.traces)
             {
                 std::cout << LITERAL_COLOR << "\nNext stream word is "
                           << word  << DEFAULT_COLOR << std::endl;
@@ -159,9 +157,9 @@ Result Interpreter::interpret()
 
             if (m_state == State::Interprete)
             {
-                if (dictionary.findWord(upper_word, xt, immediate))
+                if (m_dictionary.findWord(upper_word, xt, immediate))
                 {
-                    if (!options.traces)
+                    if (!m_options.traces)
                     {
                         executeToken(xt);
                     }
@@ -172,7 +170,7 @@ Result Interpreter::interpret()
                 }
                 else if (toNumber(word, number))
                 {
-                    if (options.traces)
+                    if (m_options.traces)
                     {
                         std::cout << "\n================================\n"
                                   << DS.name() << "-Stack push "
@@ -190,13 +188,13 @@ Result Interpreter::interpret()
             else
             {
                 assert(m_state == State::Compile);
-                if (dictionary.findWord(upper_word, xt, immediate))
+                if (m_dictionary.findWord(upper_word, xt, immediate))
                 {
                     if (immediate)
                     {
-                        if (options.traces)
+                        if (m_options.traces)
                             std::cout << "Execute immediate word " << word << "\n";
-                        if (!options.traces)
+                        if (!m_options.traces)
                         {
                             executeToken(xt);
                         }
@@ -207,20 +205,20 @@ Result Interpreter::interpret()
                     }
                     else
                     {
-                        if (options.traces)
+                        if (m_options.traces)
                             std::cout << "Compile word " << word << "\n";
-                        dictionary.append(xt);
+                        m_dictionary.append(xt);
                     }
                 }
                 else if (toNumber(word, number))
                 {
-                    if (options.traces)
+                    if (m_options.traces)
                     {
                         std::cout << "Compile "
                                   << ((number.isInteger()) ? "integer " : "float ")
                                   << number << "\n";
                     }
-                    dictionary.compile(number);
+                    m_dictionary.compile(number);
                 }
                 else
                 {
@@ -258,7 +256,7 @@ Result Interpreter::interpret()
     }
 }
 
-//------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
 bool Interpreter::interpretFile(char const* filepath)
 {
     std::string fullpath = m_path.expand(filepath);
@@ -268,7 +266,7 @@ bool Interpreter::interpretFile(char const* filepath)
     return ret;
 }
 
-//------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
 bool Interpreter::interpretString(char const* script)
 {
     SS.push(std::make_unique<StringStream>(script, m_base));
@@ -277,13 +275,13 @@ bool Interpreter::interpretString(char const* script)
     return ret;
 }
 
-//------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
 bool Interpreter::interactive()
 {
     bool ret = true;
 
     m_interactive = true;
-    SS.push(std::make_unique<InteractiveStream>(dictionary, m_base));
+    SS.push(std::make_unique<InteractiveStream>(m_dictionary, m_base));
     while (m_interactive)
     {
         ret = ret & ok(interpret());
@@ -291,7 +289,7 @@ bool Interpreter::interactive()
     return ret;
 }
 
-//----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void Interpreter::executeToken(Token xt)
 {
     IP = 65535u;
@@ -303,8 +301,8 @@ void Interpreter::executeToken(Token xt)
             RS.push(IP);
             CHECK_OVERFLOW(RS, xt);
             IP = xt;
-            xt = dictionary[++IP];
-            if (IP >= dictionary.here())
+            xt = m_dictionary[++IP];
+            if (IP >= m_dictionary.here())
             {
                 THROW("Tried to execute a token outside the last definition");
             }
@@ -314,8 +312,8 @@ void Interpreter::executeToken(Token xt)
 
         if (IP != 65535U)
         {
-            xt = dictionary[++IP];
-            if (IP >= dictionary.here())
+            xt = m_dictionary[++IP];
+            if (IP >= m_dictionary.here())
             {
                 THROW("Tried to execute a token outside the last definition");
             }
@@ -324,14 +322,14 @@ void Interpreter::executeToken(Token xt)
     while (RS.depth() > 0);
 }
 
-//----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void Interpreter::indent()
 {
     if (m_level > 0)
         std::cout << std::string(size_t(m_level), '\t');
 }
 
-//----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 #define KEY_UNPRESSED  '\0'
 #define KEY_SKIP       's'
 #define KEY_CONTINUE   'c'
@@ -344,7 +342,7 @@ void Interpreter::indent()
     EXEC_TOKEN_COLOR << std::setfill('0') << std::setw(ADDRESS_SIZE)  \
     << std::hex << xt << std::dec << DEFAULT_COLOR
 
-//----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void Interpreter::verboseExecuteToken(Token xt)
 {
     char key_pressed = KEY_UNPRESSED;
@@ -352,7 +350,7 @@ void Interpreter::verboseExecuteToken(Token xt)
     IP = 65535u;
 
     std::cout << "\n================================\n"
-              << "Execute word " << dictionary.token2name(xt) << "   "
+              << "Execute word " << m_dictionary.token2name(xt) << "   "
               << "(xt: " << DISP_TOKEN(xt) << ")\n"
               << "Initial Stacks:\n"
               << "  "; DS.display(std::cout, m_base);
@@ -365,14 +363,14 @@ void Interpreter::verboseExecuteToken(Token xt)
         //std::cout << "Key? " << (key_pressed ==  KEY_SKIP) << std::endl;
         while (!isPrimitive(xt))
         {
-            std::string name = dictionary.token2name(xt);
+            std::string name = m_dictionary.token2name(xt);
             if (key_pressed != KEY_SKIP)
             {
                 indent();
                 std::cout << "Word " << SECONDARY_WORD_COLOR
                           << name << DEFAULT_COLOR
                           << " is a secondary word:\n\n";
-                dictionary.display(&dictionary[xt], m_base, Token(dictionary[xt] + 1u));
+                m_dictionary.display(&m_dictionary[xt], m_base, Token(m_dictionary[xt] + 1u));
             }
 
             if (m_interactive)
@@ -391,10 +389,10 @@ void Interpreter::verboseExecuteToken(Token xt)
                               << "  c or CR: Continue / Step inside the definition ?\n";
                     if (IP != 65535u)
                     {
-                        Token t = dictionary[Token(IP + 1u)];
+                        Token t = m_dictionary[Token(IP + 1u)];
                         std::cout << "  s or BL: Skip definition / Halt to next word "
                                   << (isPrimitive(t) ? PRIMITIVE_WORD_COLOR : SECONDARY_WORD_COLOR)
-                                  << dictionary.token2name(t) << DEFAULT_COLOR
+                                  << m_dictionary.token2name(t) << DEFAULT_COLOR
                                   << " (IP=" << DISP_TOKEN(IP+1) << ")"
                                   << LITERAL_COLOR << " ?";
                     }
@@ -446,8 +444,8 @@ void Interpreter::verboseExecuteToken(Token xt)
             CHECK_OVERFLOW(RS, xt);
 
             IP = xt;
-            xt = dictionary[++IP];
-            if (IP >= dictionary.here())
+            xt = m_dictionary[++IP];
+            if (IP >= m_dictionary.here())
             {
                 THROW("Tried to execute a token outside the last definition");
             }
@@ -463,13 +461,13 @@ void Interpreter::verboseExecuteToken(Token xt)
                 std::cout << LITERAL_COLOR << "Done skipping!"
                           << DEFAULT_COLOR << " IP="
                           << DISP_TOKEN(IP) << "\n\n";
-                dictionary.display(&dictionary[IP], m_base, IP);
+                m_dictionary.display(&m_dictionary[IP], m_base, IP);
                 key_pressed = KEY_UNPRESSED;
             }
         }
 
         indent(); std::cout << "Word " << PRIMITIVE_WORD_COLOR
-                            << dictionary.token2name(xt) << DEFAULT_COLOR
+                            << m_dictionary.token2name(xt) << DEFAULT_COLOR
                             << " is a primitive\n";
 
         if ((xt != Primitives::EXIT) && (key_pressed != KEY_SKIP))
@@ -535,24 +533,24 @@ void Interpreter::verboseExecuteToken(Token xt)
                 }
                 else if (xt == Primitives::PSLITERAL)
                 {
-                    nextIP = Token(nextIP + dictionary[Token(IP + 1u)]);
+                    nextIP = Token(nextIP + m_dictionary[Token(IP + 1u)]);
                 }
 
                 std::cout << "\nDefinition continues with IP="
                           << DISP_TOKEN(nextIP) << " with word "
-                          << (isPrimitive(dictionary[nextIP]) ?
+                          << (isPrimitive(m_dictionary[nextIP]) ?
                               PRIMITIVE_WORD_COLOR : SECONDARY_WORD_COLOR)
-                          << dictionary.token2name(dictionary[nextIP])
+                          << m_dictionary.token2name(m_dictionary[nextIP])
                           << DEFAULT_COLOR << "\n\n";
-                dictionary.display(&dictionary[nextIP], m_base, nextIP);
+                m_dictionary.display(&m_dictionary[nextIP], m_base, nextIP);
             }
         }
 
         Token s = xt;
         if (IP != 65535U)
         {
-            xt = dictionary[++IP];
-            if (IP >= dictionary.here())
+            xt = m_dictionary[++IP];
+            if (IP >= m_dictionary.here())
             {
                 THROW("Tried to execute a token outside the last definition");
             }
@@ -571,13 +569,13 @@ void Interpreter::verboseExecuteToken(Token xt)
     std::cout << "  "; RS.display(std::cout, 16);
 }
 
-//----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool Interpreter::isPrimitive(Token const xt) const
 {
-    return xt < Primitives::MAX_PRIMITIVES_;
+    return xt < countPrimitives();
 }
 
-//----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void Interpreter::resetStreams()
 {
     // Discard all streams except the first stream that we have to reset
@@ -587,7 +585,7 @@ void Interpreter::resetStreams()
         SS.pick(0)->reset();
 }
 
-//----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void Interpreter::popStream()
 {
     if (SS.depth() == 0)
@@ -604,14 +602,14 @@ void Interpreter::popStream()
     SS.drop();
 }
 
-//----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void Interpreter::included() // TODO: to be cleaned
 {
     Result result = interpret();
 
     if (result.res) // Success
     {
-        if (options.traces) // Display more debug info
+        if (m_options.traces) // Display more debug info
         {
             result.msg.append(" parsed ").append(STREAM.name());
             ok(result);

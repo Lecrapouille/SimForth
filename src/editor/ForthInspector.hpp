@@ -65,13 +65,13 @@ public:
     //--------------------------------------------------------------------------
     //! \brief Call this meethod to refresh the Gtk::TreeView.
     //--------------------------------------------------------------------------
-    void inspect(forth::Forth const& simforth)
+    void inspect(SimForth const& simforth)
     {
         m_rows->clear();
 
-        auto DS = simforth.interpreter.dataStack();
-        auto AS = simforth.interpreter.auxStack();
-        auto RS = simforth.interpreter.returnStack();
+        auto DS = simforth.interpreter().dataStack();
+        auto AS = simforth.interpreter().auxStack();
+        auto RS = simforth.interpreter().returnStack();
 
         int32_t max_depth = std::max(std::max(DS.depth(), AS.depth()), RS.depth());
 
@@ -167,18 +167,19 @@ public:
     //--------------------------------------------------------------------------
     //! \brief Call this meethod to refresh the Gtk::TreeView.
     //--------------------------------------------------------------------------
-    void inspect(forth::Forth const& simforth)
+    void inspect(SimForth const& simforth)
     {
-        forth::Token iter = simforth.dictionary.last();
-        forth::Token const* prev = simforth.dictionary() + simforth.dictionary.here();
+        auto& dico = simforth.dictionary();
+        forth::Token iter = dico.last();
+        forth::Token const* prev = &dico[dico.here()];
         m_rows->clear();
-        simforth.dictionary.iterate(policy_dico_inspect, iter, 0, simforth, *this, &prev);
+        dico.iterate(policy_dico_inspect, iter, 0, simforth, *this, &prev);
     }
 
 private:
 
     static bool policy_dico_inspect(forth::Token const *nfa,
-                                    forth::Forth const& simforth,
+                                    SimForth const& simforth,
                                     ForthDicoInspector& inspector,
                                     forth::Token const** prev)
     {
@@ -199,7 +200,7 @@ private:
     }
 
     static bool display(forth::Token const *nfa,
-                        forth::Forth const& simforth,
+                        SimForth const& simforth,
                         ForthDicoInspector& inspector,
                         forth::Token const* eod)
     {
@@ -209,12 +210,12 @@ private:
 
         auto row = *(inspector.m_rows->append());
 
-        row[inspector.m_columns.address] = nfa - simforth.dictionary();
+        row[inspector.m_columns.address] = nfa - simforth.dictionary()();
         row[inspector.m_columns.name] = forth::NFA2Name(nfa);
         row[inspector.m_columns.immediate] = forth::isImmediate(nfa);
         row[inspector.m_columns.smudge] = forth::isSmudge(nfa);
         row[inspector.m_columns.token] = xt;
-        if (simforth.interpreter.isPrimitive(xt))
+        if (simforth.interpreter().isPrimitive(xt))
         {
             row[inspector.m_columns.tokens] = "primitive";
             return false;
@@ -236,7 +237,7 @@ private:
 
                     // Concat words grouped 4-by-4
                     forth::Token const* word = nullptr;
-                    if (!simforth.dictionary.findToken(xt, word))
+                    if (!simforth.dictionary().findToken(xt, word))
                     {
                         ss_tokens << std::setfill('0') << std::setw(4)
                                   << std::hex << xt << std::dec << ' ';

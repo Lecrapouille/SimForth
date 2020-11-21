@@ -21,20 +21,18 @@
 #ifndef FORTH_OPTIONS_HPP
 #  define FORTH_OPTIONS_HPP
 
+#  include <string>
+
 namespace forth
 {
-// TODO: to removed !!!
 struct Options
 {
-    Options()
-        : quiet(false),
-          show_stack(true),
-          traces(false)
-    {};
+    Options();
 
     bool quiet;
     bool show_stack;
     bool traces;
+    std::string path;
 };
 
 } // namespace forth

@@ -27,11 +27,11 @@
 // *****************************************************************************
 
 //! \brief Forth interpreter (instead of Visual Basic)
-static forth::Forth simforth;
+static SimForth simforth;
 //! \brief Regular expression for names of spreadsheet cells.
 static std::regex cellre("[A-Z][0-9]");
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------
 Cell::Cell(SpreadSheet* sheet)
     : m_sheet(sheet)
 {
@@ -39,21 +39,21 @@ Cell::Cell(SpreadSheet* sheet)
     signal_activate().connect(sigc::mem_fun(*this, &Cell::update));
 }
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------
 bool Cell::on_focus_in_event(GdkEventFocus*)
 {
     set_text(m_formula);
     return false;
 }
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------
 bool Cell::on_focus_out_event(GdkEventFocus*)
 {
     m_sheet->evaluate(); // TODO Not optimized !
     return false;
 }
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------
 void Cell::parse()
 {
     m_references.clear();
@@ -70,7 +70,7 @@ void Cell::parse()
     m_unsolvedRefs = m_references.size();
 }
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------
 void Cell::update() // TODO Not optimized !
 {
     m_formula = get_text();
@@ -78,7 +78,7 @@ void Cell::update() // TODO Not optimized !
     set_text(m_formula);
 }
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------
 bool Cell::interpret() // TODO manage error
 {
     LOGD("Interpret %s = '%s'", m_name.c_str(), m_formula.c_str());
@@ -115,14 +115,14 @@ bool Cell::interpret() // TODO manage error
     return true;
 }
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------
 SpreadSheet::SpreadSheet()
 {
     set_default_size(200, 200);
     create();
 }
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------
 SpreadSheet::~SpreadSheet()
 {
     for (int r = 0; r < ROWS; ++r)
@@ -134,7 +134,7 @@ SpreadSheet::~SpreadSheet()
     }
 }
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------
 bool SpreadSheet::load(std::string const& filename)
 {
     std::ifstream infile(filename);
@@ -175,7 +175,7 @@ bool SpreadSheet::load(std::string const& filename)
     return evaluate();
 }
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------
 bool SpreadSheet::evaluate()
 {
     size_t unsolved = 0;
@@ -274,7 +274,7 @@ bool SpreadSheet::evaluate()
     return true;
 }
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------
 void SpreadSheet::create()
 {
     std::string val("A1");
@@ -315,7 +315,7 @@ void SpreadSheet::create()
     show_all_children();
 }
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------
 void SpreadSheet::debugTopoList()
 {
     std::queue<Cell*> q(m_topological);
@@ -327,7 +327,7 @@ void SpreadSheet::debugTopoList()
     }
 }
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------
 void SpreadSheet::debugDependenciesMap()
 {
     LOGD("debugDependenciesMap:");
@@ -345,13 +345,13 @@ void SpreadSheet::debugDependenciesMap()
 // *****************************************************************************
 int main(int argc, char *argv[])
 {
-    // -----------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     // Start a minimal Forth interpreter.
-    simforth.interpreter.options.quiet = true;
+    simforth.options().quiet = true;
     if (!simforth.boot())
         return -1;
 
-    // -----------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     // Initialize m_cells
     std::string variable("5.0 FVALUE A1");
     for (int r = 0; r < ROWS; ++r)
@@ -364,11 +364,11 @@ int main(int argc, char *argv[])
         }
     }
 
-    // -----------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     // Forbid word creation
     simforth.interpretString("HIDE : HIDE ; HIDE CREATE HIDE <BUILDS HIDE DOES>");
 
-    // -----------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     // Create the GTK+ window
     auto app = Gtk::Application::create(argc, argv);
     SpreadSheet spreadsheet;

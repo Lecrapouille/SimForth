@@ -28,14 +28,14 @@
 //------------------------------------------------------------------------------
 //#define USE_COMPUTED_GOTO
 #  ifdef USE_COMPUTED_GOTO
-#    define LABELIZE(xt)   [forth::Primitives::xt] = &&L_##xt
+#    define LABELIZE(xt)   [xt] = &&L_##xt
 #    define DISPATCH(xt)   goto *dispatch_table[primitive];
 #    define CODE(xt)       L_##xt:
 #    define NEXT           goto *dispatch_table[primitive]
 #    define UNKNOWN        L_UNKNOWN:
 #  else // !USE_COMPUTED_GOTO
 #    define DISPATCH(xt)   switch (xt)
-#    define CODE(xt)       case forth::Primitives::xt:
+#    define CASE(xt)       case xt:
 #    define NEXT           break
 #    define UNKNOWN        default:
 #  endif // USE_COMPUTED_GOTO

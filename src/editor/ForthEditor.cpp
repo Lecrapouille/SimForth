@@ -32,7 +32,7 @@
 
 // -----------------------------------------------------------------------------
 ForthEditor::ForthEditor(std::stringstream& buffer_cout, std::stringstream& buffer_cerr,
-                         Gtk::Statusbar& statusbar, forth::Forth& forth)
+                         Gtk::Statusbar& statusbar, SimForth& forth)
     : TextEditor(statusbar),
       m_buffer_cout(buffer_cout),
       m_buffer_cerr(buffer_cerr),
@@ -135,7 +135,7 @@ void ForthEditor::populateToolBars()
             toolbar.append(*button, [&]
             {
                 // TODO if (QuestionDialog("Do You really want to reset the dictionary ?")) {
-                m_forth.dictionary.clear();
+                m_forth.dictionary().clear();
                 m_forth.boot();
                 // }
             });

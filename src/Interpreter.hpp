@@ -121,7 +121,7 @@ public:
     //--------------------------------------------------------------------------
     //! \brief Destructor. Unstack and close opened streams.
     //--------------------------------------------------------------------------
-    ~Interpreter();
+    virtual ~Interpreter();
 
     //--------------------------------------------------------------------------
     //! \brief Reset states to initial states of stacks, interpreter. Restore

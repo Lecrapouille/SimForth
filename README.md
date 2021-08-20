@@ -11,7 +11,7 @@
 
 [SimForth](https://github.com/Lecrapouille/SimForth) is a non serious and
 personal [Forth interpreter](https://www.forth.com/starting-forth/) in the
-category of [token forth](http://www.bradrodriguez.com/papers/moving1.htm]). It
+category of [token forth](http://www.bradrodriguez.com/papers/moving1.htm). It
 has been developed in C++11,
 
 SimForth is compiled and installed as:

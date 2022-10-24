@@ -20,6 +20,7 @@
 
 #include "Dictionary.hpp"
 #include "Primitives.hpp"
+#include <cassert>
 
 // Display tokens by columns
 #define DICTIONARY_COLUMNS                                            \

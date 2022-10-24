@@ -20,6 +20,7 @@
 
 #include "Dictionary.hpp"
 #include "Primitives.hpp"
+#include <cassert>
 #include <cstring> // strerror
 #include <iomanip> // dictionary display
 

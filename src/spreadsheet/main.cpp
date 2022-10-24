@@ -19,6 +19,7 @@
 //==============================================================================
 
 #include "main.hpp"
+#include <cassert>
 
 // *****************************************************************************
 //! \file This file implement a basic GTK+ spreadsheet using Forth instead of

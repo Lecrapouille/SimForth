@@ -23,6 +23,7 @@
 #include "Exceptions.hpp"
 #include "Streams.hpp"
 #include "Utils.hpp"
+#include <cassert>
 
 namespace forth
 {

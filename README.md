@@ -6,9 +6,7 @@
 [SimForth](https://github.com/Lecrapouille/SimForth) is a non serious and
 personal [Forth interpreter](https://www.forth.com/starting-forth/) in the
 category of [token forth](http://www.bradrodriguez.com/papers/moving1.htm). It
-has been developed in C++11,
-
-SimForth is compiled and installed as:
+has been developed in C++11. SimForth is compiled and installed as:
 * A basic standalone Forth interpreter (in the same way than gforth,
   pforth, ...), running on the console and offering you the choice between an
   interactive prompt or interpreting scripts (from files or string). For more
@@ -19,11 +17,9 @@ SimForth is compiled and installed as:
   [example](https://github.com/Lecrapouille/LinkAgainstMyLibs/blob/master/Forth/src/main.cpp). You
   can extend the original Forth C++ class to create a personal Forth like shown
   in this [example](https://github.com/Lecrapouille/LinkAgainstMyLibs/blob/master/ExtendedForth/src/main.cpp).
-* A Forth IDE made in GTK+ (work in progress).
-* A proof of concept standalone tiny spreadsheet tool using Forth instead of
-  Visual Basic and made in GTK+.
-
-![doc/img/Debugger.png](doc/img/Debugger.png)
+* A Forth IDE made in GTK+ (work in progress, it contains minimal features).
+* A proof of concept of a tiny spreadsheet GTK+. standalone using SimForth instead of
+  Visual Basic.
 
 ## Documentation
 
@@ -143,3 +139,17 @@ Known issues:
   powerful than any serious Forth interpreter and it is two times slower than
   pforth, five compared to gforth. See [benchmark](tests/bench).  In my opinion,
   SimForth used as shared library, offers a simpler API than gforth.
+
+## Gallery
+
+* Dictionary (console)
+
+![doc/img/Dictionary.png](doc/img/Dictionary.png)
+
+* Debugger (console)
+
+![doc/img/Debugger.png](doc/img/Debugger.png)
+
+* GTK+ IDE
+
+![doc/img/IDE.png](doc/img/IDE.png)

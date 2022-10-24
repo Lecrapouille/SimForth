@@ -68,7 +68,7 @@ DEFINES += -Wno-undef -Wno-switch-enum -Wno-conversion -Wno-old-style-cast -Wno-
 # Set Libraries compiled in the external/ directory.
 # For knowing which libraries is needed please read
 # the doc/Install.md file.
-THIRDPART_LIBS += $(abspath $(P)/$(BUILD)/libsimforth.$(SO).$(shell cat $(P)/VERSION))
+THIRDPART_LIBS += $(abspath $(P)/$(BUILD)/libsimforth.$(SO).$(shell cat $(P)/VERSION.txt))
 
 ###################################################
 # Set Libraries.

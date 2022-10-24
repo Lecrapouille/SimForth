@@ -46,16 +46,26 @@ VPATH += $(P)/src $(P)/external/Exception $(P)/external/MyLogger/src	\
   $(P)/src/standalone
 
 ###################################################
-# Make the list of compiled files
+# Make the list of compiled files used both by the
+# library and application
 #
-OBJS += Exception.o File.o ILogger.o Logger.o Path.o Options.o Utils.o Exceptions.o LibC.o	\
+COMMON_OBJS = Exception.o File.o ILogger.o Logger.o Path.o Options.o Utils.o Exceptions.o LibC.o	\
   Streams.o Dictionary.o Display.o Interpreter.o Primitives.o SimForth.o
+
+###################################################
+# Make the list of compiled files for the library
+#
+LIB_OBJS += $(COMMON_OBJS)
+
+###################################################
+# Make the list of compiled files for the application
+#
+OBJS += $(COMMON_OBJS) standalone.o
 
 ###################################################
 # Project defines
 #
-DEFINES += \
-  -DPROJECT_DATA_PATH=\"$(PWD)/core:$(PROJECT_DATA_ROOT)/core\"
+DEFINES += -DPROJECT_DATA_PATH=\"$(PWD)/core:$(PROJECT_DATA_ROOT)/core\"
 
 ###################################################
 # Set Libraries:
@@ -71,10 +81,7 @@ endif
 
 ###################################################
 # Compile the project
-all: $(STATIC_LIB_TARGET) $(SHARED_LIB_TARGET) $(PKG_FILE)
-	@echo "--------------------------------------------------------------------------"
-	@(cd src/standalone && $(MAKE) -s)
-	@cp src/standalone/$(BUILD)/SimForth $(BUILD)
+all: $(TARGET) $(STATIC_LIB_TARGET) $(SHARED_LIB_TARGET) $(PKG_FILE)
 
 ###################################################
 # Compile, launch unit tests and generate the code coverage html report.
@@ -95,7 +102,6 @@ install: $(STATIC_LIB_TARGET) $(SHARED_LIB_TARGET) pkg-config
 	@$(call INSTALL_THIRDPART_FOLDER,MyLogger/src,,-name "*.[tih]pp")
 	@$(call INSTALL_THIRDPART_FILES,TerminalColor,TerminalColor,-name "*.hpp")
 	@$(call INSTALL_THIRDPART_FILES,Exception,Exception,-name "*.hpp")
-	@(cd src/standalone && $(MAKE) -s install)
 
 ###################################################
 # TODO
@@ -105,12 +111,6 @@ install: $(STATIC_LIB_TARGET) $(SHARED_LIB_TARGET) pkg-config
 #	@$(call print-simple,"Uninstalling",$(PREFIX)/$(TARGET))
 #	@rm $(PROJECT_EXE)
 #	@rm -r $(PROJECT_DATA_ROOT)
-
-###################################################
-# Clean the project and sub-project
-clean::
-	@(cd tests && $(MAKE) -s clean)
-	@(cd src/standalone && $(MAKE) -s clean)
 
 ###################################################
 # Clean the whole project.

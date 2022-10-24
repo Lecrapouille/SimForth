@@ -1,13 +1,7 @@
 # SimForth
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://github.com/Lecrapouille/SimForth/blob/master/LICENSE)
-[![codecov](https://codecov.io/gh/Lecrapouille/SimForth/branch/master/graph/badge.svg)](https://codecov.io/gh/Lecrapouille/SimForth)
-[![coveralls](https://coveralls.io/repos/github/Lecrapouille/SimForth/badge.svg?branch=master)](https://coveralls.io/github/Lecrapouille/SimForth?branch=master)
-
-|Branch     | **`Linux/Mac OS`** | **`Windows`** |
-|-----------|------------------|-------------|
-|master     |[![Build Status](https://travis-ci.org/Lecrapouille/SimForth.svg?branch=master)](https://travis-ci.org/Lecrapouille/SimForth)|[![Build status](https://ci.appveyor.com/api/projects/status/github/lecrapouille/SimForth?svg=true)](https://ci.appveyor.com/project/Lecrapouille/SimForth)|
-|development|[![Build Status](https://travis-ci.org/Lecrapouille/SimForth.svg?branch=dev-refacto)](https://travis-ci.org/Lecrapouille/SimForth)||
+[![CI testing](https://github.com/Lecrapouille/SimForth/actions/workflows/ci.yml/badge.svg)](https://github.com/Lecrapouille/SimForth/actions/workflows/ci.yml)
 
 [SimForth](https://github.com/Lecrapouille/SimForth) is a non serious and
 personal [Forth interpreter](https://www.forth.com/starting-forth/) in the

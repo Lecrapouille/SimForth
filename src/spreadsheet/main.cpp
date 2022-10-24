@@ -197,13 +197,13 @@ bool SpreadSheet::evaluate()
             // If the cell has no references: add it to the topological list.
             if (cell->m_unsolvedRefs > 0u)
             {
-                for (const auto& c: cell->m_references)
+                for (const auto& refs: cell->m_references)
                 {
-                    const auto& it = m_dependencies.find(c->m_name);
+                    const auto& it = m_dependencies.find(refs->m_name);
                     if (it != m_dependencies.end())
-                        m_dependencies[c->m_name][cell->m_name] = cell;
+                        m_dependencies[refs->m_name][cell->m_name] = cell;
                     else // first insertion
-                        m_dependencies[c->m_name][c->m_name] = cell;
+                        m_dependencies[refs->m_name][refs->m_name] = cell;
                 }
                 ++unsolved;
             }

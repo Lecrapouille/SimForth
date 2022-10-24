@@ -176,9 +176,9 @@ private:
     //! \brief Convert a floatting point value to the nearest integer value.
     //--------------------------------------------------------------------------
     template<typename R>
-    INLINE Int nearest(R const r) const
+    INLINE Int nearest(R const r_) const
     {
-        return (r < R(0.0)) ? Int(r - R(0.5)) : Int(r + R(0.5));
+        return (r_ < R(0.0)) ? Int(r_ - R(0.5)) : Int(r_ + R(0.5));
     }
 
     template<typename OP>

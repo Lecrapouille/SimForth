@@ -59,6 +59,8 @@ external/Exception
 external/TerminalColor
 external/MyLogger
 external/.downloaded
+external/readline
+external/ncurses
 *backward-cpp
 tests/bench/*.csv
 tests/build

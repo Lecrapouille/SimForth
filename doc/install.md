@@ -10,10 +10,13 @@ This document explain all these points.
 ## Prerequisite
 
 * Makefile, g++ >= 4.9 or clang++.
-* System libraries: `sudo apt-get install libreadline-dev pkg-config bc`
+* System libraries: `sudo apt-get install pkg-config bc`.
 * MyMakefile repo https://github.com/Lecrapouille/MyMakefile (downloaded as git sub-module).
-* Some of my repos from https://github.com/Lecrapouille : TerminalColor, MyLogger, Exception.
-  They are downloaded with the command `make download-external-libs`.
+* Some of my repos from https://github.com/Lecrapouille : TerminalColor, MyLogger, Exception,
+  [GNU Readline](https://savannah.gnu.org/git/?group=readline) and ncurses.
+  They are downloaded with the command `make download-external-libs` and compiled locally as
+  static libraries with `make compile-external-libs` and included inside the final binary
+  during the compilation.
 * In debug mode: the third part project https://github.com/bombela/backward-cpp is downloaded
   automatically when you compile SimForth.
 * Optionally, if you want to run unit tests, you have to download, compile and install
@@ -26,6 +29,7 @@ This document explain all these points.
 git clone git@github.com:Lecrapouille/SimForth.git --depth=1 --recurse-submodules
 cd SimForth
 make download-external-libs
+make compile-external-libs
 ```
 
 The last command allows to download extra GitHub libraries that SimForth depends on.

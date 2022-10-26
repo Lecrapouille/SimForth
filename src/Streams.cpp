@@ -19,8 +19,8 @@
 //==============================================================================
 
 #include "Streams.hpp"
-#include <readline/readline.h> // interactive console
-#include <readline/history.h>  // interactive console
+#include "readline/readline.h" // interactive console
+#include "readline/history.h"  // interactive console
 #include <cstring>             // strerror
 #include <unistd.h>            // To get the home path
 #include <sys/types.h>         // To get the home path

@@ -15,7 +15,7 @@ TARGET="$2"
 
 ### Delete all previous directories to be sure to have and compile
 ### fresh code source.
-rm -fr MyLogger Exception TerminalColor backward-cpp 2> /dev/null
+rm -fr MyLogger Exception TerminalColor backward-cpp ncurses readline 2> /dev/null
 
 function print-clone
 {
@@ -33,3 +33,12 @@ git clone https://github.com/Lecrapouille/MyLogger --depth=1 > /dev/null
 ### Exception
 print-clone Exception
 git clone https://github.com/Lecrapouille/Exception --depth=1 > /dev/null
+
+### GNU ncurses
+print-clone ncurses
+git clone https://github.com/mirror/ncurses.git --depth=1 > /dev/null
+
+### GNU Readline
+print-clone Readline
+git clone https://git.savannah.gnu.org/git/readline.git --depth=1 > /dev/null
+

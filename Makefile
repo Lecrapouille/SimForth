@@ -63,6 +63,11 @@ LIB_OBJS += $(COMMON_OBJS)
 OBJS += $(COMMON_OBJS) standalone.o
 
 ###################################################
+# GNU Readline
+THIRDPART_LIBS += $(abspath $(THIRDPART)/readline/libreadline.a)
+THIRDPART_LIBS += $(abspath $(THIRDPART)/ncurses/lib/libncurses.a)
+
+###################################################
 # Project defines
 #
 DEFINES += -DPROJECT_DATA_PATH=\"$(PWD)/core:$(PROJECT_DATA_ROOT)/core\"
@@ -72,12 +77,7 @@ DEFINES += -DPROJECT_DATA_PATH=\"$(PWD)/core:$(PROJECT_DATA_ROOT)/core\"
 # -lreadline: for interactive prompt
 # -ldl: for loading symbols in shared libraries
 #
-ifeq ($(ARCHI),Windows)
-PKG_LIBS += readline
 NOT_PKG_LIBS += -ldl
-else
-NOT_PKG_LIBS += -lreadline -ldl
-endif
 
 ###################################################
 # Compile the project

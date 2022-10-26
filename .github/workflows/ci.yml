@@ -22,7 +22,7 @@ jobs:
       - name: Install packages
         run: |
           sudo apt-get update
-          sudo apt-get install pkg-config lcov libdw-dev bc libreadline-dev libgtksourceviewmm-3.0-dev
+          sudo apt-get install pkg-config lcov libdw-dev bc libgtksourceviewmm-3.0-dev
       - name: Download, configure and install Google test
         run: |
           wget https://github.com/google/googletest/archive/release-1.11.0.tar.gz
@@ -33,6 +33,7 @@ jobs:
       - name: Compile SimForth
         run: |
           make download-external-libs
+          make compile-external-libs
           make -j`nproc --all`
           sudo make install
       - name: Do non regression tests
@@ -77,6 +78,7 @@ jobs:
       - name: Compile SimForth
         run: |
           make download-external-libs
+          make compile-external-libs
           make -j`sysctl -n hw.logicalcpu`
 # FIXME: Failed reading in 'System/Core.fth'. Reason 'No such file or directory'
 #      - name: Do non regression tests

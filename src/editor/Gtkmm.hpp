@@ -38,6 +38,7 @@
 #  pragma GCC diagnostic ignored "-Wsign-conversion"
 #  pragma GCC diagnostic ignored "-Wredundant-decls"
 #  pragma GCC diagnostic ignored "-Wdeprecated"
+#  pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #    include <gtksourceviewmm.h>
 #    include <gtkmm.h>
 #  pragma GCC diagnostic pop

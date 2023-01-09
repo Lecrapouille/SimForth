@@ -21,7 +21,7 @@
 #ifndef GTKMM_FORTH_IDE_PATH_MANAGER_HPP
 #  define GTKMM_FORTH_IDE_PATH_MANAGER_HPP
 
-#  include "MyLogger/Path.hpp"
+#  include "SimForth/Path.hpp"
 
 // *****************************************************************************
 //! \brief PathManager wraps the class Path and acts like a singleton.

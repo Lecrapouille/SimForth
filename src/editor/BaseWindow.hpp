@@ -22,7 +22,7 @@
 #  define GTKMM_FORTH_IDE_BASE_WINDOWS_HPP
 
 #  include "Dialogs.hpp"
-#  include "MyLogger/Path.hpp"
+#  include "SimForth/Path.hpp"
 
 // *****************************************************************************
 //! \brief Facade class used in SimTaDyn project for creating windows (MapEditor,

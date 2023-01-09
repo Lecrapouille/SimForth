@@ -37,12 +37,12 @@ public:
     AboutDialog()
     {
         std::stringstream ss;
-        ss << project::info.major_version << '.' << project::info.minor_version << ' '
-           << (project::info.debug ? "debug" : "release")
-           << "\nGit SHA1: " << project::info.git_sha1
-           << "\nGit branch: " << project::info.git_branch;
+        ss << project::info::major_version << '.' << project::info::minor_version << ' '
+           << (project::info::debug ? "debug" : "release")
+           << "\nGit SHA1: " << project::info::git_sha1
+           << "\nGit branch: " << project::info::git_branch;
 
-        set_program_name(project::info.project_name);
+        set_program_name(project::info::project_name);
         set_version(ss.str());
         set_copyright("Copyright Quentin Quadrat");
         set_comments("Basic IDE for SimForth");
@@ -50,7 +50,7 @@ public:
         set_wrap_license(false);
         set_website("https://github.com/Lecrapouille");
         set_website_label(std::string("Visit ") +
-                          std::string(project::info.project_name) +
+                          std::string(project::info::project_name) +
                           std::string(" github site"));
         set_authors({"Quentin Quadrat <lecrapouille@gmail.com>"});
 

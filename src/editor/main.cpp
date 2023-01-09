@@ -24,7 +24,18 @@
 
 int main()
 {
-    CONFIG_LOG(project::info);
+    CONFIG_LOG(mylogger::project::Info(
+        project::info::mode == project::info::debug,
+        project::info::application_name.c_str(),
+        project::info::major_version,
+        project::info::minor_version,
+        project::info::git_branch.c_str(),
+        project::info::git_sha1.c_str(),
+        project::info::data_path.c_str(),
+        project::info::tmp_path.c_str(),
+        project::info::log_name.c_str(),
+        project::info::log_path.c_str()
+    ));
 
     // Stop colorizing std::cout because we want to redirect the stream to GTK
     // windows and we not want to get hidden caracters doing colors.

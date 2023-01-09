@@ -22,9 +22,9 @@
 #  define FORTH_LIBC_HPP
 
 #  include "SimForth/Facade.hpp"
+#  include "SimForth/Path.hpp"
 #  include "Dictionary.hpp"
 #  include "Streams.hpp"
-#  include "MyLogger/Path.hpp"
 #  include <string>
 #  include <fstream>
 #  include <vector>

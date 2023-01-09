@@ -36,21 +36,38 @@ include $(M)/Makefile.header
 ###################################################
 # Inform Makefile where to find header files
 #
-INCLUDES += -I$(P)/include -I$(P)/src -I$(P)/external/MyLogger/include	\
--I$(P)/external/MyLogger/src -I$(P)/external
+INCLUDES += -I$(P)/include -I$(P)/src -I$(P)/external
 
 ###################################################
 # Inform Makefile where to find *.cpp files
 #
-VPATH += $(P)/src $(P)/external/Exception $(P)/external/MyLogger/src	\
-  $(P)/src/standalone
+VPATH += $(P)/src $(P)/external/Exception $(P)/src/standalone
+
+###################################################
+# Thirdpart: Exception
+#
+COMMON_OBJS += Exception.o
+
+###################################################
+# Thirdpart: MyLogger
+#
+THIRDPART_LIBS += $(abspath $(THIRDPART)/MyLogger/build/libmylogger.a)
+INCLUDES += -I$(THIRDPART)/MyLogger/include
+
+###################################################
+# Thirdpart: GNU Readline with ncurses
+#
+THIRDPART_LIBS += $(abspath $(THIRDPART)/readline/libreadline.a)
+THIRDPART_LIBS += $(abspath $(THIRDPART)/ncurses/lib/libncurses.a)
 
 ###################################################
 # Make the list of compiled files used both by the
 # library and application
 #
-COMMON_OBJS = Exception.o File.o ILogger.o Logger.o Path.o Options.o Utils.o Exceptions.o LibC.o	\
-  Streams.o Dictionary.o Display.o Interpreter.o Primitives.o SimForth.o
+COMMON_OBJS += Utils.o Path.o Options.o Exceptions.o
+COMMON_OBJS += LibC.o Streams.o Dictionary.o
+COMMON_OBJS += Display.o Interpreter.o Primitives.o
+COMMON_OBJS += SimForth.o
 
 ###################################################
 # Make the list of compiled files for the library
@@ -63,11 +80,6 @@ LIB_OBJS += $(COMMON_OBJS)
 OBJS += $(COMMON_OBJS) standalone.o
 
 ###################################################
-# GNU Readline
-THIRDPART_LIBS += $(abspath $(THIRDPART)/readline/libreadline.a)
-THIRDPART_LIBS += $(abspath $(THIRDPART)/ncurses/lib/libncurses.a)
-
-###################################################
 # Project defines
 #
 DEFINES += -DPROJECT_DATA_PATH=\"$(PWD)/core:$(PROJECT_DATA_ROOT)/core\"
@@ -78,6 +90,13 @@ DEFINES += -DPROJECT_DATA_PATH=\"$(PWD)/core:$(PROJECT_DATA_ROOT)/core\"
 # -ldl: for loading symbols in shared libraries
 #
 NOT_PKG_LIBS += -ldl
+
+###################################################
+# MacOS X needed by Path
+#
+ifeq ($(ARCHI),Darwin)
+LINKER_FLAGS += -framework CoreFoundation
+endif
 
 ###################################################
 # Compile the project

@@ -24,7 +24,18 @@
 
 int main(int argc, char *argv[])
 {
-     CONFIG_LOG(project::info);
+    CONFIG_LOG(mylogger::project::Info(
+        project::info::mode == project::info::debug,
+        project::info::application_name.c_str(),
+        project::info::major_version,
+        project::info::minor_version,
+        project::info::git_branch.c_str(),
+        project::info::git_sha1.c_str(),
+        project::info::data_path.c_str(),
+        project::info::tmp_path.c_str(),
+        project::info::log_name.c_str(),
+        project::info::log_path.c_str()
+    ));
 
     // The following line must be executed to initialize Google Mock
     // (and Google Test) before running the tests.

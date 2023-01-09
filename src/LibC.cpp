@@ -71,12 +71,12 @@ bool CLib::begin(InputStream& stream)
         return false;
     }
     m_libName = stream.word();
-    m_libPath = project::info.tmp_path + m_libName + DYLIB_EXT;
+    m_libPath = project::info::tmp_path + m_libName + DYLIB_EXT;
 
     // Create a temporary C file which will contain generated C code and
     // wrapping functions calling the desired C function and hiding parameters
     // by refering elements of the data stack.
-    m_sourcePath = project::info.tmp_path + m_libName + ".c";
+    m_sourcePath = project::info::tmp_path + m_libName + ".c";
     m_file.open(m_sourcePath);
     if (!m_file)
     {
@@ -340,9 +340,9 @@ bool CLib::compile(CLibOptions const& options)
 {
     // Refer to the generic Makefile for compiling C file into a shared library.
     std::string makefile = m_path.expand("LibC/Makefile");
-    std::string command = "rm -f " + m_libPath + " " + project::info.tmp_path + m_libName + ".o"
+    std::string command = "rm -f " + m_libPath + " " + project::info::tmp_path + m_libName + ".o"
                         + "; make -f " + makefile
-                        + " BUILD=" + project::info.tmp_path
+                        + " BUILD=" + project::info::tmp_path
                         + " SRCS=" + m_libName + ".c"
                         + " EXTLIBS=\"" + m_extLibs + "\""
                         + " PKGCONFIG=\"" + m_pkgConfig + "\"";
@@ -357,7 +357,7 @@ bool CLib::compile(CLibOptions const& options)
     }
     // Redirect error to a temporary file since it is not easy to get it
     // directly
-    command += " 2> " + project::info.tmp_path + "compilation.res";
+    command += " 2> " + project::info::tmp_path + "compilation.res";
 
     // Compile the C file
     LOGI("C-Lib compilation: %s", command.c_str());
@@ -365,7 +365,7 @@ bool CLib::compile(CLibOptions const& options)
     {
         // If something wrong happened. Get the Makefile error message and store
         // it in our logs.
-        std::ifstream t(project::info.tmp_path + "compilation.res");
+        std::ifstream t(project::info::tmp_path + "compilation.res");
         std::string str;
         t.seekg(0, std::ios::end);
         str.reserve(size_t(t.tellg()));

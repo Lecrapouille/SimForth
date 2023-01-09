@@ -18,10 +18,10 @@
 // along with SimForth.  If not, see <http://www.gnu.org/licenses/>.
 //=============================================================================
 
-#include "SimForth/SimForth.hpp"
-#include "MyLogger/Path.hpp"
-#include "MyLogger/File.hpp"
 #include "project_info.hpp"
+#include "SimForth/SimForth.hpp"
+#include "SimForth/Path.hpp"
+#include "MyLogger/File.hpp"
 #include <cstdlib>
 
 static void usage(const char* fun)
@@ -43,7 +43,18 @@ static void usage(const char* fun)
 
 int main(int argc,char *argv[])
 {
-    CONFIG_LOG(project::info);
+    CONFIG_LOG(mylogger::project::Info(
+        project::info::mode == project::info::debug,
+        project::info::application_name.c_str(),
+        project::info::major_version,
+        project::info::minor_version,
+        project::info::git_branch.c_str(),
+        project::info::git_sha1.c_str(),
+        project::info::data_path.c_str(),
+        project::info::tmp_path.c_str(),
+        project::info::log_name.c_str(),
+        project::info::log_path.c_str()
+    ));
 
     // Enable/disable colorful text displayed on terminal
     termcolor::enable();

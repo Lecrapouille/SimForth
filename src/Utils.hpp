@@ -33,6 +33,35 @@
 using Clock = std::chrono::steady_clock;
 using TimePoint = std::chrono::time_point<Clock>;
 
+//******************************************************************************
+//! \brief Make a derived class non copyable.
+//******************************************************************************
+class NonCopyable
+{
+protected:
+
+    constexpr NonCopyable() = default;
+    ~NonCopyable() = default;
+
+    NonCopyable(const NonCopyable&) = delete;
+    const NonCopyable& operator=(const NonCopyable&) = delete;
+};
+
+//******************************************************************************
+//! \brief Make the derived class T be a singleton.
+//******************************************************************************
+template <class T>
+class Singleton : public NonCopyable
+{
+public:
+
+    static T& instance()
+    {
+        static T instance;
+        return instance;
+    }
+};
+
 // *****************************************************************************
 //! \brief Allows to create literal values of type std::size_t In the same way
 //! than U, LL or UL macros.

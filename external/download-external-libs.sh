@@ -1,9 +1,10 @@
 #!/bin/bash -e
 
-### This script will git clone some libraries that SimForth needs and
-### compile them. To avoid pollution, they are not installed into your
-### environement. Therefore SimForth Makefiles have to know where to
-### find their files (includes and static/shared libraries).
+###############################################################################
+### This script is called by (cd .. && make download-external-libs). It will
+### git clone thirdparts needed for this project but does not compile them.
+### It replaces git submodules that I dislike.
+###############################################################################
 
 ### $1 is given by ../Makefile and refers to the current architecture.
 if [ "$1" == "" ]; then
@@ -13,32 +14,33 @@ fi
 ARCHI="$1"
 TARGET="$2"
 
-### Delete all previous directories to be sure to have and compile
-### fresh code source.
+### Delete all previous directories to be sure to have and compile fresh code source.
 rm -fr MyLogger Exception TerminalColor backward-cpp ncurses readline 2> /dev/null
 
-function print-clone
+### Git clone a GitHub repository $1
+URL="github.com"
+function cloning
 {
-    echo -e "\033[35m*** Cloning:\033[00m \033[36m$TARGET\033[00m <= \033[33m$1\033[00m"
+    REPO="$1"
+    shift
+
+    echo -e "\033[35m*** Cloning: \033[36m$URL/$REPO\033[00m >= \033[33m$TARGET\033[00m"
+    git clone https://$URL/$REPO.git --depth=1 --recurse $* > /dev/null
 }
 
 ### TerminalColor
-print-clone TerminalColor
-git clone https://github.com/Lecrapouille/TerminalColor --depth=1 > /dev/null
+cloning Lecrapouille/TerminalColor
 
 ### Exception
-print-clone MyLogger
-git clone https://github.com/Lecrapouille/MyLogger --depth=1 > /dev/null
+cloning Lecrapouille/MyLogger
 
 ### Exception
-print-clone Exception
-git clone https://github.com/Lecrapouille/Exception --depth=1 > /dev/null
+cloning Lecrapouille/Exception
 
 ### GNU ncurses
-print-clone ncurses
-git clone https://github.com/mirror/ncurses.git --depth=1 > /dev/null
+cloning mirror/ncurses
 
 ### GNU Readline
-print-clone Readline
-git clone https://git.savannah.gnu.org/git/readline.git --depth=1 > /dev/null
+URL="git.savannah.gnu.org/git"
+cloning readline
 

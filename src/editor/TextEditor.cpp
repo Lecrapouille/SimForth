@@ -259,7 +259,7 @@ bool TextEditor::saveAs(TextDocument* doc)
 
     // Set to the resource path while this is method seems to be deprecated by
     // GTK+ team.
-    dialog.set_current_folder(project::info.data_path);
+    dialog.set_current_folder(project::info::data_path);
 
     // Add response buttons the the dialog:
     dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
@@ -332,7 +332,7 @@ bool TextEditor::open()
     dialog.set_transient_for((Gtk::Window&) (*get_toplevel()));
 
     // Set to the resource path while this is method seems to be deprecated by GTK+ team.
-    dialog.set_current_folder(project::info.data_path);
+    dialog.set_current_folder(project::info::data_path);
 
     // Add response buttons the the dialog:
     dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
